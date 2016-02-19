@@ -1,0 +1,31 @@
+{
+  "name": "mendel",
+  "version": "0.0.1",
+  "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "testing",
+    "a/b",
+    "bucket",
+    "multivariate",
+    "experiments",
+    "evaluation",
+    "build-tools",
+    "build"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "contributors": [
+    {
+      "name": "David Gomez",
+      "email": "david.garcia.mx@gmail.com"
+    },
+    {
+      "name": "Rafael Martins",
+      "email": "snit.ram@gmail.com"
+    }
+  ],
+  "license": "MIT"
+}
