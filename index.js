@@ -77,32 +77,31 @@ async.parallel(bundles.map(function(bundle) { return function() {
   // var bundle = bundles[0];
   var b = browserify(bundle);
 
+  // Prepare output files
+  var destBundle = path.join(process.cwd(), bundle.dest);
+  var destDeps = path.join(process.cwd(), config.dest, bundle.id+'.json');
+  mkdirp.sync(path.dirname(destDeps));
+  mkdirp.sync(path.dirname(destBundle));
+
+  var bundleStream = fs.createWriteStream(destBundle);
+  var depsStream = JSONStream.stringify();
+  depsStream.pipe(fs.createWriteStream(destDeps));
+
+  // Trasforms
   b.transform("babelify");
   b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": bundle.chain});
 
-  var hasher = through.obj(function (row, enc, next) {
+  // dependencies operations
+  var hashAndWrite = through.obj(function (row, enc, next) {
     row.sha = shasum(row.source);
     this.push(row);
+    depsStream.write(row);
     next();
   });
-  b.pipeline.get('deps').push(hasher);
+  b.pipeline.get('deps').push(hashAndWrite);
 
-  // prepare to write deps file
-  var destDeps = path.join(process.cwd(), config.dest, bundle.id+'.json');
-  var depsString = JSONStream.stringify();
-  mkdirp.sync(path.dirname(destDeps));
-  depsString.pipe(fs.createWriteStream(destDeps));
-  // create deps writer
-  var depsWriter = through.obj(function (row, enc, next) {
-    depsString.write(row);
-    this.push(row);
-    next();
-  });
-  b.pipeline.get('dedupe').push(depsWriter);
-
-  // prepare to bundle
-  var dest = path.join(process.cwd(), bundle.dest);
-  mkdirp.sync(path.dirname(dest));
   // bundle
-  b.bundle().pipe(fs.createWriteStream(dest));
+  var bundler = b.bundle();
+  bundler.on('end', depsStream.end);
+  bundler.pipe(bundleStream);
 };}));
