@@ -55,7 +55,7 @@ var bundles = [{
 }].concat(variations).reduce(function(cumulative, variation) {
   var bundles = Object.keys(config.bundles).map(function(bundleName) {
     bundle = JSON.parse(JSON.stringify(config.bundles[bundleName]));
-    bundle.entries = bundle.entries.map(function(file) {
+    bundle.entries = (bundle.entries||[]).map(function(file) {
       var found;
       variation.chain.some(function(dir) {
         found = path.join(dir, file);
@@ -65,7 +65,7 @@ var bundles = [{
     });
     bundle.id = variation.id + '.' + bundleName;
     bundle.chain = variation.chain;
-    bundle.dest = path.join(config.dest, variation.id, bundle.dest);
+    bundle.dest = path.join(config.dest, variation.id, (bundle.dest || bundleName+'.js'));
     return bundle;
   });
   return cumulative.concat(bundles);
