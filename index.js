@@ -87,8 +87,6 @@ async.parallel(bundles.map(function(bundle) { return function() {
   var depsStream = JSONStream.stringify();
   depsStream.pipe(fs.createWriteStream(destDeps));
 
-  // Trasforms
-  b.transform("babelify");
   b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": bundle.chain});
 
   // dependencies operations
