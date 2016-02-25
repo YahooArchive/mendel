@@ -41,7 +41,7 @@ var bundles = Object.keys(config.bundles).map(function(bundleName) {
 
 logObj(bundles);
 
-var variations = Object.keys(config.variations).map(function(dir) {
+var variations = Object.keys(config.variations||[]).map(function(dir) {
   var chain = [dir]
                   .concat(config.variations[dir] || [])
                   .map(variationsDir)
