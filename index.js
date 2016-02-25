@@ -81,8 +81,8 @@ function findVariationMatch(path) {
 
 logObj(variations);
 
-async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
-  async.parallel(variations.map(function(variation) { return function(doneVariation) {
+async.each(bundles, function(rawBundle, doneBundle) {
+  async.each(variations, function(variation, doneVariation) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
 
     // validate entries honorring chain
@@ -100,10 +100,10 @@ async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
 
     // Prepare output files
     var bundleFileName = (bundle.dest || bundle.id+'.js');
-    var destBundle = path.join(process.cwd(), config.dest, variation.id, bundleFileName);
-    var destDeps = path.join(path.dirname(destBundle), bundle.id+'.manifest.json');
-    mkdirp.sync(path.dirname(destDeps));
-    mkdirp.sync(path.dirname(destBundle));
+    var destDir = path.join(process.cwd(), config.dest, variation.id);
+    var destBundle = path.join(destDir, bundleFileName);
+    var destDeps = path.join(destDir, bundle.id+'.manifest.json');
+    mkdirp.sync(destDir);
 
     var bundleStream = fs.createWriteStream(destBundle);
     var depsStream = JSONStream.stringify();
@@ -139,5 +139,5 @@ async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
       doneVariation();
     });
     bundler.pipe(bundleStream);
-  };}), doneBundle);
-};}));
+  }, doneBundle);
+});
