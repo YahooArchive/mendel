@@ -62,8 +62,8 @@ variations.unshift({
 
 logObj(variations);
 
-async.parallel(bundles.map(function(rawBundle) { return function() {
-  async.parallel(variations.map(function(variation) { return function() {
+async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
+  async.parallel(variations.map(function(variation) { return function(doneVariation) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
 
     // validate entries honorring chain
@@ -75,6 +75,7 @@ async.parallel(bundles.map(function(rawBundle) { return function() {
       });
       return found;
     });
+    bundle.bundleExternal = !bundle.external;
 
     var b = browserify(bundle);
 
@@ -102,7 +103,10 @@ async.parallel(bundles.map(function(rawBundle) { return function() {
 
     // bundle
     var bundler = b.bundle();
-    bundler.on('end', depsStream.end);
+    bundler.on('end', function(){
+      depsStream.end();
+      doneVariation();
+    });
     bundler.pipe(bundleStream);
-  };}));
+  };}), doneBundle);
 };}));
