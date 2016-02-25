@@ -60,6 +60,25 @@ variations.unshift({
   chain: [config.base],
 });
 
+variations.forEach(function(variation) {
+  variation.matchList = variation.chain.map(function(path) {
+    path = path.replace(/(^\/|\/$)/g,'');
+    return new RegExp('(.*)/('+path+')/(.*)')
+  });
+});
+
+function findVariationMatch(path) {
+  var match;
+  variations.some(function(variation) {
+    variation.matchList.some(function(regex) {
+      match = path.match(regex);
+      return match;
+    });
+    return match;
+  });
+  return match;
+}
+
 logObj(variations);
 
 async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
@@ -92,14 +111,26 @@ async.parallel(bundles.map(function(rawBundle) { return function(doneBundle) {
 
     b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": variation.chain});
 
-    // dependencies operations
-    var hashAndWrite = through.obj(function (row, enc, next) {
+    var mendelify = through.obj(function (row, enc, next) {
+      var match = findVariationMatch(row.file);
+
+      if (match) {
+        row.id = match[3];
+        row.variation = match[2];
+        Object.keys(row.deps).forEach(function (key) {
+          var rowMatch = findVariationMatch(key);
+          if (rowMatch) {
+            row.deps[key] = rowMatch[3];
+          }
+        });
+      }
+
       row.sha = shasum(row.source);
       this.push(row);
       depsStream.write(row);
       next();
     });
-    b.pipeline.get('deps').push(hashAndWrite);
+    b.pipeline.get('deps').push(mendelify);
 
     // bundle
     var bundler = b.bundle();
