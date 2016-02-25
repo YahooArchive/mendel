@@ -50,8 +50,8 @@ var requireTransform = transformTools.makeRequireTransform(
         if (typeof dirs === 'string') {
             dirs = [dirs];
         }
-        if (!dirs.length) {
-            requireDone();
+        if (isExternalModule(module) || !dirs.length) {
+            return requireDone();
         }
 
         // removes all folder information, per example /User/code/project/A/lib/foo.js -> lib/foo.js
@@ -84,10 +84,17 @@ var requireTransform = transformTools.makeRequireTransform(
                     return requireDone();
                 }
                 // console.log('module found in', moduleIn, module); // per example above, moduleIn = /B/
-                requireDone(null, "require('"+finalPath+"')");
+                return requireDone(null, "require('"+finalPath+"')");
             });
         });
     }
 );
+
+function isExternalModule (file) {
+    var regexp = process.platform === 'win32' ?
+        /^(\.|\w:)/ :
+        /^[\/.]/;
+    return !regexp.test(file);
+}
 
 module.exports = requireTransform;
