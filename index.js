@@ -82,6 +82,31 @@ function findVariationMatch(path) {
 logObj(variations);
 
 async.each(bundles, function(rawBundle, doneBundle) {
+  var bundleManifest = {};
+  function pushBundleManifest(dep) {
+    var id = dep.id;
+    var variation = dep.variation;
+    var data = JSON.parse(JSON.stringify(dep));
+    delete data.source;
+    delete data.sha;
+    delete data.file;
+
+    if (!bundleManifest[id]) {
+      bundleManifest[id] = {
+        variations: [variation],
+        data: [data],
+      };
+    } else {
+      var variationIndex = bundleManifest[id].variations.indexOf(variation);
+      if (variationIndex === -1) {
+        bundleManifest[id].variations.push(variation);
+        bundleManifest[id].data.push(data);
+      } else if (bundleManifest[id].data[variationIndex].sha !== dep.sha) {
+        console.log('Same id should not yield same sha');
+        // throw new Error('Same id should not yield same sha');
+      }
+    }
+  }
   async.each(variations, function(variation, doneVariation) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
 
@@ -126,6 +151,9 @@ async.each(bundles, function(rawBundle, doneBundle) {
       }
 
       row.sha = shasum(row.source);
+
+      pushBundleManifest(row);
+
       this.push(row);
       depsStream.write(row);
       next();
@@ -139,5 +167,13 @@ async.each(bundles, function(rawBundle, doneBundle) {
       doneVariation();
     });
     bundler.pipe(bundleStream);
-  }, doneBundle);
+  }, function() {
+    var manifestPath = path.join(process.cwd(), config.dest, rawBundle.id+'.manifest.json');
+    fs.writeFile(manifestPath, JSON.stringify(bundleManifest), function (err) {
+      if (err) {
+        return console.log(err);
+      }
+      doneBundle();
+    });
+  });
 });
