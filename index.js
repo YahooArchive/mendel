@@ -33,6 +33,14 @@ if (!fs.existsSync(basePath)) {
   process.exit(1);
 }
 
+var bundles = Object.keys(config.bundles).map(function(bundleName) {
+  var bundle = config.bundles[bundleName];
+  bundle.id = bundleName;
+  return bundle;
+});
+
+logObj(bundles);
+
 var variations = Object.keys(config.variations).map(function(dir) {
   var chain = [dir]
                   .concat(config.variations[dir] || [])
@@ -47,14 +55,18 @@ var variations = Object.keys(config.variations).map(function(dir) {
   return variation.id !== 'base' && variation.chain.length > 1;
 });
 
-// logObj(variations);
-
-var bundles = [{
+variations.unshift({
   id: 'base',
   chain: [config.base],
-}].concat(variations).reduce(function(cumulative, variation) {
-  var bundles = Object.keys(config.bundles).map(function(bundleName) {
-    bundle = JSON.parse(JSON.stringify(config.bundles[bundleName]));
+});
+
+logObj(variations);
+
+async.parallel(bundles.map(function(rawBundle) { return function() {
+  async.parallel(variations.map(function(variation) { return function() {
+    var bundle = JSON.parse(JSON.stringify(rawBundle));
+
+    // validate entries honorring chain
     bundle.entries = (bundle.entries||[]).map(function(file) {
       var found;
       variation.chain.some(function(dir) {
@@ -63,43 +75,34 @@ var bundles = [{
       });
       return found;
     });
-    bundle.id = variation.id + '.' + bundleName;
-    bundle.chain = variation.chain;
-    bundle.dest = path.join(config.dest, variation.id, (bundle.dest || bundleName+'.js'));
-    return bundle;
-  });
-  return cumulative.concat(bundles);
-}, []);
 
-logObj(bundles);
+    var b = browserify(bundle);
 
-async.parallel(bundles.map(function(bundle) { return function() {
-  // var bundle = bundles[0];
-  var b = browserify(bundle);
+    // Prepare output files
+    var bundleFileName = (bundle.dest || bundle.id+'.js');
+    var destBundle = path.join(process.cwd(), config.dest, variation.id, bundleFileName);
+    var destDeps = path.join(path.dirname(destBundle), bundle.id+'.manifest.json');
+    mkdirp.sync(path.dirname(destDeps));
+    mkdirp.sync(path.dirname(destBundle));
 
-  // Prepare output files
-  var destBundle = path.join(process.cwd(), bundle.dest);
-  var destDeps = path.join(process.cwd(), config.dest, bundle.id+'.json');
-  mkdirp.sync(path.dirname(destDeps));
-  mkdirp.sync(path.dirname(destBundle));
+    var bundleStream = fs.createWriteStream(destBundle);
+    var depsStream = JSONStream.stringify();
+    depsStream.pipe(fs.createWriteStream(destDeps));
 
-  var bundleStream = fs.createWriteStream(destBundle);
-  var depsStream = JSONStream.stringify();
-  depsStream.pipe(fs.createWriteStream(destDeps));
+    b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": variation.chain});
 
-  b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": bundle.chain});
+    // dependencies operations
+    var hashAndWrite = through.obj(function (row, enc, next) {
+      row.sha = shasum(row.source);
+      this.push(row);
+      depsStream.write(row);
+      next();
+    });
+    b.pipeline.get('deps').push(hashAndWrite);
 
-  // dependencies operations
-  var hashAndWrite = through.obj(function (row, enc, next) {
-    row.sha = shasum(row.source);
-    this.push(row);
-    depsStream.write(row);
-    next();
-  });
-  b.pipeline.get('deps').push(hashAndWrite);
-
-  // bundle
-  var bundler = b.bundle();
-  bundler.on('end', depsStream.end);
-  bundler.pipe(bundleStream);
+    // bundle
+    var bundler = b.bundle();
+    bundler.on('end', depsStream.end);
+    bundler.pipe(bundleStream);
+  };}));
 };}));
