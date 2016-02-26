@@ -10,22 +10,10 @@ var fs = require('fs');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var JSONStream = require('JSONStream');
-
-function existsRelativeDir(dir) {
-  return fs.existsSync(path.join(process.cwd(), dir));
-}
-
-function variationsDir(dir) {
-  return path.join(config.variations_root, dir);
-}
-
-function logObj(obj) {
-  console.log(require('util').inspect(obj,false,null,true));
-  return obj;
-}
+var falafel = require('falafel');
 
 var config = require('./config')();
-// logObj((config));
+logObj((config));
 
 var basePath = path.join(process.cwd(), config.base);
 if (!fs.existsSync(basePath)) {
@@ -67,46 +55,55 @@ variations.forEach(function(variation) {
   });
 });
 
-function findVariationMatch(path) {
-  var match;
-  variations.some(function(variation) {
-    variation.matchList.some(function(regex) {
-      match = path.match(regex);
-      return match;
-    });
-    return match;
-  });
-  return match;
-}
-
 logObj(variations);
 
 async.each(bundles, function(rawBundle, doneBundle) {
-  var bundleManifest = {};
+  var bundleIndexes = {};
+  var bundleData = [];
+  var bundleManifest = {
+    bundleIndexes: bundleIndexes,
+    bundles: bundleData,
+  };
+
   function pushBundleManifest(dep) {
     var id = dep.id;
-    var variation = dep.variation;
+    var variation = dep.variation || 'module';
     var data = JSON.parse(JSON.stringify(dep));
-    delete data.source;
-    delete data.sha;
-    delete data.file;
 
-    if (!bundleManifest[id]) {
-      bundleManifest[id] = {
+    delete data.file;
+    delete data.source;
+    delete data.id;
+    Object.keys(data.deps).forEach(function(key) {
+      var index = bundleIndexes[key];
+      if (typeof index !== 'undefined') {
+        data.deps[key] = index;
+      }
+      index = bundleIndexes[data.deps[key]];
+      if (typeof index !== 'undefined') {
+        data.deps[key] = index;
+      }
+    });
+
+    if (typeof bundleIndexes[id] === 'undefined') {
+      var newDep = {
+        id: id,
         variations: [variation],
         data: [data],
       };
+      bundleData.push(newDep);
+      bundleIndexes[id] = bundleData.indexOf(newDep);
     } else {
-      var variationIndex = bundleManifest[id].variations.indexOf(variation);
+      var existingData = bundleData[bundleIndexes[id]];
+      var variationIndex = existingData.variations.indexOf(variation);
       if (variationIndex === -1) {
-        bundleManifest[id].variations.push(variation);
-        bundleManifest[id].data.push(data);
-      } else if (bundleManifest[id].data[variationIndex].sha !== dep.sha) {
-        console.log('Same id should not yield same sha');
-        // throw new Error('Same id should not yield same sha');
+        existingData.variations.push(variation);
+        existingData.data.push(data);
+      } else if (existingData.data[variationIndex].sha !== dep.sha) {
+        throw new Error('Files with same variation and id should have the same SHA');
       }
     }
   }
+
   async.each(variations, function(variation, doneVariation) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
 
@@ -138,17 +135,20 @@ async.each(bundles, function(rawBundle, doneBundle) {
 
     var mendelify = through.obj(function (row, enc, next) {
       var match = findVariationMatch(row.file);
-
       if (match) {
         row.id = match[3];
         row.variation = match[2];
-        Object.keys(row.deps).forEach(function (key) {
-          var rowMatch = findVariationMatch(key);
-          if (rowMatch) {
-            row.deps[key] = rowMatch[3];
-          }
-        });
       }
+
+      Object.keys(row.deps).forEach(function (key) {
+        var rowMatch = findVariationMatch(key);
+        if (rowMatch) {
+          row.deps[rowMatch[3]] = rowMatch[3];
+          delete row.deps[key];
+        }
+      });
+
+      row.source = replaceRequiresOnSource(row.source, row);
 
       row.sha = shasum(row.source);
 
@@ -169,7 +169,7 @@ async.each(bundles, function(rawBundle, doneBundle) {
     bundler.pipe(bundleStream);
   }, function() {
     var manifestPath = path.join(process.cwd(), config.dest, rawBundle.id+'.manifest.json');
-    fs.writeFile(manifestPath, JSON.stringify(bundleManifest), function (err) {
+    fs.writeFile(manifestPath, JSON.stringify(bundleManifest, null, 2), function (err) {
       if (err) {
         return console.log(err);
       }
@@ -177,3 +177,60 @@ async.each(bundles, function(rawBundle, doneBundle) {
     });
   });
 });
+
+
+function existsRelativeDir(dir) {
+  return fs.existsSync(path.join(process.cwd(), dir));
+}
+
+function variationsDir(dir) {
+  return path.join(config.variations_root, dir);
+}
+
+function logObj(obj) {
+  console.log(require('util').inspect(obj,false,null,true));
+  return obj;
+}
+
+function replaceRequiresOnSource (src, deps, replacer) {
+  var opts = {
+      ecmaVersion: 6,
+      allowReturnOutsideFunction: true
+  };
+  return falafel(src, opts, function (node) {
+    if (isRequire(node)) {
+      var value = node.arguments[0].value;
+      var match = findVariationMatch(value);
+      if (match) {
+        if(match) node.update('require(\'' + match[3] + '\')');
+      }
+    }
+  }).toString();
+}
+
+function findVariationMatch(path) {
+  var match;
+  variations.some(function(variation) {
+    variation.matchList.some(function(regex) {
+      match = path.match(regex);
+      return match;
+    });
+    return match;
+  });
+  return match;
+}
+
+function isRequire (node) {
+  var c = node.callee;
+  return c
+    && node.type === 'CallExpression'
+    && c.type === 'Identifier'
+    && c.name === 'require'
+    && node.arguments[0]
+    && node.arguments[0].type === 'Literal'
+  ;
+}
+
+function has (obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+}
