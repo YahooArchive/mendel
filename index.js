@@ -57,6 +57,16 @@ variations.forEach(function(variation) {
 
 logObj(variations);
 
+var extractions = {};
+bundles.forEach(function(bundle) {
+  if (!bundle.extract) return;
+  extractions[bundle.id] = Object.keys(bundle.extract).reduce(function(cumulative, key) {
+    return cumulative.concat(bundle.extract[key].require);
+  }, []);
+});
+
+logObj(extractions);
+
 async.each(bundles, function(rawBundle, doneBundle) {
   var bundleIndexes = {};
   var bundleData = [];
@@ -118,6 +128,20 @@ async.each(bundles, function(rawBundle, doneBundle) {
     });
     bundle.bundleExternal = !bundle.external;
 
+    // This is undocumented on browserify, but browserify
+    // pass all options to modules-deps and filter is supported
+    // and documented there.
+    if (bundle.extract) {
+      bundle.filter = function(id) {
+        var idMatch = findVariationMatch(id);
+        if (idMatch) {
+          return -1 === extractions[bundle.id].indexOf(idMatch[3]);
+        }
+        return true;
+      };
+    }
+
+
     var b = browserify(bundle);
 
     // Prepare output files
@@ -170,9 +194,19 @@ async.each(bundles, function(rawBundle, doneBundle) {
   }, function() {
     var manifestPath = path.join(process.cwd(), config.dest, rawBundle.id+'.manifest.json');
     fs.writeFile(manifestPath, JSON.stringify(bundleManifest, null, 2), function (err) {
-      if (err) {
-        return console.log(err);
-      }
+      if (err) throw err;
+      /*
+        Here is the right place to implement the generation of extracted bundles. Simple algorithm
+        should be as follows:
+          1. Assuming all `bundle.externals` are already parsed with something similar to `findVariationMatch`.
+          2. Assuming `bundleManifest` ids are already parsed with `findVariationMatch` during "deps" phase.
+          3. Create one array with all `bundle.externals` + all `bundleManifest` ids
+          4. Use this array as externals for all the `bundle.externals` bundles
+          5. Run mendel through all those bundles
+        The reason I prefer not to do this righ now is because we are doing procedural async bundle generation
+        and we need to make mendel a plugin. This way we can have the plugin trigger extra bundle generations
+        by adding the above algorithm on the wrap phase.
+      */
       doneBundle();
     });
   });
