@@ -226,7 +226,7 @@ function logObj(obj) {
   return obj;
 }
 
-function replaceRequiresOnSource (src, deps, replacer) {
+function replaceRequiresOnSource (src) {
   var opts = {
       ecmaVersion: 6,
       allowReturnOutsideFunction: true
@@ -265,6 +265,3 @@ function isRequire (node) {
   ;
 }
 
-function has (obj, key) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
-}

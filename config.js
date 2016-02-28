@@ -8,7 +8,6 @@ var fs = require("fs");
 var yaml = require('js-yaml');
 
 module.exports = function() {
-  var config;
   var cwd = process.cwd();
   var parts = cwd.split(path.sep);
 
