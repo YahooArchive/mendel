@@ -10,8 +10,10 @@ var fs = require('fs');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var JSONStream = require('JSONStream');
+var xtend = require('xtend');
 var falafel = require('falafel');
 
+var validVariations = require('./lib/variations');
 var config = require('./config')();
 logObj((config));
 
@@ -29,19 +31,9 @@ var bundles = Object.keys(config.bundles).map(function(bundleName) {
 
 logObj(bundles);
 
-var variations = Object.keys(config.variations||[]).map(function(dir) {
-  var chain = [dir]
-                  .concat(config.variations[dir] || [])
-                  .map(variationsDir)
-                  .concat([config.base])
-                  .filter(existsRelativeDir);
-  return {
-    id: dir,
-    chain: chain,
-  };
-}).filter(function(variation) {
-  return variation.id !== 'base' && variation.chain.length > 1;
-});
+var variations = validVariations(xtend(config, {
+  basetree: config.base,
+}));
 
 variations.unshift({
   id: 'base',
@@ -211,15 +203,6 @@ async.each(bundles, function(rawBundle, doneBundle) {
     });
   });
 });
-
-
-function existsRelativeDir(dir) {
-  return fs.existsSync(path.join(process.cwd(), dir));
-}
-
-function variationsDir(dir) {
-  return path.join(config.variations_root, dir);
-}
 
 function logObj(obj) {
   console.log(require('util').inspect(obj,false,null,true));
