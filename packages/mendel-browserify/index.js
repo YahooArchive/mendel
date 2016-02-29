@@ -41,8 +41,27 @@ function mendelBrowserify(baseBundle, opts) {
             } else {
                 return bv.bundle().pipe(process.stdout);
             }
+
         }
     });
+
+    // Modifying baseBundle pipeline after the above forEach causes all
+    // variations also be affected
+
+    if (bopts.debug) {
+        addPipelineDebug(baseBundle, [opts.basetree, opts.variationsdir]);
+    }
+}
+
+function addPipelineDebug(b, dirs) {
+    var debug = through.obj(function (row, enc, next) {
+        var parts = row.file.split(new RegExp("/("+dirs.join('|')+"|node_modules)/"));
+        row.sourceFile = parts.splice(-2).join('/');
+        row.sourceRoot = parts.join('/');
+        this.push(row);
+        next();
+    });
+    b.pipeline.get("debug").splice(0, 1, debug);
 }
 
 function writeVariation(baseBundle, opts, variation, bv) {
