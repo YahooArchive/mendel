@@ -14,8 +14,10 @@
   "author": "Irae Carvalho <irae@irae.pro.br>",
   "license": "MIT",
   "dependencies": {
+    "JSONStream": "^1.0.7",
     "isarray": "^1.0.0",
     "mkdirp": "^0.5.1",
+    "shasum": "^1.0.2",
     "through2": "^2.0.1",
     "xtend": "^4.0.1"
   }
