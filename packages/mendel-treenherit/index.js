@@ -3,7 +3,6 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var fs = require('fs');
 var path = require('path');
 var async = require('async');
 var resolve = require('browser-resolve');
