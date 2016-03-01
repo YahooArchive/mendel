@@ -10,6 +10,8 @@ var falafel = require('falafel');
 
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
+var proxy = require('./lib/proxy');
+var onlyPublicMethods = proxy.onlyPublicMethods;
 
 module.exports = mendelBrowserify;
 
@@ -54,18 +56,14 @@ function mendelBrowserify(baseBundle, opts) {
         var vopts = xtend(bopts);
         var bv = browserify(vopts);
 
-        Object.keys(browserify.prototype)
-            .filter(onlyPublicMethods)
-            .filter(notBundle)
-            .forEach(function(method) {
-                proxyMethod(method, baseBundle, bv)
-            });
+        proxy(browserify, baseBundle, bv, {
+            filters: [onlyPublicMethods],
+            exclude: ['bundle']
+        });
 
-        Object.keys(pipeline.prototype)
-            .filter(onlyPublicMethods)
-            .forEach(function(method) {
-                proxyMethod(method, baseBundle.pipeline, bv.pipeline)
-            });
+        proxy(browserify, baseBundle.pipeline, bv.pipeline, {
+            filters: [onlyPublicMethods]
+        });
 
         addTransform(bv, variation.chain);
 
@@ -308,12 +306,4 @@ function isRequire (node) {
     && node.arguments[0]
     && node.arguments[0].type === 'Literal'
   ;
-}
-
-function notBundle(method) {
-    return method !== 'bundle';
-}
-
-function onlyPublicMethods(method) {
-    return method.indexOf('_') !== 0;
 }
