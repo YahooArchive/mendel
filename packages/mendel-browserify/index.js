@@ -6,6 +6,7 @@ var mkdirp = require('mkdirp');
 var through = require('through2');
 var shasum = require('shasum');
 var JSONStream = require('JSONStream');
+var falafel = require('falafel');
 
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
@@ -30,6 +31,10 @@ function mendelBrowserify(baseBundle, opts) {
         );
         return process.exit(1);
     }
+
+    baseBundle.transform(path.join(__dirname, "../mendel-treenherit"), {
+        dirs: baseVariation.chain,
+    });
 
     if (opts.manifest) {
         createManifest(
@@ -80,6 +85,7 @@ function mendelBrowserify(baseBundle, opts) {
             }
         });
     });
+
     // Any action on baseBundle after the proxies, will also affect variations.
 
     if (bopts.debug) {
@@ -106,7 +112,7 @@ function createManifest(currentBundle, baseBundle, opts, variations, variation) 
         }
       });
 
-      // row.source = replaceRequiresOnSource(row.source, row);
+      row.source = replaceRequiresOnSource(row.source, variations);
 
       row.sha = shasum(row.source);
 
@@ -196,6 +202,34 @@ function proxyMethod(method, source, destination) {
         destination[method].apply(destination, args);
         return oldMethod.apply(source, args);
     }
+}
+
+function replaceRequiresOnSource (src, variations) {
+  var opts = {
+      ecmaVersion: 6,
+      allowReturnOutsideFunction: true
+  };
+  return falafel(src, opts, function (node) {
+    if (isRequire(node)) {
+      var value = node.arguments[0].value;
+      var match = variationMatches(variations, value);
+      if (match) {
+        if(match) node.update('require(\'' + match.file + '\')');
+      }
+    }
+  }).toString();
+}
+
+
+function isRequire (node) {
+  var c = node.callee;
+  return c
+    && node.type === 'CallExpression'
+    && c.type === 'Identifier'
+    && c.name === 'require'
+    && node.arguments[0]
+    && node.arguments[0].type === 'Literal'
+  ;
 }
 
 function notBundle(method) {
