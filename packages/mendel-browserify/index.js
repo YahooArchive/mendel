@@ -7,7 +7,7 @@ var through = require('through2');
 var shasum = require('shasum');
 var JSONStream = require('JSONStream');
 var falafel = require('falafel');
-
+var isRequire = require('./lib/falafel-util').isRequire;
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
 var proxy = require('./lib/proxy');
@@ -261,15 +261,6 @@ function listBundle(baseBundle, bv, variation) {
     });
 }
 
-function proxyMethod(method, source, destination) {
-    var oldMethod = source[method];
-    source[method] = function() {
-        var args = Array.prototype.slice.call(arguments);
-        destination[method].apply(destination, args);
-        return oldMethod.apply(source, args);
-    }
-}
-
 function replaceRequiresOnSource (src, variations) {
   var opts = {
       ecmaVersion: 6,
@@ -294,16 +285,4 @@ function addTransform(bundle, chain) {
         dirs: chain,
     });
     bundle._transformOrder -= 50;
-}
-
-
-function isRequire (node) {
-  var c = node.callee;
-  return c
-    && node.type === 'CallExpression'
-    && c.type === 'Identifier'
-    && c.name === 'require'
-    && node.arguments[0]
-    && node.arguments[0].type === 'Literal'
-  ;
 }
