@@ -7,33 +7,38 @@ var path = require("path");
 var fs = require("fs");
 var yaml = require('js-yaml');
 
-module.exports = function() {
-  var cwd = process.cwd();
-  var parts = cwd.split(path.sep);
+module.exports = function(basedir) {
+    var cwd = path && path.resolve(basedir) || process.cwd();
+    var parts = cwd.split(path.sep);
 
-  do {
-    var loc = parts.join(path.sep);
-    if (!loc) break;
+    do {
+        var loc = parts.join(path.sep);
+        if (!loc) break;
 
-    var rc = path.join(loc, ".mendelrc");
-    if (fs.existsSync(rc)) {
-      return loadFromYaml(rc);
-    }
+        var config;
+        var rc = path.join(loc, ".mendelrc");
+        if (fs.existsSync(rc)) {
+            config = loadFromYaml(rc);
+            config.basedir = config.basedir || path.dirname(rc);
+            return config;
+        }
 
-    var packagejson = path.join(loc, "package.json");
-    if (fs.existsSync(packagejson)) {
-      var pkg = require(packagejson);
-      if (pkg.mendel) {
-        return pkg.mendel;
-      }
-    }
+        var packagejson = path.join(loc, "package.json");
+        if (fs.existsSync(packagejson)) {
+            var pkg = require(packagejson);
+            if (pkg.mendel) {
+                config = pkg.mendel;
+                config.basedir = config.basedir || path.dirname(packagejson);
+                return config;
+            }
+        }
 
-    parts.pop();
-  } while (parts.length);
+        parts.pop();
+    } while (parts.length);
 
-  throw new Error('No .mendelrc found nor package.json `mendel` entry.');
+    throw new Error('No .mendelrc found nor package.json `mendel` entry.');
 }
 
 function loadFromYaml(path) {
-  return yaml.safeLoad(fs.readFileSync(path, 'utf8'));
+    return yaml.safeLoad(fs.readFileSync(path, 'utf8'));
 }
