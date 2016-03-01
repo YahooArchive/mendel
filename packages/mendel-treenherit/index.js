@@ -25,11 +25,12 @@ var transformTools = require('browserify-transform-tools');
             And /A/lib/foo.js has a statement:
                 var bar = require('./bar');
 
-            browser-resolve (same module used by browserify) finds dependencies with
-            relative path by looking at the parent path.
+            browser-resolve (same module used by browserify) finds dependencies
+            with relative path by looking at the parent path.
 
-            For this reason, if a "parent" file from /A/ requires a relative file that
-            should resolve on /B/, we need to simulate that the original file is on /B/
+            For this reason, if a "parent" file from /A/ requires a relative
+            file that should resolve on /B/, we need to simulate that the
+            original file is on /B/
 
             As per example:
                 resolve('./bar', {filename:'/A/lib/foo.js'}) //--> /A/lib/bar.js
@@ -55,7 +56,8 @@ var requireTransform = transformTools.makeRequireTransform(
             return transformDone();
         }
 
-        // removes all folder information, per example /User/code/project/A/lib/foo.js -> lib/foo.js
+        // removes all folder information,
+        // per example /User/code/project/A/lib/foo.js -> lib/foo.js
         dirs.some(function(dir) {
             var parts = parent.split(new RegExp("/"+dir+"/"));
             var found = parts.length > 1;
@@ -68,8 +70,10 @@ var requireTransform = transformTools.makeRequireTransform(
 
         var finalPath;
         async.detectSeries(dirs, function(dir, doneModule) {
-            var parentInsideIterateeDir = path.join(basedir || process.cwd(), dir, parent);
-            resolve(module, {filename: parentInsideIterateeDir}, function(err, path) {
+            var base = basedir || process.cwd();
+            var parentInsideIterateeDir = path.join(base, dir, parent);
+            var opts = { filename: parentInsideIterateeDir };
+            resolve(module, opts, function(err, path) {
                 if (!err) {
                     finalPath = path;
                 }
@@ -82,7 +86,8 @@ var requireTransform = transformTools.makeRequireTransform(
             // finalPath **MUST** be absolute because generating multiple
             // bundles from the same tree but different entrypoints
             // will cause checksum to fail
-            return transformDone(null, "require('"+path.resolve(finalPath)+"')");
+            finalPath = path.resolve(finalPath);
+            return transformDone(null, "require('"+finalPath+"')");
         });
     }
 );
