@@ -32,11 +32,15 @@ function mendelBrowserify(baseBundle, opts) {
         return process.exit(1);
     }
 
-    baseBundle.transform(path.join(__dirname, "../mendel-treenherit"), {
-        dirs: baseVariation.chain,
-    });
+    addTransform(baseBundle, baseVariation.chain);
 
     if (opts.manifest) {
+        baseBundle.__mendelManifestPending = 0;
+        baseBundle.__mendelManifest = {
+            bundleIndexes: {},
+            bundles: {},
+        };
+
         createManifest(
             baseBundle, baseBundle, opts, variationsWithBase, baseVariation
         );
@@ -63,11 +67,9 @@ function mendelBrowserify(baseBundle, opts) {
                 proxyMethod(method, baseBundle.pipeline, bv.pipeline)
             });
 
+        addTransform(bv, variation.chain);
+
         baseBundle.on('bundle', function onBaseBundleStart() {
-            var topts = {"dirs": variation.chain};
-
-            bv.transform(path.join(__dirname, "../mendel-treenherit"), topts);
-
             if (baseBundle.argv.list) {
                 return listBundle(baseBundle, bv, variation);
             }
@@ -93,36 +95,102 @@ function mendelBrowserify(baseBundle, opts) {
     }
 }
 
-function createManifest(currentBundle, baseBundle, opts, variations, variation) {
+function createManifest(bundle, baseBundle, opts, variations, variation) {
     var depsStream = createDepsStream(baseBundle, opts, variation);
-    currentBundle.on('bundle', function(b) { b.on('end', depsStream.end); });
 
     function mendelify(row, enc, next) {
-      var match = variationMatches(variations, row.file);
-      if (match) {
-        row.id = match.file;
-        row.variation = match.dir;
-      }
-
-      Object.keys(row.deps).forEach(function (key) {
-        var depMatch = variationMatches(variations, key);
-        if (depMatch) {
-          row.deps[depMatch.file] = depMatch.file;
-          delete row.deps[key];
+        var match = variationMatches(variations, row.file);
+        if (match) {
+            row.id = match.file;
+            row.variation = match.dir;
         }
-      });
 
-      row.source = replaceRequiresOnSource(row.source, variations);
+        Object.keys(row.deps).forEach(function (key) {
+            var depMatch = variationMatches(variations, key);
+            if (depMatch) {
+                row.deps[depMatch.file] = depMatch.file;
+                delete row.deps[key];
+            }
+        });
 
-      row.sha = shasum(row.source);
+        row.source = replaceRequiresOnSource(row.source, variations);
+        row.sha = shasum(row.source);
+        pushBundleManifest(baseBundle, row);
 
-      // pushBundleManifest(row);
-
-      this.push(row);
-      depsStream.write(row);
-      next();
+        this.push(row);
+        depsStream.write(row);
+        next();
     }
-    currentBundle.pipeline.get('deps').push(through.obj(mendelify));
+    bundle.pipeline.get('deps').push(through.obj(mendelify));
+    ++ baseBundle.__mendelManifestPending;
+    bundle.on('bundle', function(b) { b.on('end', function() {
+        depsStream.end();
+        if (-- baseBundle.__mendelManifestPending === 0) {
+            doneManifest(baseBundle, opts);
+        }
+    })});
+}
+
+function pushBundleManifest(baseBundle, dep) {
+    var id = dep.id;
+    var variation = dep.variation || 'module';
+    var data = JSON.parse(JSON.stringify(dep));
+
+    delete data.file;
+    delete data.source;
+    delete data.id;
+
+    var bundleManifest = baseBundle.__mendelManifest;
+    var bundleIndexes = bundleManifest.bundleIndexes;
+    var bundleData = bundleManifest.bundles;
+
+    Object.keys(data.deps).forEach(function(key) {
+        var index = bundleIndexes[key];
+        if (typeof index !== 'undefined') {
+            data.deps[key] = index;
+        }
+        index = bundleIndexes[data.deps[key]];
+        if (typeof index !== 'undefined') {
+            data.deps[key] = index;
+        }
+    });
+
+    if (typeof bundleIndexes[id] === 'undefined') {
+        var newDep = {
+            id: id,
+            variations: [variation],
+            data: [data],
+        };
+        bundleData.push(newDep);
+        bundleIndexes[id] = bundleData.indexOf(newDep);
+    } else {
+        var existingData = bundleData[bundleIndexes[id]];
+        var variationIndex = existingData.variations.indexOf(variation);
+        if (variationIndex === -1) {
+            existingData.variations.push(variation);
+            existingData.data.push(data);
+        } else if (existingData.data[variationIndex].sha !== dep.sha) {
+            throw new Error('Files with same variation ('+
+                variation+') and id ('+id+') should have the same SHA');
+        }
+    }
+}
+
+function doneManifest(baseBundle, opts) {
+    var bundleManifest = baseBundle.__mendelManifest;
+    var baseOut = path.parse(baseBundle.argv.o || baseBundle.argv.outfile);
+    var name = baseOut.name;
+
+    var manifestPath = path.join(
+        opts.outdir || baseOut.dir,
+        name+'.manifest.json'
+    );
+    fs.writeFile(
+        manifestPath, JSON.stringify(bundleManifest, null, 2),
+        function (err) {
+            if (err) throw err;
+        }
+    );
 }
 
 function createDepsStream(baseBundle, opts, variation) {
@@ -218,6 +286,16 @@ function replaceRequiresOnSource (src, variations) {
       }
     }
   }).toString();
+}
+
+function addTransform(bundle, chain) {
+    // This is unfortunate, we need to be the last require transform
+    // I will pay someone a beer if they find out a better way
+    bundle._transformOrder += 50;
+    bundle.transform(path.join(__dirname, "../mendel-treenherit"), {
+        dirs: chain,
+    });
+    bundle._transformOrder -= 50;
 }
 
 
