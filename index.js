@@ -14,6 +14,7 @@ var xtend = require('xtend');
 var falafel = require('falafel');
 
 var validVariations = require('./lib/variations');
+var variationMatches = require('./lib/variation-matches');
 var config = require('./config')();
 logObj((config));
 
@@ -119,7 +120,7 @@ async.each(bundles, function(rawBundle, doneBundle) {
     // and documented there.
     if (bundle.extract) {
       bundle.filter = function(id) {
-        var found = findVariationMatch(id);
+        var found = variationMatches(variations, id);
         if (found) {
           return -1 === extractions[bundle.id].indexOf(found.file);
         }
@@ -144,14 +145,14 @@ async.each(bundles, function(rawBundle, doneBundle) {
     b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": variation.chain});
 
     var mendelify = through.obj(function (row, enc, next) {
-      var match = findVariationMatch(row.file);
+      var match = variationMatches(variations, row.file);
       if (match) {
         row.id = match.file;
         row.variation = match.dir;
       }
 
       Object.keys(row.deps).forEach(function (key) {
-        var depMatch = findVariationMatch(key);
+        var depMatch = variationMatches(variations, key);
         if (depMatch) {
           row.deps[depMatch.file] = depMatch.file;
           delete row.deps[key];
@@ -184,8 +185,8 @@ async.each(bundles, function(rawBundle, doneBundle) {
       /*
         Here is the right place to implement the generation of extracted bundles. Simple algorithm
         should be as follows:
-          1. Assuming all `bundle.externals` are already parsed with something similar to `findVariationMatch`.
-          2. Assuming `bundleManifest` ids are already parsed with `findVariationMatch` during "deps" phase.
+          1. Assuming all `bundle.externals` are already parsed with something similar to `variationMatches`.
+          2. Assuming `bundleManifest` ids are already parsed with `variationMatches` during "deps" phase.
           3. Create one array with all `bundle.externals` + all `bundleManifest` ids
           4. Use this array as externals for all the `bundle.externals` bundles
           5. Run mendel through all those bundles
@@ -211,29 +212,12 @@ function replaceRequiresOnSource (src) {
   return falafel(src, opts, function (node) {
     if (isRequire(node)) {
       var value = node.arguments[0].value;
-      var match = findVariationMatch(value);
+      var match = variationMatches(variations, value);
       if (match) {
         if(match) node.update('require(\'' + match.file + '\')');
       }
     }
   }).toString();
-}
-
-function findVariationMatch(path) {
-    var result;
-    variations.some(function(variation) {
-        variation.chain.some(function(dir) {
-            var parts = path.split(new RegExp("/"+dir+"/"));
-            var found = parts.length > 1;
-            if (found) result = {
-                variation: variation,
-                dir: dir,
-                file: parts[parts.length-1],
-            };
-            return found;
-        });
-    });
-    return result;
 }
 
 function isRequire (node) {
