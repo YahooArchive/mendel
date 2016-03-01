@@ -38,7 +38,7 @@ function mendelBrowserify(baseBundle, opts) {
         baseBundle.__mendelManifestPending = 0;
         baseBundle.__mendelManifest = {
             bundleIndexes: {},
-            bundles: {},
+            bundles: [],
         };
 
         createManifest(
