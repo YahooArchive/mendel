@@ -11,8 +11,17 @@ module.exports = mendelBrowserify;
 
 function mendelBrowserify(baseBundle, opts) {
     var browserify = baseBundle.constructor;
+    var pipeline = baseBundle.pipeline.constructor;
     var bopts = baseBundle._options;
     var variations = validVariations(opts);
+
+    if (baseBundle.argv.deps) {
+        console.log(
+            "--deps not supported. \n",
+            "use --manifest in mendel-browserify options instead."
+        );
+        return process.exit(1);
+    }
 
     variations.forEach(function(variation) {
         var vopts = xtend(bopts);
@@ -25,6 +34,12 @@ function mendelBrowserify(baseBundle, opts) {
                 if (method === 'bundle') to = { bundle: onBaseBundleStart };
 
                 proxyMethod(method, baseBundle, to)
+            });
+
+        Object.keys(pipeline.prototype)
+            .filter(onlyPublicMethods)
+            .forEach(function(method) {
+                proxyMethod(method, baseBundle.pipeline, bv.pipeline)
             });
 
         function onBaseBundleStart() {
