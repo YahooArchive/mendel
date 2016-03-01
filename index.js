@@ -40,13 +40,6 @@ variations.unshift({
   chain: [config.base],
 });
 
-variations.forEach(function(variation) {
-  variation.matchList = variation.chain.map(function(path) {
-    path = path.replace(/(^\/|\/$)/g,'');
-    return new RegExp('(.*)/('+path+')/(.*)')
-  });
-});
-
 logObj(variations);
 
 var extractions = {};
@@ -75,6 +68,7 @@ async.each(bundles, function(rawBundle, doneBundle) {
     delete data.file;
     delete data.source;
     delete data.id;
+
     Object.keys(data.deps).forEach(function(key) {
       var index = bundleIndexes[key];
       if (typeof index !== 'undefined') {
@@ -101,7 +95,7 @@ async.each(bundles, function(rawBundle, doneBundle) {
         existingData.variations.push(variation);
         existingData.data.push(data);
       } else if (existingData.data[variationIndex].sha !== dep.sha) {
-        throw new Error('Files with same variation and id should have the same SHA');
+        throw new Error('Files with same variation ('+variation+') and id ('+id+') should have the same SHA');
       }
     }
   }
@@ -125,9 +119,9 @@ async.each(bundles, function(rawBundle, doneBundle) {
     // and documented there.
     if (bundle.extract) {
       bundle.filter = function(id) {
-        var idMatch = findVariationMatch(id);
-        if (idMatch) {
-          return -1 === extractions[bundle.id].indexOf(idMatch[3]);
+        var found = findVariationMatch(id);
+        if (found) {
+          return -1 === extractions[bundle.id].indexOf(found.file);
         }
         return true;
       };
@@ -152,14 +146,14 @@ async.each(bundles, function(rawBundle, doneBundle) {
     var mendelify = through.obj(function (row, enc, next) {
       var match = findVariationMatch(row.file);
       if (match) {
-        row.id = match[3];
-        row.variation = match[2];
+        row.id = match.file;
+        row.variation = match.dir;
       }
 
       Object.keys(row.deps).forEach(function (key) {
-        var rowMatch = findVariationMatch(key);
-        if (rowMatch) {
-          row.deps[rowMatch[3]] = rowMatch[3];
+        var depMatch = findVariationMatch(key);
+        if (depMatch) {
+          row.deps[depMatch.file] = depMatch.file;
           delete row.deps[key];
         }
       });
@@ -219,22 +213,27 @@ function replaceRequiresOnSource (src) {
       var value = node.arguments[0].value;
       var match = findVariationMatch(value);
       if (match) {
-        if(match) node.update('require(\'' + match[3] + '\')');
+        if(match) node.update('require(\'' + match.file + '\')');
       }
     }
   }).toString();
 }
 
 function findVariationMatch(path) {
-  var match;
-  variations.some(function(variation) {
-    variation.matchList.some(function(regex) {
-      match = path.match(regex);
-      return match;
+    var result;
+    variations.some(function(variation) {
+        variation.chain.some(function(dir) {
+            var parts = path.split(new RegExp("/"+dir+"/"));
+            var found = parts.length > 1;
+            if (found) result = {
+                variation: variation,
+                dir: dir,
+                file: parts[parts.length-1],
+            };
+            return found;
+        });
     });
-    return match;
-  });
-  return match;
+    return result;
 }
 
 function isRequire (node) {

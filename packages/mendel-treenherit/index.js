@@ -37,11 +37,12 @@ var transformTools = require('browserify-transform-tools');
         */
 
 var requireTransform = transformTools.makeRequireTransform(
-    "requireTransform",
+    "treenherit",
     {evaluateArguments: true},
-    function(args, opts, requireDone) {
+    function(args, opts, transformDone) {
         var parent = opts.file;
         var module = args[0];
+        var basedir = opts.config._flags && opts.config._flags.basedir;
 
         var dirs = opts.config.dirs || [];
         if (dirs._) { // CLI compatibility
@@ -51,41 +52,37 @@ var requireTransform = transformTools.makeRequireTransform(
             dirs = [dirs];
         }
         if (isExternalModule(module) || !dirs.length) {
-            return requireDone();
+            return transformDone();
         }
 
         // removes all folder information, per example /User/code/project/A/lib/foo.js -> lib/foo.js
-        dirs.forEach(function(dir) {
-            parent = parent.replace(new RegExp(".*?"+dir), '');
+        dirs.some(function(dir) {
+            var parts = parent.split(new RegExp("/"+dir+"/"));
+            var found = parts.length > 1;
+            if (found) {
+                // basedir = basedir || parts[0];
+                parent = parts[1];
+            }
+            return found;
         });
 
-        // Look for the parent file on each directory. Array order matters
-        async.detectSeries(dirs, function(dir, doneParent) {
-            var targetFile = path.join(process.cwd(), dir, parent);
-            fs.stat(targetFile, function(err) {
-                doneParent(!err);
-            });
-        }, function(parentIn) {
-            if (!parentIn) {
-                return requireDone();
-            }
-            // console.log('parent found in', parentIn, parent); // per example above, parentIn = /A/
-            var finalPath;
-            async.detectSeries(dirs, function(dir, doneModule) {
-                var parentInsideIterateeDir = path.join(process.cwd(), dir, parent);
-                resolve(module, {filename: parentInsideIterateeDir}, function(err, path) {
-                    if (!err) {
-                        finalPath = path;
-                    }
-                    doneModule(!err);
-                });
-            }, function(moduleIn) {
-                if (!moduleIn) {
-                    return requireDone();
+        var finalPath;
+        async.detectSeries(dirs, function(dir, doneModule) {
+            var parentInsideIterateeDir = path.join(basedir || process.cwd(), dir, parent);
+            resolve(module, {filename: parentInsideIterateeDir}, function(err, path) {
+                if (!err) {
+                    finalPath = path;
                 }
-                // console.log('module found in', moduleIn, module); // per example above, moduleIn = /B/
-                return requireDone(null, "require('"+finalPath+"')");
+                doneModule(!err);
             });
+        }, function(moduleIn) {
+            if (!moduleIn) {
+                return transformDone();
+            }
+            // finalPath **MUST** be absolute because generating multiple
+            // bundles from the same tree but different entrypoints
+            // will cause checksum to fail
+            return transformDone(null, "require('"+path.resolve(finalPath)+"')");
         });
     }
 );
