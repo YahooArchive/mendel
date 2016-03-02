@@ -12,6 +12,7 @@ var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
 var proxy = require('./lib/proxy');
 var onlyPublicMethods = proxy.onlyPublicMethods;
+var requirify = require('../mendel-requirify');
 
 module.exports = mendelBrowserify;
 
@@ -48,6 +49,10 @@ function mendelBrowserify(baseBundle, opts) {
         );
     }
 
+    if (opts.writefiles) {
+        writeFiles(baseBundle, opts);
+    }
+
     if (baseBundle.argv.o || baseBundle.argv.outfile) {
         mkdirp.sync(path.dirname(baseBundle.argv.o || baseBundle.argv.outfile));
     }
@@ -82,6 +87,10 @@ function mendelBrowserify(baseBundle, opts) {
                 createManifest(
                     bv, baseBundle, opts, variationsWithBase, variation
                 );
+            }
+
+            if (opts.writefiles) {
+                writeFiles(bv, opts);
             }
         });
     });
@@ -128,6 +137,22 @@ function createManifest(bundle, baseBundle, opts, variations, variation) {
         }
     })});
 }
+
+var writeFiles = (function () {
+    var written = {};
+
+    return function writeFiles(bundle, opts) {
+        var basedir = path.dirname(opts.basetree);
+        var outdir = path.join(opts.outdir, 'server');
+
+        bundle.pipeline.get('deps').push(requirify({
+            from: basedir,
+            to: outdir,
+            exclude: [ 'node_modules' ],
+            cache: written
+        }));
+    }
+})();
 
 function pushBundleManifest(baseBundle, dep) {
     var id = dep.id;
