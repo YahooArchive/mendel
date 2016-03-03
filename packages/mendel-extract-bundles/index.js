@@ -2,7 +2,6 @@
 var fs = require('fs');
 var path = require('path');
 var xtend = require('xtend');
-var mkdirp = require('mkdirp');
 var through = require('through2');
 var bresolve = require('browser-resolve');
 var transformTools = require('browserify-transform-tools');
@@ -99,30 +98,16 @@ function mendelExtractBundles(referenceBundle, opts) {
 
 function writeExtraction(referenceBundle, opts, extraction, xb) {
     var extractionOut = extractionDest(referenceBundle, opts, extraction);
-
-    mkdirp.sync(path.dirname(extractionOut));
-
     return xb.bundle().pipe(fs.createWriteStream(extractionOut));
 }
 
 function extractionDest(referenceBundle, opts, extraction) {
     var baseOut = path.parse(referenceBundle.argv.o || referenceBundle.argv.outfile);
-    var extractionOut = path.join(
+    return path.join(
         baseOut.dir,
-        extraction.id+'.'+baseOut.base
+        extraction.id+'.'+baseOut.ext
     );
-
-    if (opts.outdir) {
-        extractionOut = path.join(
-            opts.outdir,
-            extraction.id,
-            baseOut.base
-        );
-    }
-
-    return extractionOut;
 }
-
 
 function listBundle(referenceBundle, xb, extraction) {
     xb._log = [];
