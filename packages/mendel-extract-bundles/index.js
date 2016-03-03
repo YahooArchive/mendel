@@ -15,6 +15,7 @@ function mendelExtractBundles(referenceBundle, opts) {
     var browserify = referenceBundle.constructor;
     var pipeline = referenceBundle.pipeline.constructor;
     var bopts = referenceBundle._options;
+    var basedir = bopts.basedir || process.cwd();
 
     referenceBundle._transformOrder += 50;
     referenceBundle.transform(absoluteRequires);
@@ -36,13 +37,18 @@ function mendelExtractBundles(referenceBundle, opts) {
         }
     });
 
+    allFiltered.forEach(function(module) {
+        referenceBundle.external(path.resolve(path.join(basedir, module)));
+    });
+
     bopts.filter = function(id) {
+        var shouldInclude = true;
         for (var i = 0; i < allFiltered.length; i++) {
-            if (id.indexOf(allFiltered[i]) === id.length - allFiltered[i].length) {
-                return false;
+            if (endsWith(id, allFiltered[i])) {
+                shouldInclude = false;
             }
         }
-        allIncluded.push(id);
+        shouldInclude && allIncluded.push(id);
         return true;
     };
 
@@ -51,13 +57,7 @@ function mendelExtractBundles(referenceBundle, opts) {
 
         xbopts.entries = extraction.entries;
         delete xbopts.require;
-
-        xbopts.filter = function(id) {
-            if (-1 !== allIncluded.indexOf(id)) {
-                return false;
-            }
-            return true;
-        };
+        delete xbopts.filter;
 
         var xb = browserify(xbopts);
 
@@ -78,6 +78,7 @@ function mendelExtractBundles(referenceBundle, opts) {
                 proxyMethod(method, referenceBundle.pipeline, xb.pipeline)
             });
 
+
         referenceBundle.on('bundle', function() {
             if (referenceBundle.argv.list && !referenceBundle._logbase) {
                 console.log('original bundle');
@@ -86,6 +87,11 @@ function mendelExtractBundles(referenceBundle, opts) {
         });
 
         referenceBundle.pipeline.get('wrap').once('end', function() {
+
+            allIncluded.forEach(function(module) {
+                xb.external(module);
+            });
+
             if (referenceBundle.argv.list) {
                 return listBundle(referenceBundle, xb, extraction);
             }
@@ -99,6 +105,10 @@ function mendelExtractBundles(referenceBundle, opts) {
     });
 }
 
+function endsWith(larger, smaller) {
+    return larger.indexOf(smaller) === larger.length - smaller.length;
+}
+
 function writeExtraction(referenceBundle, opts, extraction, xb) {
     var extractionOut = extractionDest(referenceBundle, opts, extraction);
     return xb.bundle().pipe(fs.createWriteStream(extractionOut));
@@ -108,7 +118,7 @@ function extractionDest(referenceBundle, opts, extraction) {
     var baseOut = path.parse(referenceBundle.argv.o || referenceBundle.argv.outfile);
     return path.join(
         baseOut.dir,
-        extraction.id+'.'+baseOut.ext
+        extraction.id+baseOut.ext
     );
 }
 
