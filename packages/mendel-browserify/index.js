@@ -18,7 +18,6 @@ module.exports = mendelBrowserify;
 
 function mendelBrowserify(baseBundle, opts) {
     var browserify = baseBundle.constructor;
-    var pipeline = baseBundle.pipeline.constructor;
     var bopts = baseBundle._options;
     var variations = validVariations(opts);
     var baseVariation = {
