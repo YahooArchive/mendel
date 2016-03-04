@@ -34,12 +34,15 @@
     "async": "^1.5.2",
     "browserify": "^13.0.0",
     "browserify-transform-tools": "^1.5.3",
+    "concentrate": "^0.2.3",
+    "dissolve": "^0.3.3",
     "falafel": "^1.2.0",
     "isarray": "^1.0.0",
     "js-yaml": "^3.5.3",
     "mkdirp": "^0.5.1",
     "shasum": "^1.0.2",
     "through2": "^2.0.1",
+    "urlsafe-base64": "^1.0.0",
     "xtend": "^4.0.1"
   }
 }
