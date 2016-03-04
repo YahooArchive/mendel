@@ -138,7 +138,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
 
         row.source = replaceRequiresOnSource(row.source, self.variations);
         row.sha = shasum(row.source);
-        self.pushBundleManifest(row, bundle.variation);
+        self.pushBundleManifest(row, bundle.variation.id);
 
         this.push(row);
         depsStream.write(row);
@@ -155,30 +155,19 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
     })});
 }
 
-MendelBrowserify.prototype.pushBundleManifest = function(dep, fillVariation) {
+MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     var self = this;
     var id = dep.id;
-    var variation = dep.variation || fillVariation;
+    var variation = dep.variation || "base";
     var data = JSON.parse(JSON.stringify(dep));
+    var bundleIndexes = self._manifestIndexes;
+    var allBundles = self._manifestBundles;
 
     delete data.file;
     delete data.source;
     delete data.id;
 
-    // TODO: Move this to doneManifest traversal
-    Object.keys(data.deps).forEach(function(key) {
-        var index = self._manifestIndexes[key];
-        if (typeof index !== 'undefined') {
-            data.deps[key] = index;
-        }
-        index = self._manifestIndexes[data.deps[key]];
-        if (typeof index !== 'undefined') {
-            data.deps[key] = index;
-        }
-    });
-
-    var bundleIndex = self._manifestIndexes[id];
-    var allBundles = self._manifestBundles;
+    var bundleIndex = bundleIndexes[id];
     if (typeof bundleIndex === 'undefined') {
         var newDep = {
             id: id,
@@ -186,7 +175,7 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep, fillVariation) {
             data: [data],
         };
         allBundles.push(newDep);
-        allBundles[id] = allBundles.indexOf(newDep);
+        bundleIndexes[id] = allBundles.indexOf(newDep);
     } else {
         var existingData = allBundles[bundleIndex];
         var variationIndex = existingData.variations.indexOf(variation);
@@ -202,9 +191,24 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep, fillVariation) {
 
 MendelBrowserify.prototype.doneManifest = function() {
     var bundleManifest = {
-        bundleIndexes: this._manifestIndexes,
+        indexes: this._manifestIndexes,
         bundles: this._manifestBundles,
     };
+
+    bundleManifest.bundles.forEach(function(file) {
+        file.data.forEach(function(data) {
+            Object.keys(data.deps).forEach(function(key) {
+                var index = bundleManifest.indexes[key];
+                if (typeof index !== 'undefined') {
+                    data.deps[key] = index;
+                }
+                index = bundleManifest.indexes[data.deps[key]];
+                if (typeof index !== 'undefined') {
+                    data.deps[key] = index;
+                }
+            });
+        })
+    });
 
     var baseOut = {
         dir: false,
