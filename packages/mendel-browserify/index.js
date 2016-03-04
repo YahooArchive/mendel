@@ -19,7 +19,7 @@ module.exports = mendelBrowserify;
 function mendelBrowserify(baseBundle, opts) {
     var browserify = baseBundle.constructor;
     var bopts = baseBundle._options;
-    var variations = validVariations(opts);
+    var variations = validVariations(xtend(bopts, opts));
     var baseVariation = {
         id: 'base',
         chain: [opts.basetree],
