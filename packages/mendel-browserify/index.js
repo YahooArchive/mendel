@@ -141,7 +141,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
 
         row.source = replaceRequiresOnSource(row.source, self.variations);
         row.sha = shasum(row.source);
-        self.pushBundleManifest(row, bundle.variation.id);
+        self.pushBundleManifest(row);
 
         this.push(row);
         depsStream.write(row);
