@@ -8,6 +8,7 @@ var path = require('path');
 var parseConfig = require('./config');
 var parseVariations = require('./lib/variations');
 var MendelVariationFinder = require('./lib/tree-variation-finder');
+var MendelHashBasedFinder = require('./lib/tree-hash-finder');
 
 function MendelTrees(opts) {
     if (!(this instanceof MendelTrees)) {
@@ -24,11 +25,10 @@ function MendelTrees(opts) {
     this.config = config;
     this.variations = variations;
     this.opts = opts;
-    this._variationMatchers = {};
     this._loadBundles();
 }
 
-MendelTrees.prototype.findVariationTree = function(bundle, variations) {
+MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
     if (typeof variations ==='string') {
         variations = [variations];
     }
@@ -36,11 +36,15 @@ MendelTrees.prototype.findVariationTree = function(bundle, variations) {
     var lookupChains = this._buildLookupChains(variations);
     var finder = new MendelVariationFinder(lookupChains, this.config.base);
 
-    var tree = this.bundles[bundle];
-    var entry = this.config.bundles[bundle].dest;
-    var entryModule = tree.bundles[tree.indexes[entry]];
+    this._walkTree(bundle, finder);
 
-    walk(tree, entryModule, finder);
+    return finder.found();
+}
+
+MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
+    var finder = new MendelHashBasedFinder(hash);
+
+    this._walkTree(bundle, finder);
 
     return finder.found();
 }
@@ -56,6 +60,13 @@ MendelTrees.prototype._loadBundles = function() {
         );
         self.bundles[bundleId] = require(bundlePath);
     });
+}
+
+MendelTrees.prototype._walkTree = function(bundle, finder) {
+    var tree = this.bundles[bundle];
+    var entry = this.config.bundles[bundle].dest;
+    var entryModule = tree.bundles[tree.indexes[entry]];
+    walk(tree, entryModule, finder);
 }
 
 MendelTrees.prototype._buildLookupChains = function(lookFor) {
