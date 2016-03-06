@@ -58,20 +58,6 @@ MendelTrees.prototype._loadBundles = function() {
     });
 }
 
-MendelTrees.prototype
-._finderByVariations = function(bundle, variations, lookupChains) {
-    var macherKey = bundle + variations.sort().join('');
-    if (this._variationMatchers[macherKey]) {
-        return this._variationMatchers[macherKey];
-    }
-
-    var self = this;
-
-
-    this._variationMatchers[macherKey] = MendelVariationFinder;
-    return MendelVariationFinder;
-}
-
 MendelTrees.prototype._buildLookupChains = function(lookFor) {
     var lookupChains = []; // perf: for loop instead of forEach
     for (var i = 0; i < this.variations.length; i++) {
