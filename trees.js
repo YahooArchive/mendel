@@ -7,8 +7,8 @@ var path = require('path');
 
 var parseConfig = require('./config');
 var parseVariations = require('./lib/variations');
-var MendelVariationFinder = require('./lib/tree-variation-finder');
-var MendelHashBasedFinder = require('./lib/tree-hash-finder');
+var MendelVariationWalker = require('./lib/tree-variation-walker');
+var MendelHashWalker = require('./lib/tree-hash-walker');
 
 function MendelTrees(opts) {
     if (!(this instanceof MendelTrees)) {
@@ -34,7 +34,7 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
     }
 
     var lookupChains = this._buildLookupChains(variations);
-    var finder = new MendelVariationFinder(lookupChains, this.config.base);
+    var finder = new MendelVariationWalker(lookupChains, this.config.base);
 
     this._walkTree(bundle, finder);
 
@@ -42,7 +42,7 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
 }
 
 MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
-    var finder = new MendelHashBasedFinder(hash);
+    var finder = new MendelHashWalker(hash);
 
     this._walkTree(bundle, finder);
 
