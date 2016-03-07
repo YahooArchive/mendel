@@ -168,8 +168,6 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     var allBundles = self._manifestBundles;
 
     delete data.file;
-    delete data.source;
-    delete data.id;
 
     var bundleIndex = bundleIndexes[id];
     if (typeof bundleIndex === 'undefined') {
@@ -179,7 +177,8 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
             data: [data],
         };
         allBundles.push(newDep);
-        bundleIndexes[id] = allBundles.indexOf(newDep);
+        newDep.index = allBundles.indexOf(newDep);
+        bundleIndexes[id] = newDep.index;
     } else {
         var existingData = allBundles[bundleIndex];
         var variationIndex = existingData.variations.indexOf(variation);
