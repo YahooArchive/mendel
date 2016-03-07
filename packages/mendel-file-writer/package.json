@@ -1,7 +1,7 @@
 {
-  "name": "mendel-requirify",
+  "name": "mendel-file-writer",
   "version": "1.0.0",
-  "description": "Browserify transforms to write mendelified code for server side. Created for mendel.",
+  "description": "Write individual dep files from the mendel browserify pipeline.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
