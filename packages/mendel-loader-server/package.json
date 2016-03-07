@@ -1,0 +1,17 @@
+{
+  "name": "mendel-loader-server",
+  "version": "1.0.0",
+  "description": "Mendel server side require hook.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel",
+    "browserify-plugin",
+    "build"
+  ],
+  "author": "David Gomez <david.garcia.mx@gmail.com>",
+  "license": "MIT",
+  "dependencies": {}
+}
