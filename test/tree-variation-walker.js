@@ -29,6 +29,12 @@ t.match(ret, {index:1, resolved:{id:'b'}},
 t.equals(walker.conflicts, 0,
     'no conflicts with base');
 
+walker = new MendelVariationWalker([['a', 'b'],['special']], 'special');
+ret = walker._resolveBranch(stub1);
+
+t.equals(walker.conflicts, 0,
+    "Two variations on the same level don't conflict");
+
 walker = new MendelVariationWalker([['a'], ['b'],['special']], 'special');
 ret = walker.find(stub1);
 
