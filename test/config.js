@@ -13,6 +13,7 @@ t.match(config(where), {basedir: path.resolve(where)},
 
 process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));
 t.match(config(), {
+    basedir: path.resolve(__dirname, './config-samples/2/'),
     variations: {
        "json_A": null,
        "json_B": ["folder_B"]
