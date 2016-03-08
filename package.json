@@ -3,15 +3,6 @@
   "private": true,
   "version": "0.0.1",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
-  "main": "index.js",
-  "scripts": {
-    "test": "tap test/*.js",
-    "lint": "eslint .",
-    "coverage": "tap test/*.js --coverage --nyc-arg=--all"
-  },
-  "nyc": {
-    "exclude": ["coverage/**", "test/**", "packages/*/lib/**"]
-  },
   "keywords": [
     "testing",
     "a/b",
@@ -34,6 +25,22 @@
     }
   ],
   "license": "MIT",
+  "main": "lib/trees.js",
+  "bin": {
+    "mendel": "bin/index.js"
+  },
+  "scripts": {
+    "test": "tap test/*.js",
+    "lint": "eslint .",
+    "coverage": "tap test/*.js --coverage --nyc-arg=--all"
+  },
+  "nyc": {
+    "exclude": [
+      "coverage/**",
+      "test/**",
+      "packages/*/lib/**"
+    ]
+  },
   "dependencies": {
     "JSONStream": "^1.0.7",
     "async": "^1.5.2",
