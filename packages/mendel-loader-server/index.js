@@ -1,5 +1,4 @@
 var path = require('path');
-var Module = require('module');
 var MendelTree = require('mendel/trees');
 
 var nodeRequire = module.constructor.prototype.require;
