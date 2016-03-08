@@ -5,7 +5,8 @@
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "main": "index.js",
   "scripts": {
-    "test": "tap test/*.js && eslint ."
+    "test": "tap test/*.js",
+    "lint": "eslint ."
   },
   "keywords": [
     "testing",
