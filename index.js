@@ -15,7 +15,7 @@ var falafel = require('falafel');
 
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
-var config = require('./config')();
+var config = require('./lib/config')();
 logObj((config));
 
 var basePath = path.join(process.cwd(), config.base);

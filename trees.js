@@ -5,7 +5,7 @@
 
 var path = require('path');
 
-var parseConfig = require('./config');
+var parseConfig = require('./lib/config');
 var parseVariations = require('./lib/variations');
 var MendelVariationWalker = require('./lib/tree-variation-walker');
 var MendelHashWalker = require('./lib/tree-hash-walker');
