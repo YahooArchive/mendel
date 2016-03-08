@@ -1,0 +1,57 @@
+
+# if basedir is not present, .mendelrc directory will be used
+basedir: src_root
+
+# relative to basedir, defaults to "build"
+dest: output_root
+
+# defaults to "base"
+base: name_for_base_bundle
+# relative to basedir, defaults to "base"
+basetree: base_root
+
+# each bundle accepts all browserify options
+# each key will serve as bundle_id
+# each bundle must have either "require" or "entries"
+bundles:
+  vendor:
+    require: &vendor_list
+      - react
+      - react-dom
+      - xml-beautifier
+  main:
+    entries:
+      - main.js
+    # defaults to bundle_id
+    dest: path_relative_to_dest/main.js
+    external: *vendor_list
+    transform:
+      - reactify
+
+# relative to basedir/mendelrc if present
+variationsdir: variations_root
+
+# each variation is relative to variationsdir or basedir/mendelrc
+# if variation is empty, it is considered to be a single directory
+# if items are included in the array, id is used as first item
+# all variations have implied basetree as hierarquy
+variations:
+  variation_A:
+    - folder_A
+  variation_B:
+    - folder_B
+  variation_C:
+    - folder_B
+    - folder_A
+  folder_D:
+
+# i.e. variation_C resolves to an array:
+# [
+#    'basedir/variations_root/variation_C',
+#    'basedir/variations_root/folder_B',
+#    'basedir/variations_root/folder_A',
+#    'basedir/base_root'
+# ]
+# if any dir is unexisting, it is just silently ignored
+# this allows for variation ids to have different names and/or combination
+# of directories

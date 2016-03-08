@@ -1,0 +1,13 @@
+{
+  "name": "2",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "mendel": {
+    "base": "packagejson",
+    "variations": {
+      "json_A": null,
+      "json_B": ["folder_B"]
+    }
+  }
+}

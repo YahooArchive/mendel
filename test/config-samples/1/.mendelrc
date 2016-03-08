@@ -1,0 +1,15 @@
+
+# relative to basedir, defaults to "build"
+dest: output_root
+
+base: default
+basetree: src/default
+
+bundles:
+  test:
+    entries:
+      - index.js
+
+variations:
+  variation_A:
+  variation_B:
