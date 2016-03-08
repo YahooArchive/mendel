@@ -27,6 +27,11 @@ t.match(
     [1,3,0,1,3,4,0], 'changing only brances changes hash');
 
 var err;
+var notEvenAHash = null;
+err = deserialize(notEvenAHash).error
+t.match(err, new Error(), 'this hash is bad');
+t.match(err.message, 'bad base64 input');
+
 var hashWithWrongName = 'dGVzdF9fAQAC_wIACwymnXS-hyyRSwbove5neRfo6fI';
 err = deserialize(hashWithWrongName).error
 t.match(err, new Error(), 'this hash is bad');
