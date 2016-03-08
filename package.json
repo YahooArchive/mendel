@@ -6,7 +6,11 @@
   "main": "index.js",
   "scripts": {
     "test": "tap test/*.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "coverage": "tap test/*.js --coverage --nyc-arg=--all"
+  },
+  "nyc": {
+    "exclude": ["coverage/**", "test/**", "packages/*/lib/**"]
   },
   "keywords": [
     "testing",
