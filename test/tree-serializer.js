@@ -51,6 +51,25 @@ bogus.pushFileHash('not a Buffer');
 
 t.equal(sut.result(), bogus.result(), "Don't pushFileHash if it's not a Buffer");
 
+var sut1 = createPredictable();
+var sut2 = createPredictable();
 
+sut1.pushBranch(1);
+sut2.pushBranch(1);
+sut1.pushFileHash(new Buffer('f790b83d19df02e79d50eeb84590a32b966f8e13','hex'));
+sut2.pushFileHash(new Buffer('f790b83d19df02e79d50eeb84590a32b966f8e13','hex'));
 
+t.equal(sut1.result(), sut2.result(),
+    'Consistent result if same files pushed');
+
+sut1 = createPredictable();
+sut2 = createPredictable();
+
+sut1.pushBranch(1);
+sut2.pushBranch(1);
+sut1.pushFileHash(new Buffer('f790b83d19df02e79d50eeb84590a32b966f8e13','hex'));
+sut2.pushFileHash(new Buffer('b84590a32b966f8e13f790b83d19df02e79d50ee','hex'));
+
+t.notEqual(sut1.result(), sut2.result(),
+    'different result if different hahses pushed');
 
