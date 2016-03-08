@@ -1,9 +1,8 @@
 var path = require('path');
+var Module = require('module');
 var MendelTree = require('mendel');
 
 var nodeRequire = module.constructor.prototype.require;
-
-module.exports = MendelLoader;
 
 function MendelLoader(config) {
     var self = this;
@@ -19,15 +18,13 @@ MendelLoader.prototype.resolver = function(context) {
     return new MendelResolver(variations, this._mountdir);
 }
 
-MendelLoader.prototype.register = function(context) {
-    return this.resolver(context).register();
-}
-
 MendelLoader.prototype._getVariationMap = function(context) {
     //TODO(dgomez): this tree could be cached.
     var tree = this._tree.findTreeForVariations(context.bundle, context.variations);
     return tree.variationMap;
 }
+
+module.exports = MendelLoader;
 
 function MendelResolver(variations, mountdir) {
     this._variations = variations;
@@ -35,26 +32,30 @@ function MendelResolver(variations, mountdir) {
     this._resolveCache = {};
 }
 
-MendelResolver.prototype.register = function() {
-    var resolver = this;
-    module.constructor.prototype.require = function (mod) {
-        var rmod = resolver.resolve(mod);
-        return nodeRequire.call(this, rmod || mod);
-    };
-    return this;
+MendelResolver.prototype.require = function (name, parent) {
+    parent = parent || module.parent;
+    var rname = this.resolve(name);
+    var modPath = Module._resolveFilename(rname || name, parent);
+    var mod = new Module(modPath, module.parent);
+
+    mod.load(mod.id);
+    var modExports = mod.exports;
+
+    if (modExports.__mendel_module__) {
+        var mendelFn = modExports;
+        mendelFn.call(this, this, mod, mod.exports, mod);
+        modExports = mod.exports;
+    }
+
+    return modExports;
 }
 
-MendelResolver.prototype.unregister = function() {
-    module.constructor.prototype.require = nodeRequire;
-    return this;
-}
-
-MendelResolver.prototype.resolve = function(mod) {
-    if (!this._resolveCache[mod]) {
-        var variation = this._variations[mod];
+MendelResolver.prototype.resolve = function(name) {
+    if (!this._resolveCache[name]) {
+        var variation = this._variations[name];
         if (variation) {
-            this._resolveCache[mod] = path.resolve(path.join(this._mountdir, variation, mod));
+            this._resolveCache[name] = path.resolve(path.join(this._mountdir, variation, name));
         }
     }
-    return this._resolveCache[mod];
+    return this._resolveCache[name];
 }

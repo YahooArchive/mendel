@@ -5,9 +5,10 @@
 var fs = require('fs-extra');
 var path = require('path');
 var through = require('through2');
+var mendelRequireTransform = require('./lib/mendel-require-transform');
 
 function requirify(b, opts) {
-    var outdir = opts.outdir || path.join(process.cwd(), 'mendel-file-writer');
+    var outdir = opts.outdir || path.join(process.cwd(), 'mendel-requirify');
 
     b.pipeline.get('dedupe').push(through.obj(function(row, enc, next) {
         var file = row.file || row.id;
@@ -15,7 +16,8 @@ function requirify(b, opts) {
         if (!nm) {
             var dest = path.join(outdir, row.variation, row.id);
             var out = fs.createOutputStream(dest);
-            out.end(row.source);
+            out.write(mendelRequireTransform(row.source, true));
+            out.end();
         }
         this.push(row);
         next();
