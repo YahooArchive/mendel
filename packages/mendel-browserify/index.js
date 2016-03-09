@@ -12,6 +12,7 @@ var shasum = require('shasum');
 var JSONStream = require('JSONStream');
 var falafel = require('falafel');
 var isRequire = require('./lib/falafel-util').isRequire;
+var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
 var proxy = require('./lib/proxy');
@@ -24,8 +25,11 @@ function MendelBrowserify(baseBundle, opts) {
         return new MendelBrowserify(baseBundle, opts);
     }
 
-    var self = this;
+    if (!opts.variations) {
+        opts = parseConfig();
+    }
 
+    var self = this;
     this.opts = opts;
     this.baseBundle = baseBundle;
     this.baseOptions = baseBundle._options;
@@ -228,7 +232,7 @@ MendelBrowserify.prototype.doneManifest = function() {
     }
     var manifestPath = path.join(
         (manifest.dir||baseOut.dir),
-        (baseOut.name||manifest.name)+'.manifest.json'
+        (manifest.name||baseOut.name)+'.manifest.json'
     );
 
     fs.writeFile(
