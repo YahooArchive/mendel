@@ -1,0 +1,12 @@
+basetree: base
+variationsdir: variations
+variations:
+    experiment_A:
+        - folder_A
+    experiment_B:
+        - folder_B
+    experiment_C:
+        - folder_C
+    experiment_D:
+        - folder_C
+        - folder_A
