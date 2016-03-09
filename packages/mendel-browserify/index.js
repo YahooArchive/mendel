@@ -167,8 +167,6 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     var bundleIndexes = self._manifestIndexes;
     var allBundles = self._manifestBundles;
 
-    delete data.file;
-
     var bundleIndex = bundleIndexes[id];
     if (typeof bundleIndex === 'undefined') {
         var newDep = {
@@ -198,6 +196,9 @@ MendelBrowserify.prototype.doneManifest = function() {
         bundles: this._manifestBundles,
     };
 
+    /*
+    Looks like we don't need this part. Will make sure and remove later
+    TODO: cleanup
     bundleManifest.bundles.forEach(function(file) {
         file.data.forEach(function(data) {
             Object.keys(data.deps).forEach(function(key) {
@@ -212,6 +213,7 @@ MendelBrowserify.prototype.doneManifest = function() {
             });
         })
     });
+    */
 
     var baseOut = {
         dir: false,
