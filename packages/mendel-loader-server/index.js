@@ -36,15 +36,33 @@ MendelResolver.prototype.require = function (name, parent) {
     parent = parent || module.parent;
     var rname = this.resolve(name);
     var modPath = Module._resolveFilename(rname || name, parent);
-    var mod = new Module(modPath, module.parent);
+    var mod = Module._cache[modPath];
 
-    mod.load(mod.id);
+    if (!mod) {
+        mod = new Module(modPath, parent);
+        Module._cache[modPath] = mod;
+
+        var hadException = true;
+
+        try {
+            mod.load(mod.id);
+            hadException = false;
+        } finally {
+            if (hadException) {
+                delete Module._cache[modPath];
+            }
+        }
+    }
+
     var modExports = mod.exports;
 
     if (modExports.__mendel_module__) {
         var mendelFn = modExports;
-        mendelFn.call(this, this, mod, mod.exports, mod);
-        modExports = mod.exports;
+        var mendelMod = {
+            exports: {}
+        };
+        mendelFn.call(this, this, mendelMod, mendelMod.exports, mod);
+        modExports = mendelMod.exports;
     }
 
     return modExports;
