@@ -17,7 +17,6 @@ MendelLoader.prototype.resolver = function(context) {
 }
 
 MendelLoader.prototype._getVariationMap = function(context) {
-    //TODO(dgomez): this tree could be cached.
     var tree = this._tree.findTreeForVariations(context.bundle, context.variations);
     return tree.variationMap;
 }
