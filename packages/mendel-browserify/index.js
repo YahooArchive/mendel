@@ -4,12 +4,12 @@
    See the accompanying LICENSE file for terms. */
 
 var xtend = require('xtend');
+var defined = require('defined');
 var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var through = require('through2');
 var shasum = require('shasum');
-var JSONStream = require('JSONStream');
 var falafel = require('falafel');
 var isRequire = require('./lib/falafel-util').isRequire;
 var parseConfig = require('./lib/config');
@@ -25,24 +25,28 @@ function MendelBrowserify(baseBundle, opts) {
         return new MendelBrowserify(baseBundle, opts);
     }
 
-    if (!opts.variations) {
-        opts = parseConfig();
-    }
-
     var self = this;
-    this.opts = opts;
+    var argv = baseBundle.argv || {};
     this.baseBundle = baseBundle;
     this.baseOptions = baseBundle._options;
 
-    if (this.opts.manifest) {
-        this._manifestPending = 0;
-        this._manifestIndexes = {};
-        this._manifestBundles = [];
-    }
+    opts.basedir = defined(
+        opts.basedir, argv.basedir, this.baseOptions.basedir
+    );
+    opts.outfile = defined(
+        opts.outfile, argv.outfile, argv.o, this.baseOptions.outfile
+    );
+
+    opts = parseConfig(xtend(opts));
+    this.opts = opts;
+
+    this._manifestPending = 0;
+    this._manifestIndexes = {};
+    this._manifestBundles = [];
 
     this.baseVariation = {
-        id: 'base',
-        chain: [opts.basetree],
+        id: opts.base || 'base',
+        chain: [opts.basetree || 'base'],
     };
     this.variations = validVariations(xtend(this.baseOptions, opts));
     this.variationsWithBase = [this.baseVariation].concat(this.variations);
@@ -73,7 +77,7 @@ function MendelBrowserify(baseBundle, opts) {
                 return self.listVariation(variationBundle);
             }
 
-            if (baseBundle.outfile) {
+            if (self.opts.outfile) {
                 self.writeVariation(variationBundle);
             } else {
                 return variationBundle.bundle().pipe(process.stdout);
@@ -87,8 +91,6 @@ MendelBrowserify.prototype.prepareBundle = function(bundle, variation) {
     addTransform(bundle);
 
     if (bundle.argv) {
-        bundle.outfile = bundle.argv.o || bundle.argv.outfile;
-        if (bundle.outfile) mkdirp.sync(path.dirname(bundle.outfile));
         if (bundle.argv.deps) {
             console.log(
                 "--deps not supported. \n",
@@ -102,9 +104,7 @@ MendelBrowserify.prototype.prepareBundle = function(bundle, variation) {
         this.addPipelineDebug(bundle);
     }
 
-    if (this.opts.manifest) {
-        this.createManifest(bundle);
-    }
+    this.createManifest(bundle);
 }
 
 MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
@@ -127,7 +127,6 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
 
 MendelBrowserify.prototype.createManifest = function(bundle) {
     var self = this;
-    var depsStream = this.createDepsStream(bundle);
 
     function mendelify(row, enc, next) {
         var match = variationMatches(self.variations, row.file);
@@ -149,14 +148,12 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
         self.pushBundleManifest(row);
 
         this.push(row);
-        depsStream.write(row);
         next();
     }
     bundle.pipeline.get('deps').push(through.obj(mendelify));
 
     ++ self._manifestPending;
     bundle.on('bundle', function(b) { b.on('end', function() {
-        depsStream.end();
         if (-- self._manifestPending === 0) {
             self.doneManifest();
         }
@@ -200,85 +197,34 @@ MendelBrowserify.prototype.doneManifest = function() {
         bundles: this._manifestBundles,
     };
 
-    /*
-    Looks like we don't need this part. Will make sure and remove later
-    TODO: cleanup
-    bundleManifest.bundles.forEach(function(file) {
-        file.data.forEach(function(data) {
-            Object.keys(data.deps).forEach(function(key) {
-                var index = bundleManifest.indexes[key];
-                if (typeof index !== 'undefined') {
-                    data.deps[key] = index;
-                }
-                index = bundleManifest.indexes[data.deps[key]];
-                if (typeof index !== 'undefined') {
-                    data.deps[key] = index;
-                }
-            });
-        })
-    });
-    */
+    mkdirp.sync(this.opts.outdir);
 
-    var baseOut = {
-        dir: false,
-        name: false,
-    };
-    var manifest = xtend(baseOut);
-    if (typeof this.opts.manifest === 'string') {
-        manifest = path.parse(this.opts.manifest);
-    }
-    if (typeof this.baseBundle.outfile === 'string') {
-        baseOut = path.parse(this.baseBundle.outfile);
-    }
-    var manifestPath = path.join(
-        (manifest.dir||baseOut.dir),
-        (manifest.name||baseOut.name)+'.manifest.json'
-    );
-
+    var manifest = path.join(this.opts.outdir, this.opts.manifest);
     fs.writeFile(
-        manifestPath, JSON.stringify(bundleManifest, null, 2),
+        manifest, JSON.stringify(bundleManifest, null, 2),
         function (err) {
             if (err) throw err;
         }
     );
 }
 
-MendelBrowserify.prototype.createDepsStream = function(bundle) {
-    var outFile = bundle.outfile || this.variationDest(bundle);
-    var fileParts = path.parse(outFile);
-    var destDeps = path.join(fileParts.dir, fileParts.name+'.manifest.json');
-
-    var depsStream = JSONStream.stringify();
-
-    mkdirp.sync(fileParts.dir);
-    depsStream.pipe(fs.createWriteStream(destDeps));
-
-    return depsStream;
-}
-
 MendelBrowserify.prototype.writeVariation = function(bundle) {
     var variationOut = this.variationDest(bundle);
-
-    mkdirp.sync(path.dirname(variationOut));
 
     return bundle.bundle().pipe(fs.createWriteStream(variationOut));
 }
 
 MendelBrowserify.prototype.variationDest = function(bundle) {
     var variation = bundle.variation.id;
-    var baseOut = path.parse(this.baseBundle.outfile);
+    var filename = path.parse(this.opts.outfile).base;
+
     var variationOut = path.join(
-        baseOut.dir,
-        variation+'.'+baseOut.base
+        this.opts.bundlesoutdir,
+        variation,
+        filename
     );
 
-    if (this.opts.outdir) {
-        variationOut = path.join(
-            this.opts.outdir,
-            variation,
-            baseOut.base
-        );
-    }
+    mkdirp.sync(path.dirname(variationOut));
 
     return variationOut;
 }

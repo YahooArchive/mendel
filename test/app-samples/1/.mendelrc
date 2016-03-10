@@ -1,0 +1,16 @@
+
+# relative to basedir, defaults to "build"
+outdir: build
+
+base: app
+basetree: app
+
+bundles:
+  app:
+    entries:
+      - index.js
+
+variations:
+  test_A:
+  test_B:
+  test_C:
