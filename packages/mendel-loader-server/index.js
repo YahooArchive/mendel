@@ -2,8 +2,6 @@ var path = require('path');
 var Module = require('module');
 var MendelTree = require('mendel');
 
-var nodeRequire = module.constructor.prototype.require;
-
 function MendelLoader(config) {
     var self = this;
     self._basedir = config.basedir || process.cwd();
