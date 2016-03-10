@@ -32,9 +32,13 @@ function MendelResolver(variations, mountdir) {
     this._resolveCache = {};
 }
 
-MendelResolver.prototype.require = function (name, parent) {
-    parent = parent || module.parent;
-    var rname = this.resolve(name);
+MendelResolver.prototype.require = function (name) {
+    return this._require(name, module.parent);
+}
+
+MendelResolver.prototype._require = function (name, parent) {
+    var that = this;
+    var rname = that.resolve(name);
     var modPath = Module._resolveFilename(rname || name, parent);
     var mod = Module._cache[modPath];
 
@@ -59,9 +63,12 @@ MendelResolver.prototype.require = function (name, parent) {
     if (modExports.__mendel_module__) {
         var mendelFn = modExports;
         var mendelMod = {
-            exports: {}
+            exports: {},
+            require: function(request) {
+                return MendelResolver.prototype._require.apply(that, [request, mod]);
+            }
         };
-        mendelFn.call(this, this, mendelMod, mendelMod.exports, mod);
+        mendelFn.apply(that, [mendelMod.require, mendelMod, mendelMod.exports]);
         modExports = mendelMod.exports;
     }
 
