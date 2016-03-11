@@ -60,6 +60,8 @@
   "devDependencies": {
     "eslint": "^2.3.0",
     "eslint-cli": "^1.1.0",
-    "tap": "^5.7.0"
+    "rimraf": "^2.5.2",
+    "tap": "^5.7.0",
+    "temp": "^0.8.3"
   }
 }

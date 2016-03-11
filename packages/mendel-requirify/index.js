@@ -11,16 +11,23 @@ function requirify(b, opts) {
     var outdir = opts.outdir || path.join(process.cwd(), 'mendel-requirify');
 
     b.pipeline.get('dedupe').push(through.obj(function(row, enc, next) {
+        var that = this;
         var file = row.file || row.id;
         var nm = file.split('/node_modules/')[1];
-        if (!nm) {
-            var dest = path.join(outdir, row.variation, row.id);
-            var out = fs.createOutputStream(dest);
-            out.write(mendelRequireTransform(row.source, true));
-            out.end();
+
+        function done() {
+            that.push(row);
+            next()
         }
-        this.push(row);
-        next();
+
+        if (nm) {
+            return done();
+        }
+
+        var dest = path.join(outdir, row.variation, row.id);
+        var out = fs.createOutputStream(dest);
+        out.write(mendelRequireTransform(row.source, true));
+        out.end(done);
     }));
 
 }
