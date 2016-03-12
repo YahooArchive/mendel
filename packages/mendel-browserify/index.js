@@ -73,7 +73,7 @@ function MendelBrowserify(baseBundle, opts) {
         });
 
         baseBundle.on('bundle', function onBaseBundleStart() {
-            if (baseBundle.argv.list) {
+            if (argv.list) {
                 return self.listVariation(variationBundle);
             }
 
