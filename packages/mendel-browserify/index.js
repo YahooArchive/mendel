@@ -171,10 +171,14 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     var bundleIndex = bundleIndexes[id];
     if (typeof bundleIndex === 'undefined') {
         var newDep = {
-            id: id,
             variations: [variation],
             data: [data],
         };
+        ['id', 'entry', 'expose'].forEach(function(prop) {
+            if (typeof data[prop] !== undefined) {
+                newDep[prop] = data[prop];
+            }
+        })
         allBundles.push(newDep);
         newDep.index = allBundles.indexOf(newDep);
         bundleIndexes[id] = newDep.index;
