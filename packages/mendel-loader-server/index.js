@@ -62,7 +62,7 @@ MendelResolver.prototype._require = function (name, parent) {
         var mendelMod = {
             exports: {},
             require: function(request) {
-                return MendelResolver.prototype._require.apply(that, [request, mod]);
+                return MendelResolver.prototype._require.apply(that, [request, parent]);
             }
         };
         mendelFn.apply(that, [mendelMod.require, mendelMod, mendelMod.exports]);
