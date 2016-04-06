@@ -1,19 +1,19 @@
 var path = require('path');
 var temp = require('temp');
 var test = require('tap').test;
+var Module = require('module');
 var browserify = require('browserify');
 var mendelify = require('../packages/mendel-browserify');
 var requirify = require('../packages/mendel-requirify');
 var Loader = require('../packages/mendel-loader-server');
 
 var srcDir = path.resolve(__dirname, './app-samples/1');
+var buildDir = temp.mkdirSync('mendel-loader-server');
+var mountDir = path.join(buildDir, 'server');
 
 test('mendel-loader-server', function(t){
     t.plan(12);
     temp.track();
-
-    var buildDir = temp.mkdirSync('mendel-loader-server');
-    var mountDir = path.join(buildDir, 'server');
 
     var b = browserify({
         entries: [
@@ -67,9 +67,12 @@ test('mendel-loader-server', function(t){
                 var numberList = resolver.require('number-list.js');
                 t.equal(numberList()[0], i.expect, 'number-list.js ' + variation + ' variation');
 
-                t.throws(function () {
-                    var invalid = resolver.require('throws.js');
-                }, {message: 'Intentional error'});
+                t.throws(function() {
+                    var throwyFile = resolver.require('throws.js');
+                }, {
+                    name: 'Error',
+                    message: 'Intentional error'
+                });
             });
 
             temp.cleanup(function() {
@@ -77,4 +80,34 @@ test('mendel-loader-server', function(t){
             });
         }, 1000);
     });
+});
+
+test('mendel-loader-server-syntax-error', function(t){
+    t.plan(2);
+
+    var prevDir = process.cwd();
+
+    process.chdir(srcDir);
+
+    try {
+        // test without 'new'
+        var loader = Loader();
+        var resolver = loader.resolver({
+            bundle: 'app',
+            variations: ['test_B']
+        });
+
+        var invalidFile = path.join(srcDir, 'app/syntax-error.js');
+        t.throws(function() {
+            resolver.require(invalidFile);
+        }, {
+            name: 'ReferenceError',
+            message: 'yes is not defined'
+        });
+
+        t.ok(Module._cache[invalidFile] === undefined);
+    } finally {
+        process.chdir(prevDir);
+        t.end();
+    }
 });

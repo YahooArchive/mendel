@@ -3,7 +3,13 @@ var Module = require('module');
 var MendelTree = require('mendel');
 
 function MendelLoader(config) {
+    if (!(this instanceof MendelLoader)) {
+        return new MendelLoader(config);
+    }
+
+    config = config || {};
     var self = this;
+
     self._basedir = config.basedir || process.cwd();
     self._mountdir = config.mountdir || process.cwd();
     self._tree = new MendelTree({
@@ -30,10 +36,7 @@ function MendelResolver(variations, mountdir) {
 }
 
 MendelResolver.prototype.require = function (name) {
-    return this._require(name, module.parent);
-}
-
-MendelResolver.prototype._require = function (name, parent) {
+    var parent = module.parent;
     var that = this;
     var rname = that.resolve(name);
     var modPath = Module._resolveFilename(rname || name, parent);
@@ -51,6 +54,7 @@ MendelResolver.prototype._require = function (name, parent) {
         } finally {
             if (hadException) {
                 delete Module._cache[modPath];
+                delete that._resolveCache[name];
             }
         }
     }
@@ -62,7 +66,7 @@ MendelResolver.prototype._require = function (name, parent) {
         var mendelMod = {
             exports: {},
             require: function(request) {
-                return MendelResolver.prototype._require.apply(that, [request, parent]);
+                return MendelResolver.prototype.require.apply(that, [request, parent]);
             }
         };
         mendelFn.apply(that, [mendelMod.require, mendelMod, mendelMod.exports]);
