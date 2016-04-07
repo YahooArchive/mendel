@@ -1,0 +1,20 @@
+{
+  "name": "mendel-middleware",
+  "version": "1.0.0",
+  "description": "express middleware for meldel",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel",
+    "browserify-transform",
+    "express-middleware"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "dependencies": {},
+  "peerDependencies": {
+    "express": "*"
+  }
+}
