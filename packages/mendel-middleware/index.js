@@ -29,7 +29,8 @@ function MendelMiddleware(opts) {
     var swatch = new Swatch({
         basedir: opts.basedir,
         outdir: opts.mountdir,
-        variations: existingVariations
+        variations: existingVariations,
+        verbose: opts.verbose
     });
 
     swatch.on('error', function (err) {

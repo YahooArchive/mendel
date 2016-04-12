@@ -23,9 +23,10 @@ function Swatch(opts) {
 
     var self = this;
     self.baseDir = opts.basedir;
+    self.verbose = opts.verbose === true;
 
     if (watching[self.baseDir]) {
-        console.log('Already watching: ' + self.baseDir);
+        console.warn('Already watching: ' + self.baseDir);
         return;
     }
 
@@ -41,11 +42,18 @@ function Swatch(opts) {
         monitor.on("removed", self.onFileRemoved.bind(self));
 
         watching[self.baseDir] = true;
-        console.log('Watching ' + self.baseDir);
+        self.emit('ready', self.baseDir);
+        self.log('Watching ' + self.baseDir);
     });    
 }
 
 inherits(Swatch, EventEmitter);
+
+Swatch.prototype.log = function(msg) {
+    if (this.verbose) {
+        console.log(msg);
+    }
+}
 
 Swatch.prototype._getBuildPath = function(srcFile, match) {
     match = match || variationMatches(this.variations, srcFile);
@@ -63,7 +71,7 @@ Swatch.prototype._processFile = function(srcFile, cb) {
     out.on('finish', function() {
         var diff = process.hrtime(start);
         var elapsedMs = Math.floor((diff[0] * 1e3) + (diff[1] * 1e-6));
-        console.log('Wrote: ' + destFile + ' in ' + elapsedMs + 'ms');
+        self.log('Wrote: ' + destFile + ' in ' + elapsedMs + 'ms');
         cb(null, destFile, elapsedMs);
     });
     out.on('error', cb);
@@ -127,9 +135,11 @@ Swatch.prototype._replaceRequiresOnSource = function(src, match) {
 };
 
 Swatch.prototype.onFileChanged = function(srcFile) {
-    console.log('Changed: ' + srcFile);
     var self = this;
     var destFile = self._getBuildPath(srcFile);
+
+    self.log('Changed: ' + srcFile);
+
     self._uncache(destFile);
     self._processFile(srcFile, function (err, newFile, elapsedMs) {
         if (err) {
@@ -140,8 +150,10 @@ Swatch.prototype.onFileChanged = function(srcFile) {
 };
 
 Swatch.prototype.onFileCreated = function(srcFile) {
-    console.log('Created: ' + srcFile);
     var self = this;
+
+    self.log('Created: ' + srcFile);
+
     self._processFile(srcFile, function (err, newFile, elapsedMs) {
         if (err) {
             return self.emit('error', err);
@@ -151,9 +163,11 @@ Swatch.prototype.onFileCreated = function(srcFile) {
 };
 
 Swatch.prototype.onFileRemoved = function(srcFile) {
-    console.log('Removed: ' + srcFile);
     var self = this;
     var destFile = self._getBuildPath(srcFile);
+
+    self.log('Removed: ' + srcFile);
+
     self._uncache(destFile);
     fs.remove(destFile, function(err) {
         if (err) {
