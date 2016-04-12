@@ -3,10 +3,8 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var path = require('path');
-var async = require('async');
-var resolve = require('browser-resolve');
 var transformTools = require('browserify-transform-tools');
+var resolveInDirs = require('./lib/resolve-dirs');
 
         /*  CLI USAGE:
             browserify src/A/main.js \
@@ -41,7 +39,7 @@ var requireTransform = transformTools.makeRequireTransform(
     {evaluateArguments: true},
     function(args, opts, transformDone) {
         var parent = opts.file;
-        var module = args[0];
+        var file = args[0];
         var basedir = opts.config._flags && opts.config._flags.basedir;
 
         var dirs = opts.config.dirs || [];
@@ -51,7 +49,7 @@ var requireTransform = transformTools.makeRequireTransform(
         if (typeof dirs === 'string') {
             dirs = [dirs];
         }
-        if (isExternalModule(module) || !dirs.length) {
+        if (isExternalModule(file) || !dirs.length) {
             return transformDone();
         }
 
@@ -61,31 +59,15 @@ var requireTransform = transformTools.makeRequireTransform(
             var parts = parent.split(new RegExp("/"+dir+"/"));
             var found = parts.length > 1;
             if (found) {
-                // basedir = basedir || parts[0];
                 parent = parts[1];
             }
             return found;
         });
 
-        var finalPath;
-        async.detectSeries(dirs, function(dir, doneModule) {
-            var base = basedir || process.cwd();
-            var parentInsideIterateeDir = path.join(base, dir, parent);
-            var opts = { filename: parentInsideIterateeDir };
-            resolve(module, opts, function(err, path) {
-                if (!err) {
-                    finalPath = path;
-                }
-                doneModule(!err);
-            });
-        }, function(moduleIn) {
-            if (!moduleIn) {
+        resolveInDirs(file, dirs, basedir, parent, function(err, finalPath) {
+            if (!finalPath) {
                 return transformDone();
             }
-            // finalPath **MUST** be absolute because generating multiple
-            // bundles from the same tree but different entrypoints
-            // will cause checksum to fail
-            finalPath = path.resolve(finalPath);
             return transformDone(null, "require('"+finalPath+"')");
         });
     }

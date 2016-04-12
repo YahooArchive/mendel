@@ -45,6 +45,7 @@
     "JSONStream": "^1.0.7",
     "async": "^1.5.2",
     "babelify": "~7.2.0",
+    "browser-resolve": "^1.11.1",
     "browserify": "^13.0.0",
     "browserify-transform-tools": "^1.5.3",
     "concentrate": "^0.2.3",
