@@ -68,7 +68,7 @@ test('mendel-loader-server', function(t){
                 t.equal(numberList()[0], i.expect, 'number-list.js ' + variation + ' variation');
 
                 t.throws(function() {
-                    var throwyFile = resolver.require('throws.js');
+                    var throwyFile = resolver.require('throws.js'); // eslint-disable-line no-unused-vars
                 }, {
                     name: 'Error',
                     message: 'Intentional error'

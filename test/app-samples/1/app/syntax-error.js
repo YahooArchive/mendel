@@ -1,2 +1,2 @@
 
-invalid = yes
+invalid = yes // eslint-disable-line no-undef
