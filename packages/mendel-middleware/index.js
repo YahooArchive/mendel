@@ -2,6 +2,7 @@
 var express = require('express');
 var StreamCache = require('stream-cache');
 var browserify = require('browserify');
+var Swatch = require('./swatch');
 var watchify = require('watchify');
 var path = require('path');
 var xtend = require('xtend');
@@ -22,7 +23,18 @@ function MendelMiddleware(opts) {
     existingVariations = existingVariations.concat({
         id: base,
         chain: [config.basetree || 'base'],
-    })
+    });
+
+    // server side watch
+    var swatch = new Swatch({
+        basedir: opts.basedir,
+        outdir: opts.mountdir,
+        variations: existingVariations
+    });
+
+    swatch.on('error', function (err) {
+        console.error(err.stack);
+    });
 
     return router.get(routePath, function(req, res, next) {
         var variations = (req.params.variations||'').split(',').concat(base);
