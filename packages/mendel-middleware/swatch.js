@@ -47,28 +47,29 @@ function Swatch(opts) {
 
 inherits(Swatch, EventEmitter);
 
-Swatch.prototype._getBuildPath = function(match) {
+Swatch.prototype._getBuildPath = function(srcFile, match) {
+    match = match || variationMatches(this.variations, srcFile);
     var destFile = path.join(this.outDir, match.dir, match.file);
     return destFile;
 }
 
-Swatch.prototype._processFile = function(file, cb) {
+Swatch.prototype._processFile = function(srcFile, cb) {
     var start = process.hrtime();
     var self = this;
-    var match = variationMatches(self.variations, file);
-    var destFile = self._getBuildPath(match);
+    var match = variationMatches(self.variations, srcFile);
+    var destFile = self._getBuildPath(srcFile, match);
 
     var out = fs.createOutputStream(destFile);
     out.on('finish', function() {
         var diff = process.hrtime(start);
         var elapsedMs = Math.floor((diff[0] * 1e3) + (diff[1] * 1e-6));
         console.log('Wrote: ' + destFile + ' in ' + elapsedMs + 'ms');
-        cb(null, elapsedMs);
+        cb(null, destFile, elapsedMs);
     });
     out.on('error', cb);
 
-    var stream = fs.createReadStream(file)
-        .pipe(babelify(file, {
+    var stream = fs.createReadStream(srcFile)
+        .pipe(babelify(srcFile, {
             "presets": ["es2015", "react"],
             "retainLines": true
         }))
@@ -85,14 +86,8 @@ Swatch.prototype._processFile = function(file, cb) {
     stream.on('error', cb);
 };
 
-Swatch.prototype._removeFile = function(file, cb) {
-    var match = variationMatches(this.variations, file);
-    var destFile = this._getBuildPath(match);
-    fs.remove(destFile, cb);
-}
-
-Swatch.prototype._uncache = function(file) {
-    delete Module._cache[file];
+Swatch.prototype._uncache = function(destFile) {
+    delete Module._cache[destFile];
 };
 
 Swatch.prototype._replaceRequiresOnSource = function(src, match) {
@@ -102,7 +97,7 @@ Swatch.prototype._replaceRequiresOnSource = function(src, match) {
         ecmaVersion: 6,
         allowReturnOutsideFunction: true
     };
-    var file = match.file;
+    var srcFile = match.file;
     var dirs = match.variation.chain;
 
     return falafel(src, opts, function (node) {
@@ -111,7 +106,7 @@ Swatch.prototype._replaceRequiresOnSource = function(src, match) {
             var resolvedPath = null;
 
             dirs.some(function(dir) {
-                var srcPath = path.join(baseDir, dir, file);
+                var srcPath = path.join(baseDir, dir, srcFile);
 
                 try {
                     resolvedPath = resolve.sync(value, {filename: srcPath});
@@ -131,38 +126,40 @@ Swatch.prototype._replaceRequiresOnSource = function(src, match) {
     }).toString();
 };
 
-Swatch.prototype.onFileChanged = function(file) {
-    console.log('Changed: ' + file);
+Swatch.prototype.onFileChanged = function(srcFile) {
+    console.log('Changed: ' + srcFile);
     var self = this;
-    self._uncache(file);
-    self._processFile(file, function (err, elapsedMs) {
+    var destFile = self._getBuildPath(srcFile);
+    self._uncache(destFile);
+    self._processFile(srcFile, function (err, newFile, elapsedMs) {
         if (err) {
             return self.emit('error', err);
         }
-        self.emit('changed', file, elapsedMs);
+        self.emit('changed', srcFile, newFile, elapsedMs);
     });
 };
 
-Swatch.prototype.onFileCreated = function(file) {
-    console.log('Created: ' + file);
+Swatch.prototype.onFileCreated = function(srcFile) {
+    console.log('Created: ' + srcFile);
     var self = this;
-    self._processFile(file, function (err, elapsedMs) {
+    self._processFile(srcFile, function (err, newFile, elapsedMs) {
         if (err) {
             return self.emit('error', err);
         }
-        self.emit('created', file, elapsedMs);
+        self.emit('created', srcFile, newFile, elapsedMs);
     });
 };
 
-Swatch.prototype.onFileRemoved = function(file) {
-    console.log('Removed: ' + file);
+Swatch.prototype.onFileRemoved = function(srcFile) {
+    console.log('Removed: ' + srcFile);
     var self = this;
-    self._uncache(file);
-    self._removeFile(file, function(err) {
+    var destFile = self._getBuildPath(srcFile);
+    self._uncache(destFile);
+    fs.remove(destFile, function(err) {
         if (err) {
             return self.emit('error', err);
         }
-        self.emit('removed', file);
+        self.emit('removed', srcFile, destFile);
     });
 };
 
