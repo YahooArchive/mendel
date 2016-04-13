@@ -66,13 +66,7 @@ function MendelMiddleware(opts) {
             packageCache: {}
         });
 
-        var bundleStream = cachedStreamBundle(bundleConfig, dirs);
-        bundleStream.on('error', function(e) {
-            console.error(e.stack);
-            res.send('console.error( "Error compiling client bundle", ' +
-                JSON.stringify({ stack: e.stack }) + ')').end();
-        });
-        bundleStream.pipe(res);
+        handleRequestWithCachedStream(bundleConfig, dirs, res);
     });
 }
 
@@ -94,23 +88,47 @@ function resolveVariations(existingVariations, variations) {
 }
 
 var streamCache = {};
-function cachedStreamBundle(bundleConfig, dirs) {
+function handleRequestWithCachedStream(bundleConfig, dirs, res) {
     var id = [bundleConfig.id].concat(dirs).join('/');
-    if (!streamCache[id]) {
+    var currentStream = streamCache[id];
+    if (!currentStream) {
         streamCache[id] = new StreamCache();
+        currentStream = streamCache[id]
+        currentStream.pending = [];
         getCachedWatchfy(id, bundleConfig, dirs, function(err, bundler) {
-            function bundleError(e) {
-                streamCache[id].emit('error', e);
-                delete streamCache[id];
-            }
-            if (err) return bundleError(err);
+            if (err) return cachedStreamError(id, err);
+
+            bundler.on('update', bindId(id, deleteCachedStream));
+
             var bundle = bundler.bundle();
-            bundle.on('error', bundleError);
-            bundle.pipe(streamCache[id]);
+            bundle.once('error', bindId(id, cachedStreamError));
+            bundle.pipe(currentStream);
         });
     }
 
-    return streamCache[id];
+    currentStream.pending.push(res);
+    currentStream.pipe(res);
+}
+
+function cachedStreamError(id, e) {
+    streamCache[id].pending.forEach(function(res) {
+        res.send('console.error( "Error compiling client bundle", ' +
+                JSON.stringify({ stack: e.stack }) + ')').end();
+    });
+    deleteCachedStream(id);
+}
+
+function deleteCachedStream(id) {
+    if (streamCache[id]) {
+        streamCache[id].removeAllListeners();
+        delete streamCache[id];
+    }
+}
+
+function bindId(id, fn) {
+    return function() {
+        fn.apply(null, [id].concat(Array.prototype.slice.call(arguments)));
+    };
 }
 
 var watchfyCache = {};
@@ -127,10 +145,6 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     var bundler = browserify(bundleConfig);
     bundler.transform(treenherit, { dirs: dirs });
     bundler.plugin(watchify);
-
-    bundler.on('update', function() {
-        streamCache[id] = null;
-    });
 
     watchfyCache[id] = bundler;
     cb(null, watchfyCache[id]);
