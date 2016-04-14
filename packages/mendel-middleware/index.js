@@ -1,16 +1,15 @@
 
-var express = require('express');
-var StreamCache = require('stream-cache');
-var browserify = require('browserify');
-var Swatch = require('./swatch');
-var watchify = require('watchify');
 var path = require('path');
-var Stream = require('stream');
 var xtend = require('xtend');
+var express = require('express');
+var browserify = require('browserify');
+var watchify = require('watchify');
+var treenherit = require('mendel-treenherit');
 
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
-var treenherit = require('mendel-treenherit');
+var Swatch = require('./swatch');
+var CachedStreamCollection = require('./cached-stream-collection');
 
 module.exports = MendelMiddleware;
 
@@ -94,47 +93,34 @@ function resolveVariations(existingVariations, variations) {
     return resolved;
 }
 
-var streamCache = {};
+var streamCache = new CachedStreamCollection();
 function cachedStreamBundle(bundleConfig, dirs) {
     var id = [bundleConfig.id].concat(dirs).join('/');
-    var curStream = streamCache[id];
-    if (!curStream) {
-        curStream = (streamCache[id] = new StreamCache());
-        curStream.outlets = [];
+    if (!streamCache.hasItem(id)) {
+        streamCache.createItem(id);
 
         getCachedWatchfy(id, bundleConfig, dirs, function(err, watchBundle) {
-
             // multiple kinds of error handling start
-            if (err) return bundleError(err);
+            function boundError(e) {
+                streamCache.sendError(id, e)
+            }
+            if (err) return boundError(err);
 
             var bundle = watchBundle.bundle();
-            bundle.on('error', bundleError);
+            bundle.on('error', boundError);
             bundle.on('transform', function(tr) {
-                tr.on('error', bundleError);
+                tr.on('error', boundError);
             });
-
-            function bundleError(e) {
-                curStream.outlets.forEach(function(stream) {
-                    stream.emit('error', e);
-                });
-                delete streamCache[id];
-            }
             // multiple kinds of error handling end
 
             watchBundle.on('update', function() {
-                delete streamCache[id];
+                streamCache.invalidateItem(id);
             });
-            bundle.pipe(curStream);
+            streamCache.inputPipe(id, bundle);
         });
     }
 
-    var outStream = new Stream.PassThrough();
-    curStream.outlets.push(outStream);
-    outStream.on('end', function() {
-        curStream.outlets.splice(curStream.outlets.indexOf(outStream), 1);
-    });
-    curStream.pipe(outStream);
-    return outStream;
+    return streamCache.outputPipe(id);
 }
 
 var watchfyCache = {};
