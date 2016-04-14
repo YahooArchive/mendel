@@ -19,7 +19,7 @@ function MendelMiddleware(opts) {
     var config = parseConfig(opts);
     var existingVariations = validVariations(config);
     var base = config.base || 'base';
-    var routePath = '/mendel/:variations/:bundle\.js' || opts.path;
+    var routePath = opts.routePath || '/mendel/:variations/:bundle\.js';
 
     existingVariations = existingVariations.concat({
         id: base,
