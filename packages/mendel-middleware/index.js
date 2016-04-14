@@ -97,32 +97,43 @@ function resolveVariations(existingVariations, variations) {
 var streamCache = {};
 function cachedStreamBundle(bundleConfig, dirs) {
     var id = [bundleConfig.id].concat(dirs).join('/');
-    if (!streamCache[id]) {
-        streamCache[id] = new StreamCache();
-        streamCache[id].outlets = [];
-        getCachedWatchfy(id, bundleConfig, dirs, function(err, bundler) {
-            function bundleError(e) {
-                streamCache[id].outlets.forEach(function(stream) {
-                    stream.emit('error', e);
-                });
-                delete streamCache[id];
-            }
+    var curStream = streamCache[id];
+    if (!curStream) {
+        curStream = (streamCache[id] = new StreamCache());
+        curStream.outlets = [];
+
+        getCachedWatchfy(id, bundleConfig, dirs, function(err, watchBundle) {
+
+            // multiple kinds of error handling start
             if (err) return bundleError(err);
-            var bundle = bundler.bundle();
+
+            var bundle = watchBundle.bundle();
             bundle.on('error', bundleError);
             bundle.on('transform', function(tr) {
                 tr.on('error', bundleError);
             });
-            bundle.pipe(streamCache[id]);
+
+            function bundleError(e) {
+                curStream.outlets.forEach(function(stream) {
+                    stream.emit('error', e);
+                });
+                delete streamCache[id];
+            }
+            // multiple kinds of error handling end
+
+            watchBundle.on('update', function() {
+                delete streamCache[id];
+            });
+            bundle.pipe(curStream);
         });
     }
 
     var outStream = new Stream.PassThrough();
-    streamCache[id].outlets.push(outStream);
+    curStream.outlets.push(outStream);
     outStream.on('end', function() {
-        streamCache[id].outlets.splice(streamCache[id].outlets.indexOf(outStream), 1);
+        curStream.outlets.splice(curStream.outlets.indexOf(outStream), 1);
     });
-    streamCache[id].pipe(outStream);
+    curStream.pipe(outStream);
     return outStream;
 }
 
@@ -140,10 +151,6 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     var bundler = browserify(bundleConfig);
     bundler.transform(treenherit, { dirs: dirs });
     bundler.plugin(watchify);
-
-    bundler.on('update', function() {
-        streamCache[id] = null;
-    });
 
     watchfyCache[id] = bundler;
     cb(null, watchfyCache[id]);
