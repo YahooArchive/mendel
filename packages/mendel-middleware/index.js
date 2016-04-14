@@ -8,7 +8,6 @@ var express = require('express');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var treenherit = require('mendel-treenherit');
-
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
 var Swatch = require('./swatch');
@@ -28,17 +27,11 @@ function MendelMiddleware(opts) {
         chain: [config.basetree || 'base'],
     });
 
-    // server side watch
-    var swatch = new Swatch({
-        basedir: opts.basedir,
-        outdir: opts.mountdir,
-        variations: existingVariations,
-        verbose: opts.verbose
-    });
-
+    var swatch = new Swatch(opts);
     swatch.on('error', function (err) {
         console.error(err.stack);
     });
+    swatch.watch();
 
     return router.get(routePath, function(req, res, next) {
         var variations = (req.params.variations||'').split(',').concat(base);
