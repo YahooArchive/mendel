@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var fs = require('fs-extra');
 var path = require('path');
 var watch = require('watch');
@@ -44,7 +48,7 @@ function Swatch(opts) {
         watching[self.baseDir] = true;
         self.emit('ready', self.baseDir);
         self.log('Watching ' + self.baseDir);
-    });    
+    });
 }
 
 inherits(Swatch, EventEmitter);
