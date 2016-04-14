@@ -5,6 +5,7 @@ var browserify = require('browserify');
 var Swatch = require('./swatch');
 var watchify = require('watchify');
 var path = require('path');
+var Stream = require('stream');
 var xtend = require('xtend');
 
 var parseConfig = require('./lib/config');
@@ -66,7 +67,13 @@ function MendelMiddleware(opts) {
             packageCache: {}
         });
 
-        handleRequestWithCachedStream(bundleConfig, dirs, res);
+        var bundleStream = cachedStreamBundle(bundleConfig, dirs);
+        bundleStream.on('error', function(e) {
+            console.error(e.stack);
+            res.send('console.error( "Error compiling client bundle", ' +
+                JSON.stringify({ stack: e.stack }) + ')').end();
+        });
+        bundleStream.pipe(res);
     });
 }
 
@@ -88,47 +95,35 @@ function resolveVariations(existingVariations, variations) {
 }
 
 var streamCache = {};
-function handleRequestWithCachedStream(bundleConfig, dirs, res) {
+function cachedStreamBundle(bundleConfig, dirs) {
     var id = [bundleConfig.id].concat(dirs).join('/');
-    var currentStream = streamCache[id];
-    if (!currentStream) {
+    if (!streamCache[id]) {
         streamCache[id] = new StreamCache();
-        currentStream = streamCache[id]
-        currentStream.pending = [];
+        streamCache[id].outlets = [];
         getCachedWatchfy(id, bundleConfig, dirs, function(err, bundler) {
-            if (err) return cachedStreamError(id, err);
-
-            bundler.on('update', bindId(id, deleteCachedStream));
-
+            function bundleError(e) {
+                streamCache[id].outlets.forEach(function(stream) {
+                    stream.emit('error', e);
+                });
+                delete streamCache[id];
+            }
+            if (err) return bundleError(err);
             var bundle = bundler.bundle();
-            bundle.once('error', bindId(id, cachedStreamError));
-            bundle.pipe(currentStream);
+            bundle.on('error', bundleError);
+            bundle.on('transform', function(tr) {
+                tr.on('error', bundleError);
+            });
+            bundle.pipe(streamCache[id]);
         });
     }
 
-    currentStream.pending.push(res);
-    currentStream.pipe(res);
-}
-
-function cachedStreamError(id, e) {
-    streamCache[id].pending.forEach(function(res) {
-        res.send('console.error( "Error compiling client bundle", ' +
-                JSON.stringify({ stack: e.stack }) + ')').end();
+    var outStream = new Stream.PassThrough();
+    streamCache[id].outlets.push(outStream);
+    outStream.on('end', function() {
+        streamCache[id].outlets.splice(streamCache[id].outlets.indexOf(outStream), 1);
     });
-    deleteCachedStream(id);
-}
-
-function deleteCachedStream(id) {
-    if (streamCache[id]) {
-        streamCache[id].removeAllListeners();
-        delete streamCache[id];
-    }
-}
-
-function bindId(id, fn) {
-    return function() {
-        fn.apply(null, [id].concat(Array.prototype.slice.call(arguments)));
-    };
+    streamCache[id].pipe(outStream);
+    return outStream;
 }
 
 var watchfyCache = {};
@@ -145,6 +140,10 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     var bundler = browserify(bundleConfig);
     bundler.transform(treenherit, { dirs: dirs });
     bundler.plugin(watchify);
+
+    bundler.on('update', function() {
+        streamCache[id] = null;
+    });
 
     watchfyCache[id] = bundler;
     cb(null, watchfyCache[id]);
