@@ -9,12 +9,9 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var through = require('through2');
-var shasum = require('shasum');
-var falafel = require('falafel');
-var isRequire = require('./lib/falafel-util').isRequire;
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
-var variationMatches = require('./lib/variation-matches');
+var mendelify = require('./lib/mendelify-transform-stream');
 var proxy = require('./lib/proxy');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
@@ -127,30 +124,14 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
 
 MendelBrowserify.prototype.createManifest = function(bundle) {
     var self = this;
+    var deps = bundle.pipeline.get('deps');
 
-    function mendelify(row, enc, next) {
-        var match = variationMatches(self.variations, row.file);
-        if (match) {
-            row.id = match.file;
-            row.variation = match.dir;
-        }
-
-        Object.keys(row.deps).forEach(function (key) {
-            var depMatch = variationMatches(self.variations, key);
-            if (depMatch) {
-                row.deps[depMatch.file] = depMatch.file;
-                delete row.deps[key];
-            }
-        });
-
-        row.source = replaceRequiresOnSource(row.source, self.variations);
-        row.sha = shasum(row.source);
+    deps.push(mendelify(self.variations));
+    deps.push(through.obj(function(row, enc, next) {
         self.pushBundleManifest(row);
-
         this.push(row);
         next();
-    }
-    bundle.pipeline.get('deps').push(through.obj(mendelify));
+    }));
 
     ++ self._manifestPending;
     bundle.on('bundle', function(b) { b.on('end', function() {
@@ -249,22 +230,6 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
     bundle.bundle(function() {
         process.stdout.write('\n'+bundle._log.join('\n\t')+'\n');
     });
-}
-
-function replaceRequiresOnSource(src, variations) {
-  var opts = {
-      ecmaVersion: 6,
-      allowReturnOutsideFunction: true
-  };
-  return falafel(src, opts, function (node) {
-    if (isRequire(node)) {
-      var value = node.arguments[0].value;
-      var match = variationMatches(variations, value);
-      if (match) {
-        if(match) node.update('require(\'' + match.file + '\')');
-      }
-    }
-  }).toString();
 }
 
 function addTransform(bundle) {
