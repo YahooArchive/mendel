@@ -93,12 +93,6 @@ Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
     self._log('Changed:\n' + util.inspect(changes));
 };
 
-Swatch.prototype._handleFileCreated = function(srcFile) {
-    this._log('Created: ' + srcFile);
-    //TODO: do we need to do anything here?
-    // Yes! we need in all cases to update the manifest
-};
-
 Swatch.prototype._handleFileRemoved = function(srcFile) {
     var self = this;
     var destFile = self._getBuildPath(srcFile);
@@ -122,24 +116,22 @@ Swatch.prototype._log = function(msg) {
 
 Swatch.prototype.watch = function() {
     var self = this;
-
-    if (watching[basedir]) {
-        console.warn('Already watching: ' + basedir);
-        return;
-    }
-
     var config = self.config;
     var variations = self.variations;
     var base = config.base;
     var basedir = config.basedir;
     var outdir = config.outdir;
 
+    if (watching[basedir]) {
+        console.warn('Already watching: ' + basedir);
+        return;
+    }
+
     watch.createMonitor(basedir, {
         ignoreDotFiles: true,
         interval: 500
     }, function(monitor) {
         self.monitor = monitor;
-        monitor.on("created", self._handleFileCreated.bind(self));
         monitor.on("removed", self._handleFileRemoved.bind(self));
 
         watching[basedir] = true;
