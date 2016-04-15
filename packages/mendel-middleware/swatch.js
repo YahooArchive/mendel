@@ -64,6 +64,7 @@ Swatch.prototype._getBuildPath = function(srcFile) {
     if (!destFile) {
         var match = variationMatches(this.variations, srcFile);
         destFile = path.join(this.outDir, match.dir, match.file);
+        this.buildPathCache[srcFile] = destFile;
     }
     return destFile;
 }

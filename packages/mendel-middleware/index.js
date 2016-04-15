@@ -27,7 +27,7 @@ function MendelMiddleware(opts) {
         chain: [config.basetree || 'base'],
     });
 
-    var swatch = new Swatch(opts).watch();
+    var swatch = new Swatch(opts).watch(); // eslint-disable-line no-unused-vars
 
     return router.get(routePath, function(req, res, next) {
         var variations = (req.params.variations||'').split(',').concat(base);
