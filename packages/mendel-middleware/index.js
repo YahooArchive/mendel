@@ -27,11 +27,7 @@ function MendelMiddleware(opts) {
         chain: [config.basetree || 'base'],
     });
 
-    var swatch = new Swatch(opts);
-    swatch.on('error', function (err) {
-        console.error(err.stack);
-    });
-    swatch.watch();
+    var swatch = new Swatch(opts).watch();
 
     return router.get(routePath, function(req, res, next) {
         var variations = (req.params.variations||'').split(',').concat(base);

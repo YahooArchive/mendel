@@ -47,6 +47,14 @@ function Swatch(opts) {
 
     self.bundlers = {};
     self.buildPathCache = {};
+
+    // Default 'error' listener
+    // https://nodejs.org/docs/v0.12.9/api/events.html#events_class_events_eventemitter
+    self.on('error', function(err) {
+        if (opts.silent !== true) {
+            console.error(err.stack);
+        }
+    });
 }
 
 inherits(Swatch, EventEmitter);
@@ -107,9 +115,10 @@ Swatch.prototype._handleFileRemoved = function(srcFile) {
     self._uncacheModule(destFile);
     fs.remove(destFile, function(err) {
         if (err) {
-            return self.emit('error', err);
+            // error handlers get: error, [bundleId], [srcFile], [destFile]
+            return self.emit('error', err, null, srcFile, destFile);
         }
-        self.emit('removed', srcFile, destFile)
+        self.emit('removed', srcFile, destFile);
     });
 };
 
@@ -163,7 +172,8 @@ Swatch.prototype.watch = function() {
             });
 
             function bundleError(err) {
-                self.emit('error', err);
+                // error handlers get: error, [bundleId], [srcFile], [destFile]
+                self.emit('error', err, bundleId, null, null);
             }
 
             function makeBundle(bundler) {
