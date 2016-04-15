@@ -31,13 +31,13 @@ function Swatch(opts) {
 
     EventEmitter.call(self);
 
-    self.baseDir = opts.basedir;
-    self.outDir = opts.outdir;
-    self.verbose = opts.verbose === true;
-
     var config = parseConfig(opts);
-    self.config = config;
+    self.config = xtend(config, {
+        verbose: false,
+        silent: false
+    }, opts.development);
 
+    // This will go away when we fix config
     var base = config.base || 'base';
 
     self.variations = validVariations(config).concat({
@@ -51,7 +51,7 @@ function Swatch(opts) {
     // Default 'error' listener
     // https://nodejs.org/docs/v0.12.9/api/events.html#events_class_events_eventemitter
     self.on('error', function(err) {
-        if (opts.silent !== true) {
+        if (self.config.silent !== true) {
             console.error(err.stack);
         }
     });
@@ -60,10 +60,12 @@ function Swatch(opts) {
 inherits(Swatch, EventEmitter);
 
 Swatch.prototype._getBuildPath = function(srcFile) {
+    var outdir = this.config.outdir;
     var destFile = this.buildPathCache[srcFile];
+
     if (!destFile) {
         var match = variationMatches(this.variations, srcFile);
-        destFile = path.join(this.outDir, match.dir, match.file);
+        destFile = path.join(outdir, match.dir, match.file);
         this.buildPathCache[srcFile] = destFile;
     }
     return destFile;
@@ -87,32 +89,20 @@ Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
         changes.files.push({src: src, dest: dest});
     });
 
-    if (self.verbose) {
-        console.log('Changed:\n' + util.inspect(changes));
-    }
-
     self.emit('changed', changes);
+    self._log('Changed:\n' + util.inspect(changes));
 };
 
 Swatch.prototype._handleFileCreated = function(srcFile) {
-    var self = this;
-
-    if (self.verbose) {
-        console.log('Created: ' + srcFile);
-    }
-
+    this._log('Created: ' + srcFile);
     //TODO: do we need to do anything here?
     // Yes! we need in all cases to update the manifest
 };
 
 Swatch.prototype._handleFileRemoved = function(srcFile) {
     var self = this;
-
-    if (self.verbose) {
-        console.log('Removed: ' + srcFile);
-    }
-
     var destFile = self._getBuildPath(srcFile);
+
     self._uncacheModule(destFile);
     fs.remove(destFile, function(err) {
         if (err) {
@@ -120,23 +110,31 @@ Swatch.prototype._handleFileRemoved = function(srcFile) {
             return self.emit('error', err, null, srcFile, destFile);
         }
         self.emit('removed', srcFile, destFile);
+        self._log('Removed: ' + srcFile);
     });
 };
+
+Swatch.prototype._log = function(msg) {
+    if (this.config.verbose) {
+        console.log(msg);
+    }
+}
 
 Swatch.prototype.watch = function() {
     var self = this;
 
-    if (watching[self.baseDir]) {
-        console.warn('Already watching: ' + self.baseDir);
+    if (watching[basedir]) {
+        console.warn('Already watching: ' + basedir);
         return;
     }
 
     var config = self.config;
     var variations = self.variations;
     var base = config.base;
-    var outdir = self.outDir;
+    var basedir = config.basedir;
+    var outdir = config.outdir;
 
-    watch.createMonitor(self.baseDir, {
+    watch.createMonitor(basedir, {
         ignoreDotFiles: true,
         interval: 500
     }, function(monitor) {
@@ -144,12 +142,9 @@ Swatch.prototype.watch = function() {
         monitor.on("created", self._handleFileCreated.bind(self));
         monitor.on("removed", self._handleFileRemoved.bind(self));
 
-        watching[self.baseDir] = true;
-        self.emit('ready', self.baseDir);
-
-        if (self.verbose) {
-            console.log('Watching: ' + self.baseDir);
-        }
+        watching[basedir] = true;
+        self.emit('ready', basedir);
+        self._log('Watching: ' + basedir);
     });
 
     Object.keys(config.bundles).forEach(function(bundleId) {
@@ -210,10 +205,13 @@ Swatch.prototype.watch = function() {
 
 Swatch.prototype.stop = function() {
     var self = this;
+    var basedir = self.config.basedir;
+
     if (self.monitor) {
         self.monitor.stop();
-        delete watching[self.baseDir];
+        delete watching[basedir];
     }
+
     Object.keys(self.bundlers).forEach(function(bundlerKey) {
         self.bundlers[bundlerKey].close();
     });
