@@ -157,8 +157,6 @@ Swatch.prototype.watch = function() {
             return;
         }
 
-        self.bundlers[bundleId] = {};
-
         variations.forEach(function(variation) {
             var variationId = variation.id;
             var bundleConfig = xtend({}, config.bundles[bundleId], {
@@ -200,7 +198,8 @@ Swatch.prototype.watch = function() {
                 makeBundle(bundler);
             })
 
-            self.bundlers[bundleId][variationId] = bundler;
+            var bundlerKey = bundleId + ':' + variationId;
+            self.bundlers[bundlerKey] = bundler;
 
             makeBundle(bundler);
         });
@@ -210,10 +209,14 @@ Swatch.prototype.watch = function() {
 }
 
 Swatch.prototype.stop = function() {
-    if (this.monitor) {
-        this.monitor.stop();
-        delete watching[this.baseDir];
+    var self = this;
+    if (self.monitor) {
+        self.monitor.stop();
+        delete watching[self.baseDir];
     }
+    Object.keys(self.bundlers).forEach(function(bundlerKey) {
+        self.bundlers[bundlerKey].close();
+    });
 }
 
 module.exports = Swatch;
