@@ -13,7 +13,6 @@ var parseConfig = require('./lib/config');
 var path = require('path');
 var requirify = require('mendel-requirify');
 var treenherit = require('mendel-treenherit');
-var util = require('util');
 var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
 var watch = require('watch');
@@ -90,7 +89,7 @@ Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
     });
 
     self.emit('changed', changes);
-    self._log('Changed:\n' + util.inspect(changes));
+    self._log(formatChanges(changes));
 };
 
 Swatch.prototype._handleFileRemoved = function(srcFile) {
@@ -210,3 +209,21 @@ Swatch.prototype.stop = function() {
 }
 
 module.exports = Swatch;
+
+
+function formatChanges(changes) {
+    var files = changes.files.map(function (file) {
+        return [
+            '    - src:  ' + file.src,
+            '      dest: ' + file.dest
+        ].join('\n');
+    });
+    var header = [
+        'Changed:',
+        '  bundle: ' + changes.bundle,
+        '  variation: ' + changes.variation,
+        '  files:'
+    ];
+
+    return header.concat(files).join('\n');
+}
