@@ -13,6 +13,7 @@ bundles:
     entries:
       - main.js
     outfile: main.js
+    bundleExternal: false
     external: *vendor_list
     transform:
       - babelify

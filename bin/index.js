@@ -62,7 +62,32 @@ async.each(bundles, function(rawBundle, doneBundle) {
         })
     ;
 
-    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), config);
+    [].concat(bundle.external).filter(Boolean)
+        .forEach(function (x) {
+            var xs = splitOnColon(x);
+            if (xs.length === 2) {
+                add(xs[0], { expose: xs[1] });
+            }
+            else if (/\*/.test(x)) {
+                b.external(x);
+                b._pending ++;
+                glob(x, function (err, files) {
+                    files.forEach(function (file) {
+                        add(file, {});
+                    });
+                    if (--b._pending === 0) b.emit('_ready');
+                });
+            }
+            else add(x, {});
+
+            function add (x, opts) {
+                if (/^[\/.]/.test(x)) b.external(path.resolve(x), opts)
+                else b.external(x, opts)
+            }
+        })
+    ;
+
+    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
 
     if (rawBundle.entries) {
         // TODO: aync ../lib/resolve-dirs instead of hardcoded base
@@ -73,7 +98,6 @@ async.each(bundles, function(rawBundle, doneBundle) {
 
     var finalBundle = b.bundle();
     finalBundle.on('end', doneBundle);
-    finalBundle.pipe(process.stdout);
 }, function() {
     console.log('all done');
 });
@@ -81,4 +105,17 @@ async.each(bundles, function(rawBundle, doneBundle) {
 function logObj(obj) {
   console.log(require('util').inspect(obj,false,null,true));
   return obj;
+}
+
+function splitOnColon (f) {
+    var pos = f.lastIndexOf(':');
+    if (pos == -1) {
+        return [f]; // No colon
+    } else {
+        if ((/[a-zA-Z]:[\\/]/.test(f)) && (pos == 1)){
+            return [f]; // Windows path and colon is part of drive name
+        } else {
+            return [f.substr(0, pos), f.substr(pos + 1)];
+        }
+    }
 }
