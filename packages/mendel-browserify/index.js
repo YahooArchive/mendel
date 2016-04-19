@@ -37,6 +37,11 @@ function MendelBrowserify(baseBundle, opts) {
     opts = parseConfig(xtend(opts));
     this.opts = opts;
 
+    if (opts.bundle && opts.bundles[opts.bundle]) {
+        this.baseOptions = xtend(this.baseOptions, opts.bundles[opts.bundle]);
+    }
+
+
     this._manifestPending = 0;
     this._manifestIndexes = {};
     this._manifestBundles = [];
@@ -50,7 +55,6 @@ function MendelBrowserify(baseBundle, opts) {
 
 
     this.prepareBundle(baseBundle, this.baseVariation);
-
 
     this.variations.forEach(function(variation) {
         var vopts = xtend(self.baseOptions);
@@ -184,7 +188,10 @@ MendelBrowserify.prototype.doneManifest = function() {
 
     mkdirp.sync(this.opts.outdir);
 
-    var manifest = path.join(this.opts.outdir, this.opts.manifest);
+    var manifest = path.resolve(
+        defined(this.baseOptions.outdir, this.opts.outdir),
+        defined(this.baseOptions.manifest, this.opts.manifest)
+    );
     fs.writeFile(
         manifest, JSON.stringify(bundleManifest, null, 2),
         function (err) {
@@ -203,8 +210,11 @@ MendelBrowserify.prototype.variationDest = function(bundle) {
     var variation = bundle.variation.id;
     var filename = path.parse(this.opts.outfile).base;
 
-    var variationOut = path.join(
-        this.opts.bundlesoutdir,
+    var variationOut = path.resolve(
+        defined(
+            this.baseOptions.bundlesoutdir,
+            this.opts.bundlesoutdir
+        ),
         variation,
         filename
     );

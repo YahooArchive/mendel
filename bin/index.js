@@ -4,6 +4,8 @@
    See the accompanying LICENSE file for terms. */
 
 var browserify = require('browserify');
+var fs = require('fs');
+var mkdirp = require('mkdirp');
 var glob = require('glob');
 var xtend = require('xtend');
 var path = require('path');
@@ -14,26 +16,22 @@ var parseConfig = require('../lib/config');
 var config = parseConfig();
 logObj(config);
 
-var bundles = Object.keys(config.bundles).map(function(bundleName) {
-  var bundle = config.bundles[bundleName];
-  bundle.id = bundleName;
-  return bundle;
-});
+var outdir = config.bundlesoutdir || config.outdir;
+mkdirp.sync(outdir);
 
-logObj(bundles);
-
-async.each(bundles, function(rawBundle, doneBundle) {
+async.each(config.bundles, function(rawBundle, doneBundle) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
+    var conf = {
+        basedir: config.basedir,
+        outfile: path.join(bundle.bundlesoutdir, config.base, bundle.outfile)
+    };
+    mkdirp.sync(path.dirname(conf.outfile));
 
-    // TODO: This is probably a bad idea, hand picking is probably better
-    bundle = xtend(config, bundle);
-
+    var entries = bundle.entries;
     delete bundle.entries;
-    bundle.outfile = bundle.id + '.js';
 
-    var b = browserify(bundle);
+    var b = browserify(xtend(conf, bundle));
     b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
-
 
     [].concat(bundle.ignore).filter(Boolean)
         .forEach(function (i) {
@@ -89,17 +87,20 @@ async.each(bundles, function(rawBundle, doneBundle) {
         })
     ;
 
-    if (rawBundle.entries) {
+    if (entries) {
         // TODO: aync ../lib/resolve-dirs instead of hardcoded base
-        rawBundle.entries.forEach(function(entry) {
+        entries.forEach(function(entry) {
             b.add(path.join(config.basedir, config.basetree, entry));
         });
     }
 
     var finalBundle = b.bundle();
     finalBundle.on('end', doneBundle);
-}, function() {
-    console.log('all done');
+    if (conf.outfile) {
+        finalBundle.pipe(fs.createWriteStream(conf.outfile));
+    } else {
+        finalBundle.pipe(process.stdout);
+    }
 });
 
 function logObj(obj) {
