@@ -32,6 +32,8 @@ async.each(bundles, function(rawBundle, doneBundle) {
     bundle.outfile = bundle.id + '.js';
 
     var b = browserify(bundle);
+    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
+
 
     [].concat(bundle.ignore).filter(Boolean)
         .forEach(function (i) {
@@ -86,8 +88,6 @@ async.each(bundles, function(rawBundle, doneBundle) {
             }
         })
     ;
-
-    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
 
     if (rawBundle.entries) {
         // TODO: aync ../lib/resolve-dirs instead of hardcoded base

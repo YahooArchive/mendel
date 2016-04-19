@@ -4,9 +4,9 @@ import App from './components/app';
 
 if (typeof document !== 'undefined') {
   var body = document.querySelector('body');
-  ReactDOM.render(<App/>, body);
+  ReactDOM.render(<App data={window.data} />, body);
 } else {
-  var ReactDOMServer = require('react-dom/server');
-  var markup = ReactDOMServer.renderToStaticMarkup(<App/>);
-  console.log(markup);
+    module.exports = function(data) {
+        return <App data={data} />;
+    }
 }

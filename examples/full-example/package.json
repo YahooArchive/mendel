@@ -5,7 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "express": "^4.13.4",
-    "mendel": "*"
+    "mendel": "*",
+    "react": "^0.14.0",
+    "react-dom": "^0.14.0"
   },
   "babel": {
     "presets": [
@@ -29,10 +31,6 @@
     "babel-preset-react": "^6.5.0",
     "eslint-plugin-react": "^5.0.1",
     "glob": "^7.0.3"
-  },
-  "peerDependencies": {
-    "react": "^0.14.0",
-    "react-dom": "^0.14.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
