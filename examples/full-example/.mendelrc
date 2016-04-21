@@ -1,0 +1,28 @@
+
+outdir: ./build
+bundlesoutdir: client
+
+base: base
+basetree: isomorphic/base
+bundles:
+  vendor:
+    require: &vendor_list
+      - react
+      - react-dom
+  main:
+    entries:
+      - main.js
+    external: *vendor_list
+    transform:
+      - babelify
+
+variationsdir: isomorphic/variations
+variations:
+  unexisting_folder:
+  bucket_A:
+    - unexisting_folder
+  feature_B:
+  partner_C:
+  bucket_D:
+    - partner_C
+

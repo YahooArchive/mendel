@@ -52,6 +52,7 @@
     "dissolve": "^0.3.3",
     "falafel": "^1.2.0",
     "fs-extra": "^0.26.7",
+    "glob": "^7.0.3",
     "isarray": "^1.0.0",
     "js-yaml": "^3.5.3",
     "mkdirp": "^0.5.1",
@@ -64,6 +65,7 @@
   "devDependencies": {
     "eslint": "^2.3.0",
     "eslint-cli": "^1.1.0",
+    "eslint-plugin-react": "^5.0.1",
     "rimraf": "^2.5.2",
     "tap": "^5.7.0",
     "temp": "^0.8.3"

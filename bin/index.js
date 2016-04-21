@@ -1,202 +1,106 @@
+#!/usr/bin/env node
 /* Copyright 2015, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
 var browserify = require('browserify');
-var through = require('through2');
-var shasum = require('shasum');
-var path = require('path');
 var fs = require('fs');
-var async = require('async');
 var mkdirp = require('mkdirp');
-var JSONStream = require('JSONStream');
+var glob = require('glob');
 var xtend = require('xtend');
-var falafel = require('falafel');
+var path = require('path');
+var async = require('async');
 
-var validVariations = require('./lib/variations');
-var variationMatches = require('./lib/variation-matches');
-var config = require('./lib/config')();
-logObj((config));
+var parseConfig = require('../lib/config');
 
-var basePath = path.join(process.cwd(), config.base);
-if (!fs.existsSync(basePath)) {
-  console.log('base must exist in config');
-  process.exit(1);
-}
+var config = parseConfig();
+logObj(config);
 
-var bundles = Object.keys(config.bundles).map(function(bundleName) {
-  var bundle = config.bundles[bundleName];
-  bundle.id = bundleName;
-  return bundle;
-});
+var outdir = config.bundlesoutdir || config.outdir;
+mkdirp.sync(outdir);
 
-logObj(bundles);
-
-var variations = validVariations(xtend(config, {
-  basetree: config.base,
-}));
-
-variations.unshift({
-  id: 'base',
-  chain: [config.base],
-});
-
-logObj(variations);
-
-var extractions = {};
-bundles.forEach(function(bundle) {
-  if (!bundle.extract) return;
-  extractions[bundle.id] = Object.keys(bundle.extract).reduce(function(cumulative, key) {
-    return cumulative.concat(bundle.extract[key].require);
-  }, []);
-});
-
-logObj(extractions);
-
-async.each(bundles, function(rawBundle, doneBundle) {
-  var bundleIndexes = {};
-  var bundleData = [];
-  var bundleManifest = {
-    bundleIndexes: bundleIndexes,
-    bundles: bundleData,
-  };
-
-  function pushBundleManifest(dep) {
-    var id = dep.id;
-    var variation = dep.variation || 'module';
-    var data = JSON.parse(JSON.stringify(dep));
-
-    delete data.file;
-    delete data.source;
-    delete data.id;
-
-    Object.keys(data.deps).forEach(function(key) {
-      var index = bundleIndexes[key];
-      if (typeof index !== 'undefined') {
-        data.deps[key] = index;
-      }
-      index = bundleIndexes[data.deps[key]];
-      if (typeof index !== 'undefined') {
-        data.deps[key] = index;
-      }
-    });
-
-    if (typeof bundleIndexes[id] === 'undefined') {
-      var newDep = {
-        id: id,
-        variations: [variation],
-        data: [data],
-      };
-      bundleData.push(newDep);
-      bundleIndexes[id] = bundleData.indexOf(newDep);
-    } else {
-      var existingData = bundleData[bundleIndexes[id]];
-      var variationIndex = existingData.variations.indexOf(variation);
-      if (variationIndex === -1) {
-        existingData.variations.push(variation);
-        existingData.data.push(data);
-      } else if (existingData.data[variationIndex].sha !== dep.sha) {
-        throw new Error('Files with same variation ('+variation+') and id ('+id+') should have the same SHA');
-      }
-    }
-  }
-
-  async.each(variations, function(variation, doneVariation) {
+async.each(config.bundles, function(rawBundle, doneBundle) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
+    var conf = {
+        basedir: config.basedir,
+        outfile: path.join(bundle.bundlesoutdir, config.base, bundle.outfile)
+    };
+    mkdirp.sync(path.dirname(conf.outfile));
 
-    // validate entries honorring chain
-    bundle.entries = (bundle.entries||[]).map(function(file) {
-      var found;
-      variation.chain.some(function(dir) {
-        found = path.join(dir, file);
-        return fs.existsSync(found);
-      });
-      return found;
-    });
-    bundle.bundleExternal = !bundle.external;
+    var entries = bundle.entries;
+    delete bundle.entries;
 
-    // This is undocumented on browserify, but browserify
-    // pass all options to modules-deps and filter is supported
-    // and documented there.
-    if (bundle.extract) {
-      bundle.filter = function(id) {
-        var found = variationMatches(variations, id);
-        if (found) {
-          return -1 === extractions[bundle.id].indexOf(found.file);
-        }
-        return true;
-      };
+    var b = browserify(xtend(conf, bundle));
+    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
+
+    [].concat(bundle.ignore).filter(Boolean)
+        .forEach(function (i) {
+            b._pending ++;
+            glob(i, function (err, files) {
+                if (err) return b.emit('error', err);
+                if (files.length === 0) {
+                  b.ignore(i);
+                }
+                else {
+                  files.forEach(function (file) { b.ignore(file) });
+                }
+                if (--b._pending === 0) b.emit('_ready');
+            });
+        })
+    ;
+
+    [].concat(bundle.exclude).filter(Boolean)
+        .forEach(function (u) {
+            b.exclude(u);
+
+            b._pending ++;
+            glob(u, function (err, files) {
+                if (err) return b.emit('error', err);
+                files.forEach(function (file) { b.exclude(file) });
+                if (--b._pending === 0) b.emit('_ready');
+            });
+        })
+    ;
+
+    [].concat(bundle.external).filter(Boolean)
+        .forEach(function (x) {
+            var xs = splitOnColon(x);
+            if (xs.length === 2) {
+                add(xs[0], { expose: xs[1] });
+            }
+            else if (/\*/.test(x)) {
+                b.external(x);
+                b._pending ++;
+                glob(x, function (err, files) {
+                    files.forEach(function (file) {
+                        add(file, {});
+                    });
+                    if (--b._pending === 0) b.emit('_ready');
+                });
+            }
+            else add(x, {});
+
+            function add (x, opts) {
+                if (/^[\/.]/.test(x)) b.external(path.resolve(x), opts)
+                else b.external(x, opts)
+            }
+        })
+    ;
+
+    if (entries) {
+        // TODO: aync ../lib/resolve-dirs instead of hardcoded base
+        entries.forEach(function(entry) {
+            b.add(path.join(config.basedir, config.basetree, entry));
+        });
     }
 
-
-    var b = browserify(bundle);
-
-    // Prepare output files
-    var bundleFileName = (bundle.dest || bundle.id+'.js');
-    var destDir = path.join(process.cwd(), config.dest, variation.id);
-    var destBundle = path.join(destDir, bundleFileName);
-    var destDeps = path.join(destDir, bundle.id+'.manifest.json');
-    mkdirp.sync(destDir);
-
-    var bundleStream = fs.createWriteStream(destBundle);
-    var depsStream = JSONStream.stringify();
-    depsStream.pipe(fs.createWriteStream(destDeps));
-
-    b.transform(path.join(__dirname, "packages/mendel-treenherit"), {"dirs": variation.chain});
-
-    var mendelify = through.obj(function (row, enc, next) {
-      var match = variationMatches(variations, row.file);
-      if (match) {
-        row.id = match.file;
-        row.variation = match.dir;
-      }
-
-      Object.keys(row.deps).forEach(function (key) {
-        var depMatch = variationMatches(variations, key);
-        if (depMatch) {
-          row.deps[depMatch.file] = depMatch.file;
-          delete row.deps[key];
-        }
-      });
-
-      row.source = replaceRequiresOnSource(row.source, row);
-
-      row.sha = shasum(row.source);
-
-      pushBundleManifest(row);
-
-      this.push(row);
-      depsStream.write(row);
-      next();
-    });
-    b.pipeline.get('deps').push(mendelify);
-
-    // bundle
-    var bundler = b.bundle();
-    bundler.on('end', function(){
-      depsStream.end();
-      doneVariation();
-    });
-    bundler.pipe(bundleStream);
-  }, function() {
-    var manifestPath = path.join(process.cwd(), config.dest, rawBundle.id+'.manifest.json');
-    fs.writeFile(manifestPath, JSON.stringify(bundleManifest, null, 2), function (err) {
-      if (err) throw err;
-      /*
-        Here is the right place to implement the generation of extracted bundles. Simple algorithm
-        should be as follows:
-          1. Assuming all `bundle.externals` are already parsed with something similar to `variationMatches`.
-          2. Assuming `bundleManifest` ids are already parsed with `variationMatches` during "deps" phase.
-          3. Create one array with all `bundle.externals` + all `bundleManifest` ids
-          4. Use this array as externals for all the `bundle.externals` bundles
-          5. Run mendel through all those bundles
-        The reason I prefer not to do this righ now is because we are doing procedural async bundle generation
-        and we need to make mendel a plugin. This way we can have the plugin trigger extra bundle generations
-        by adding the above algorithm on the wrap phase.
-      */
-      doneBundle();
-    });
-  });
+    var finalBundle = b.bundle();
+    finalBundle.on('end', doneBundle);
+    if (conf.outfile) {
+        finalBundle.pipe(fs.createWriteStream(conf.outfile));
+    } else {
+        finalBundle.pipe(process.stdout);
+    }
 });
 
 function logObj(obj) {
@@ -204,30 +108,15 @@ function logObj(obj) {
   return obj;
 }
 
-function replaceRequiresOnSource (src) {
-  var opts = {
-      ecmaVersion: 6,
-      allowReturnOutsideFunction: true
-  };
-  return falafel(src, opts, function (node) {
-    if (isRequire(node)) {
-      var value = node.arguments[0].value;
-      var match = variationMatches(variations, value);
-      if (match) {
-        if(match) node.update('require(\'' + match.file + '\')');
-      }
+function splitOnColon (f) {
+    var pos = f.lastIndexOf(':');
+    if (pos == -1) {
+        return [f]; // No colon
+    } else {
+        if ((/[a-zA-Z]:[\\/]/.test(f)) && (pos == 1)){
+            return [f]; // Windows path and colon is part of drive name
+        } else {
+            return [f.substr(0, pos), f.substr(pos + 1)];
+        }
     }
-  }).toString();
 }
-
-function isRequire (node) {
-  var c = node.callee;
-  return c
-    && node.type === 'CallExpression'
-    && c.type === 'Identifier'
-    && c.name === 'require'
-    && node.arguments[0]
-    && node.arguments[0].type === 'Literal'
-  ;
-}
-
