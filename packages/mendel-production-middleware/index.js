@@ -47,6 +47,7 @@ function MendelMiddleware(opts) {
             pack.write(dep);
         });
         pack.end();
+        next();
     };
 }
 
