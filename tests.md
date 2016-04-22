@@ -15,11 +15,13 @@ For the moment, Mendel relies on some private repository for integration tests. 
 
 To run tests quickly, please use:
 
-    npm test
+    npm test # all tests
+    npm runt unit # only unit tests
+    npm runt lint # only linter
 
 If you want a quick coverage report of files and classes we already wrote tests, you can run:
 
-    npm test -- --coverage
+    npm unit -- --coverage
 
 This will run coverage with command line output only and will only cover files that are required by tests. To run full coverage you can:
 

@@ -30,12 +30,14 @@
     "mendel": "bin/index.js"
   },
   "scripts": {
-    "test": "tap test/*.js",
+    "test": "npm run unit && npm run lint",
+    "unit": "tap test/*.js",
     "lint": "eslint .",
-    "coverage": "tap test/*.js --coverage --nyc-arg=--all"
+    "coverage": "tap test/*.js --coverage --coverage-report=lcov --nyc-arg=--all"
   },
   "nyc": {
     "exclude": [
+      "examples/**",
       "coverage/**",
       "test/**",
       "packages/*/lib/**"
