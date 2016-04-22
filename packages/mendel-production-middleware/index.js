@@ -12,6 +12,10 @@ function MendelMiddleware(opts) {
     var getPath = pathToRegexp.compile(route);
     var keys = [];
     var bundleRoute = pathToRegexp(route, keys);
+    var bundles = trees.config.bundles.reduce(function(acc, bundle) {
+        acc[bundle.id] = bundle;
+        return acc;
+    }, {});
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
@@ -30,7 +34,7 @@ function MendelMiddleware(opts) {
         if (!(
             params.bundle &&
             params.hash &&
-            trees.config.bundles[params.bundle]
+            bundles[params.bundle]
         )) {
             return next();
         }
