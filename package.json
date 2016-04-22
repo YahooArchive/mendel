@@ -56,6 +56,7 @@
     "isarray": "^1.0.0",
     "js-yaml": "^3.5.3",
     "mkdirp": "^0.5.1",
+    "path-to-regexp": "^1.2.1",
     "shasum": "^1.0.2",
     "through2": "^2.0.1",
     "urlsafe-base64": "^1.0.0",
