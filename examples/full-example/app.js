@@ -3,8 +3,8 @@ var logger = require('morgan');
 var MendelMiddleware = require('mendel-production-middleware');
 
 var app = express();
-app.use(MendelMiddleware());
 app.use(logger('tiny'));
+app.use(MendelMiddleware());
 app.set('query parser', 'simple');
 
 app.get('/', function(req, res) {
