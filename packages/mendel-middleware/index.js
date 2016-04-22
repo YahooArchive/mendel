@@ -4,67 +4,83 @@
 
 var path = require('path');
 var xtend = require('xtend');
-var express = require('express');
+var pathToRegexp = require('path-to-regexp');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var treenherit = require('mendel-treenherit');
 
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
-var Swatch = require('./swatch');
+// var Swatch = require('./swatch');
 var CachedStreamCollection = require('./cached-stream-collection');
 
 module.exports = MendelMiddleware;
 
 function MendelMiddleware(opts) {
-    var router = express.Router();
     var config = parseConfig(opts);
     var existingVariations = validVariations(config);
     var base = config.base || 'base';
-    var routePath = opts.routePath || '/mendel/:variations/:bundle\.js';
 
     existingVariations = existingVariations.concat({
         id: base,
         chain: [config.basetree || 'base'],
     });
 
-    // server side watch
-    var swatch = new Swatch({
-        basedir: opts.basedir,
-        outdir: opts.mountdir,
-        variations: existingVariations,
-        verbose: opts.verbose
-    });
+    // // server side watch
+    // var swatch = new Swatch({
+    //     basedir: config.basedir,
+    //     outdir: config.mountdir,
+    //     variations: existingVariations,
+    //     verbose: config.verbose
+    // });
 
-    swatch.on('error', function (err) {
-        console.error(err.stack);
-    });
+    // swatch.on('error', function (err) {
+    //     console.error(err.stack);
+    // });
 
-    return router.get(routePath, function(req, res, next) {
-        var variations = (req.params.variations||'').split(',').concat(base);
-        var bundle = req.params.bundle;
+    var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
+    var getPath = pathToRegexp.compile(route);
+    var keys = [];
+    var bundleRoute = pathToRegexp(route, keys);
+    var bundles = config.bundles.reduce(function(acc, bundle) {
+        acc[bundle.id] = bundle;
+        return acc;
+    }, {});
 
-        var bundleConfig = config.bundles[bundle];
-        var dirs = resolveVariations(existingVariations, variations);
+    return function(req, res, next) {
+        req.mendel = req.mendel || {};
+
+        req.mendel.getURL = function(bundle, variations) {
+            var vars = variations.join(',') || config.base;
+            return getPath({bundle: bundle, variations: vars});
+        };
+
+        // Match bundle route
+        var reqParams = bundleRoute.exec(req.url);
+        if (!reqParams) {
+            return next();
+        }
+        var params = namedParams(keys, reqParams);
+        if (!(
+            params.bundle &&
+            params.variations &&
+            bundles[params.bundle]
+        )) {
+            return next();
+        }
+        var bundleConfig = bundles[params.bundle];
+        var dirs = params.variations.split(',');
+        dirs = resolveVariations(existingVariations, dirs);
 
         if (!dirs.length || !bundleConfig) {
             return next();
         }
 
-        // return res.end(JSON.stringify({
-        //     bundle:bundle,
-        //     variations:variations,
-        //     bundleConfig:bundleConfig,
-        //     dirs:dirs,
-        //     existingVariations:existingVariations,
-        //     config:config
-        // }, null, '  '));
-
+        // Serve bundle
         res.header('content-type', 'application/javascript');
 
-        bundleConfig = xtend(bundleConfig, {
-            base: base,
-            basedir: config.basedir,
+        bundleConfig = xtend(config, bundleConfig, {
+            debug: true,
             cache: {},
             packageCache: {}
         });
@@ -76,7 +92,14 @@ function MendelMiddleware(opts) {
                 JSON.stringify({ stack: e.stack }) + ')').end();
         });
         bundleStream.pipe(res);
-    });
+    };
+}
+
+function namedParams(keys, reqParams) {
+    return keys.reduce(function(params, param, index) {
+        params[param.name] = reqParams[index+1];
+        return params;
+    }, {});
 }
 
 function resolveVariations(existingVariations, variations) {
@@ -133,8 +156,8 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     }
 
     // TODO: async lookup of entries
-    bundleConfig.entries = bundleConfig.entries.map(function(entry) {
-        return path.join(bundleConfig.base, entry);
+    bundleConfig.entries = (bundleConfig.entries||[]).map(function(entry) {
+        return path.join(bundleConfig.basetree, entry);
     });
 
     var bundler = browserify(bundleConfig);

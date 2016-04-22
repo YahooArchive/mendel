@@ -22,7 +22,7 @@ function MendelMiddleware(opts) {
 
         req.mendel.getURL = function(bundle, variations) {
             var tree = trees.findTreeForVariations(bundle, variations);
-            return getPath({bundle:bundle, hash: tree.hash});
+            return getPath({ bundle: bundle, hash: tree.hash });
         };
 
         // Match bundle route
@@ -40,6 +40,7 @@ function MendelMiddleware(opts) {
         }
 
         // Serve bundle
+        res.header('content-type', 'application/javascript');
         var pack = bpack({raw: true, hasExports: true});
         var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
         if (!decodedResults || decodedResults.error) {
