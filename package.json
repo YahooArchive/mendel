@@ -31,9 +31,13 @@
   },
   "scripts": {
     "test": "npm run unit && npm run lint",
-    "unit": "tap test/*.js",
     "lint": "eslint .",
-    "coverage": "tap test/*.js --coverage --coverage-report=lcov --nyc-arg=--all"
+    "unit": "tap test/*.js",
+    "unit-file": "tap",
+    "coverage": "tap test/*.js --coverage --nyc-arg=--all",
+    "coverage-file": "tap --coverage --coverage-report=lcov",
+    "coverage-html": "tap test/*.js --coverage --nyc-arg=--all --coverage-report=lcov",
+    "coverage-all-individualy": "for test in $(find test -name *.js -depth 1); do tap $test --coverage ; done"
   },
   "nyc": {
     "exclude": [

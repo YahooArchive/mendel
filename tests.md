@@ -21,28 +21,29 @@ To run tests quickly, please use:
 
 If you want a quick coverage report of files and classes we already wrote tests, you can run:
 
-    npm unit -- --coverage
+    npm run coverage
 
 This will run coverage with command line output only and will only cover files that are required by tests. To run full coverage you can:
 
-    npm run coverage
+    npm run coverage-html
 
 This will find all files in the application and report coverage on both command line and HTML output, as well as open your browser if possible.
 
 To run tests against a single file you can:
 
-    ./node_modules/.bin/tap test/testname.js
+    npm run unit-file test/testname.js
 
 If you do this too often, you might want to install tap globally to avoid typing `./node_modules/.bin/` all the time.
 
 #### Single file coverage
 
-We avoid mocking too much, so coverage might be biased when running the full suite. To make sure coverage is 100% on each file, you can run coverage on a single file too:
+We avoid mocking too much, so coverage might be biased when running the full suite. To make sure coverage is 100% on each file, you can run coverage on a single test file, but listing all files that were covered:
 
-    ./node_modules/.bin/tap test/testname.js --coverage
+    npm run coverage-file test/testname.js
 
-Or with HTML report:
+Tests are written to target a single file, so when running the single test file, look for the corresponding source file, even though many files might show up in the result.
 
-    ./node_modules/.bin/tap test/testname.js --coverage --coverage-report=lcov
+Finally, if you want to find out if your changes are impacting those individual files coverage, there is a helper to loop through each test file running coverage and outputting summary to the terminal.
 
-This might give you a better idea of how much a particular file is covered and
+    npm run coverage-all-individualy
+
