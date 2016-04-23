@@ -98,7 +98,8 @@ test('MendelTrees private methods', function (t) {
                 entry: true,
                 id: 'entry.js',
                 deps: {
-                    './relative_dependency.js': 'second.js'
+                    './relative_dependency.js': 'second.js',
+                    'excluded-dependency': false
                 }
             }, {
                 id: 'second.js',
