@@ -36,7 +36,12 @@ var resolveInDirs = require('./lib/resolve-dirs');
 
 var requireTransform = transformTools.makeRequireTransform(
     "treenherit",
-    {evaluateArguments: true},
+    {
+        evaluateArguments: true,
+        includeExtensions: [
+            ".js", ".coffee", ".coffee.md", ".litcoffee", ".jsx", ".es", ".es6"
+        ]
+    },
     function(args, opts, transformDone) {
         var parent = opts.file;
         var file = args[0];

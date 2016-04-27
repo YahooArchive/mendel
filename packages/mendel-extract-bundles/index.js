@@ -139,7 +139,12 @@ function listBundle(referenceBundle, xb, extraction) {
 
 var absoluteRequires = transformTools.makeRequireTransform(
     "absoluteRequires",
-    {evaluateArguments: true},
+    {
+        evaluateArguments: true,
+        includeExtensions: [
+            ".js", ".coffee", ".coffee.md", ".litcoffee", ".jsx", ".es", ".es6"
+        ]
+    },
     function(args, opts, transformDone) {
         var parent = opts.file;
         var module = args[0];
