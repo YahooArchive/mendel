@@ -2,183 +2,251 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var fs = require('fs-extra');
-var path = require('path');
-var watch = require('watch');
-var Module = require('module');
-var through = require('through2');
-var falafel = require('falafel');
-var babelify = require('babelify');
-var inherits = require('util').inherits;
+var browserify = require('browserify');
+var devnull = require('./lib/dev-null');
 var EventEmitter = require('events').EventEmitter;
+var fs = require('fs-extra');
+var inherits = require('util').inherits;
+var mendelify = require('./lib/mendelify-plugin');
+var Module = require('module');
+var parseConfig = require('./lib/config');
+var path = require('path');
+var requirify = require('mendel-requirify');
+var treenherit = require('mendel-treenherit');
+var validVariations = require('./lib/variations');
 var variationMatches = require('./lib/variation-matches');
-var isRequire = require('./lib/falafel-util').isRequire;
-var resolve = require('browser-resolve');
-var mendelRequireTransform = require('./lib/require-transform');
+var watch = require('watch');
+var watchify = require('watchify');
+var xtend = require('xtend');
 
 var watching = {};
 
 function Swatch(opts) {
-    if (!(this instanceof Swatch)) {
+    var self = this;
+
+    if (!(self instanceof Swatch)) {
         return new Swatch(opts);
     }
 
-    EventEmitter.call(this);
+    EventEmitter.call(self);
 
-    var self = this;
-    self.baseDir = opts.basedir;
-    self.verbose = opts.verbose === true;
+    var config = parseConfig(opts);
+    var devOpts = opts && opts.development || {};
 
-    if (watching[self.baseDir]) {
-        console.warn('Already watching: ' + self.baseDir);
-        return;
-    }
+    self.config = xtend(config, {
+        verbose: false,
+        silent: false
+    }, devOpts);
 
-    self.outDir = opts.outdir;
-    self.variations = opts.variations;
+    var base = config.base || 'base';
 
-    watch.createMonitor(self.baseDir, {
-        ignoreDotFiles: true,
-        interval: 500
-    }, function(monitor) {
-        monitor.on("created", self.onFileCreated.bind(self));
-        monitor.on("changed", self.onFileChanged.bind(self));
-        monitor.on("removed", self.onFileRemoved.bind(self));
+    self.variations = validVariations(config).concat({
+        id: base,
+        chain: [config.basetree || 'base']
+    });
 
-        watching[self.baseDir] = true;
-        self.emit('ready', self.baseDir);
-        self.log('Watching ' + self.baseDir);
+    self.bundlers = {};
+    self.buildPathCache = {};
+
+    // Default 'error' listener
+    // https://nodejs.org/docs/v0.12.9/api/events.html#events_class_events_eventemitter
+    self.on('error', function(err, context) {
+        if (self.config.silent !== true) {
+            console.error('Error context: ' + JSON.stringify(context, null, 2) + '\n' + err.stack);
+        }
     });
 }
 
 inherits(Swatch, EventEmitter);
 
-Swatch.prototype.log = function(msg) {
-    if (this.verbose) {
+Swatch.prototype._getBuildPath = function(srcFile) {
+    var outdir = this.config.outdir;
+    var destFile = this.buildPathCache[srcFile];
+
+    if (!destFile) {
+        var match = variationMatches(this.variations, srcFile);
+        destFile = path.join(outdir, match.dir, match.file);
+        this.buildPathCache[srcFile] = destFile;
+    }
+    return destFile;
+}
+
+Swatch.prototype._uncacheModule = function(destFile) {
+    delete Module._cache[destFile];
+};
+
+Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
+    var self = this;
+    var changes = {
+        bundle: bundle,
+        variation: variation,
+        files: []
+    };
+
+    srcFiles.forEach(function (src) {
+        var dest = self._getBuildPath(src);
+        self._uncacheModule(dest);
+        changes.files.push({src: src, dest: dest});
+    });
+
+    self.emit('changed', changes);
+    self._log(formatChanges(changes));
+};
+
+Swatch.prototype._handleFileRemoved = function(srcFile) {
+    var self = this;
+    var destFile = self._getBuildPath(srcFile);
+
+    self._uncacheModule(destFile);
+    fs.remove(destFile, function(err) {
+        if (err) {
+            return self.emit('error', err, {
+                src: srcFile,
+                dest: destFile
+            });
+        }
+        self.emit('removed', srcFile, destFile);
+        self._log('Removed: ' + srcFile);
+    });
+};
+
+Swatch.prototype._log = function(msg) {
+    if (this.config.verbose) {
         console.log(msg);
     }
 }
 
-Swatch.prototype._getBuildPath = function(srcFile, match) {
-    match = match || variationMatches(this.variations, srcFile);
-    var destFile = path.join(this.outDir, match.dir, match.file);
-    return destFile;
-}
-
-Swatch.prototype._processFile = function(srcFile, cb) {
-    var start = process.hrtime();
+Swatch.prototype.watch = function() {
     var self = this;
-    var match = variationMatches(self.variations, srcFile);
-    var destFile = self._getBuildPath(srcFile, match);
+    var config = self.config;
+    var variations = self.variations;
+    var basedir = config.basedir;
+    var outdir = config.serveroutdir;
 
-    var out = fs.createOutputStream(destFile);
-    out.on('finish', function() {
-        var diff = process.hrtime(start);
-        var elapsedMs = Math.floor((diff[0] * 1e3) + (diff[1] * 1e-6));
-        self.log('Wrote: ' + destFile + ' in ' + elapsedMs + 'ms');
-        cb(null, destFile, elapsedMs);
+    if (watching[basedir]) {
+        console.warn('Already watching: ' + basedir);
+        return;
+    }
+
+    function fileIsInOutdir(file) {
+        return file.indexOf(outdir) === 0;
+    }
+
+    watch.createMonitor(basedir, {
+        ignoreDotFiles: true,
+        interval: 500,
+        filter: fileIsInOutdir
+    }, function(monitor) {
+        self.monitor = monitor;
+        /*
+         * File deletions are handled by the watch monitor.
+         * They are removed from require cache and file system.
+         */
+        monitor.on("removed", self._handleFileRemoved.bind(self));
+
+        watching[basedir] = true;
+        self.emit('ready', basedir);
+        self._log('Watching: ' + basedir);
     });
-    out.on('error', cb);
 
-    var stream = fs.createReadStream(srcFile)
-        .pipe(babelify(srcFile, {
-            "presets": ["es2015", "react"],
-            "retainLines": true
-        }))
-        .pipe(through(function(chunk, enc, next) {
-            this.push(self._replaceRequiresOnSource(chunk, match));
-            next();
-        }))
-        .pipe(through(function(chunk, enc, next) {
-            this.push(mendelRequireTransform(chunk, true));
-            next();
-        }))
-        .pipe(out);
+    config.bundles.forEach(function(bundle) {
+        if (!bundle.entries) {
+            return;
+        }
 
-    stream.on('error', cb);
-};
+        var bundleId = bundle.id;
 
-Swatch.prototype._uncache = function(destFile) {
-    delete Module._cache[destFile];
-};
-
-Swatch.prototype._replaceRequiresOnSource = function(src, match) {
-    var baseDir = this.baseDir;
-    var variations = this.variations;
-    var opts = {
-        ecmaVersion: 6,
-        allowReturnOutsideFunction: true
-    };
-    var srcFile = match.file;
-    var dirs = match.variation.chain;
-
-    return falafel(src, opts, function (node) {
-        if (isRequire(node)) {
-            var value = node.arguments[0].value;
-            var resolvedPath = null;
-
-            dirs.some(function(dir) {
-                var srcPath = path.join(baseDir, dir, srcFile);
-
-                try {
-                    resolvedPath = resolve.sync(value, {filename: srcPath});
-                } finally {
-                    return resolvedPath !== null;
-                }
+        variations.forEach(function(variation) {
+            var variationId = variation.id;
+            var bundleConfig = xtend({}, config, bundle, {
+                cache: {},
+                packageCache: {}
             });
 
-            if (resolvedPath) {
-                var dep = variationMatches(variations, resolvedPath);
+            bundleConfig.entries = bundleConfig.entries.map(function(entry) {
+                return path.join(bundleConfig.basetree, entry);
+            });
 
-                if (dep) {
-                    node.update('require(\'' + dep.file + '\')');
-                }
+            function bundleError(err) {
+                self.emit('error', err, {
+                    bundle: bundleId,
+                    variation: variationId
+                });
             }
-        }
-    }).toString();
-};
 
-Swatch.prototype.onFileChanged = function(srcFile) {
-    var self = this;
-    var destFile = self._getBuildPath(srcFile);
+            function makeBundle(bundler) {
+                var b = bundler.bundle();
+                b.on('error', bundleError);
+                b.on('transform', function (tr) {
+                    tr.on('error', bundleError);
+                });
+                b.pipe(devnull());
+            }
 
-    self.log('Changed: ' + srcFile);
+            /*
+             * We use a watchified browserify pipeline for writing the individual server side
+             * transformed files (through mendel-requirify plugin), because .mendelrc is
+             * a valid browserify config file, which may include multiple transforms or plugins
+             * that we need to honor while generating the server side output.
+             */
+            var bundler = browserify(bundleConfig);
+            bundler.transform(treenherit, { dirs: variation.chain });
+            bundler.plugin(watchify);
+            bundler.plugin(mendelify, {
+                variations: [variation]
+            });
+            bundler.plugin(requirify, {
+                outdir: outdir
+            });
+            bundler.on('update', function(srcFiles) {
+                /*
+                 * When watchify emits file change, we remove it from the require cache
+                 * and let the pipeline rebuild it
+                 */
+                self._handleDepsChange(bundleId, variationId, srcFiles);
+                makeBundle(bundler);
+            })
 
-    self._uncache(destFile);
-    self._processFile(srcFile, function (err, newFile, elapsedMs) {
-        if (err) {
-            return self.emit('error', err);
-        }
-        self.emit('changed', srcFile, newFile, elapsedMs);
+            var bundlerKey = bundleId + ':' + variationId;
+            self.bundlers[bundlerKey] = bundler;
+
+            makeBundle(bundler);
+        });
     });
-};
 
-Swatch.prototype.onFileCreated = function(srcFile) {
+    return self;
+}
+
+Swatch.prototype.stop = function() {
     var self = this;
+    var basedir = self.config.basedir;
 
-    self.log('Created: ' + srcFile);
+    if (self.monitor) {
+        self.monitor.stop();
+        delete watching[basedir];
+    }
 
-    self._processFile(srcFile, function (err, newFile, elapsedMs) {
-        if (err) {
-            return self.emit('error', err);
-        }
-        self.emit('created', srcFile, newFile, elapsedMs);
+    Object.keys(self.bundlers).forEach(function(bundlerKey) {
+        self.bundlers[bundlerKey].close();
     });
-};
-
-Swatch.prototype.onFileRemoved = function(srcFile) {
-    var self = this;
-    var destFile = self._getBuildPath(srcFile);
-
-    self.log('Removed: ' + srcFile);
-
-    self._uncache(destFile);
-    fs.remove(destFile, function(err) {
-        if (err) {
-            return self.emit('error', err);
-        }
-        self.emit('removed', srcFile, destFile);
-    });
-};
+}
 
 module.exports = Swatch;
+
+
+function formatChanges(changes) {
+    var files = changes.files.map(function (file) {
+        return [
+            '    - src:  ' + file.src,
+            '      dest: ' + file.dest
+        ].join('\n');
+    });
+    var header = [
+        'Changed:',
+        '  bundle: ' + changes.bundle,
+        '  variation: ' + changes.variation,
+        '  files:'
+    ];
+
+    return header.concat(files).join('\n');
+}

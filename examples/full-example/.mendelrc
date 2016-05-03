@@ -1,6 +1,7 @@
 
 outdir: ./build
 bundlesoutdir: client
+serveroutdir: server
 
 base: base
 basetree: isomorphic/base
