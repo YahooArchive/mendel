@@ -1,9 +1,7 @@
 #!/bin/bash
-
-for path in *; do
-    [ -d "${path}" ] || continue # if not a directory, skip
-    dirname="$(basename "${path}")"
-    cd ${dirname}
+npm link
+for dir in `find packages -type d -d 1`; do
+    pushd $dir > /dev/null 2>&1
     npm link
-    cd ..
+    popd > /dev/null 2>&1
 done
