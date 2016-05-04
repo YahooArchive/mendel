@@ -11,7 +11,7 @@ var treenherit = require('mendel-treenherit');
 
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
-// var Swatch = require('./swatch');
+var Swatch = require('./swatch');
 var CachedStreamCollection = require('./cached-stream-collection');
 
 module.exports = MendelMiddleware;
@@ -26,17 +26,8 @@ function MendelMiddleware(opts) {
         chain: [config.basetree || 'base'],
     });
 
-    // // server side watch
-    // var swatch = new Swatch({
-    //     basedir: config.basedir,
-    //     outdir: config.mountdir,
-    //     variations: existingVariations,
-    //     verbose: config.verbose
-    // });
-
-    // swatch.on('error', function (err) {
-    //     console.error(err.stack);
-    // });
+    // server side watch
+    var swatch = new Swatch(opts).watch(); // eslint-disable-line no-unused-vars
 
     var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
     var getPath = pathToRegexp.compile(route);

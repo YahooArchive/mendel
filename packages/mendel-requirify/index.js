@@ -18,7 +18,7 @@ function requirify(b, opts) {
 
             function done() {
                 that.push(row);
-                next()
+                next();
             }
 
             if (nm) {
