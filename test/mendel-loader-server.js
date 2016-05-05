@@ -5,6 +5,7 @@ var Module = require('module');
 var browserify = require('browserify');
 var mendelify = require('../packages/mendel-browserify');
 var requirify = require('../packages/mendel-requirify');
+var Tree = require('../lib/trees.js');
 var Loader = require('../packages/mendel-loader-server');
 
 var srcDir = path.resolve(__dirname, './app-samples/1');
@@ -21,7 +22,8 @@ test('mendel-loader-server', function(t){
             path.join(srcDir, 'app/throws.js'),
         ],
         outfile: path.join(buildDir, 'app.js'),
-        basedir: srcDir
+        basedir: srcDir,
+        outdir: buildDir
     });
 
     b.plugin(mendelify);
@@ -32,12 +34,14 @@ test('mendel-loader-server', function(t){
     b.bundle(function(err) {
         if (err) {
             return t.fail(err.message || err);
-        }
+        //TODO: Remove setTimeout once mendel-browserify exposes its stream events.
         setTimeout(function() {
-            var loader = new Loader({
+            var tree = new Tree({
                 basedir: srcDir,
-                mountdir: mountDir
+                outdir: buildDir,
+                serveroutdir: 'server'
             });
+            var loader = new Loader(tree);
 
             var inputs = [{
                 variations: ['test_B'],
@@ -90,8 +94,13 @@ test('mendel-loader-server-syntax-error', function(t){
     process.chdir(srcDir);
 
     try {
+        var tree = new Tree({
+            basedir: srcDir,
+            outdir: buildDir,
+            serveroutdir: 'server'
+        });
         // test without 'new'
-        var loader = Loader();
+        var loader = Loader(tree);
         var resolver = loader.resolver({
             bundle: 'app',
             variations: ['test_B']

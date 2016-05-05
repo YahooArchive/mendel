@@ -4,26 +4,19 @@
 
 var path = require('path');
 var Module = require('module');
-var MendelTree = require('mendel');
 
-function MendelLoader(config) {
+function MendelLoader(tree) {
     if (!(this instanceof MendelLoader)) {
-        return new MendelLoader(config);
+        return new MendelLoader(tree);
     }
 
-    config = config || {};
-    var self = this;
-
-    self._basedir = config.basedir || process.cwd();
-    self._mountdir = config.mountdir || process.cwd();
-    self._tree = new MendelTree({
-        basedir: self._basedir
-    });
+    this._tree = tree;
+    this._serveroutdir = tree.config.serveroutdir || process.cwd();
 }
 
 MendelLoader.prototype.resolver = function(context) {
     var variations = this._getVariationMap(context);
-    return new MendelResolver(variations, this._mountdir);
+    return new MendelResolver(variations, this._serveroutdir);
 }
 
 MendelLoader.prototype._getVariationMap = function(context) {
@@ -33,9 +26,9 @@ MendelLoader.prototype._getVariationMap = function(context) {
 
 module.exports = MendelLoader;
 
-function MendelResolver(variations, mountdir) {
+function MendelResolver(variations, outdir) {
     this._variations = variations;
-    this._mountdir = mountdir;
+    this._serveroutdir = outdir;
     this._resolveCache = {};
 }
 
@@ -84,7 +77,7 @@ MendelResolver.prototype.resolve = function(name) {
     if (!this._resolveCache[name]) {
         var variation = this._variations[name];
         if (variation) {
-            this._resolveCache[name] = path.resolve(path.join(this._mountdir, variation, name));
+            this._resolveCache[name] = path.resolve(path.join(this._serveroutdir, variation, name));
         }
     }
     return this._resolveCache[name];
