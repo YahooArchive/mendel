@@ -60,7 +60,7 @@ function Swatch(opts) {
 inherits(Swatch, EventEmitter);
 
 Swatch.prototype._getBuildPath = function(srcFile) {
-    var outdir = this.config.outdir;
+    var outdir = this.config.serveroutdir;
     var destFile = this.buildPathCache[srcFile];
 
     if (!destFile) {
