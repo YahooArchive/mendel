@@ -2,6 +2,7 @@
 var pathToRegexp = require('path-to-regexp');
 var bpack = require('browser-pack');
 var MendelTrees = require('./lib/trees');
+var MendelLoader = require('mendel-loader-server');
 
 module.exports = MendelMiddleware;
 
@@ -16,6 +17,7 @@ function MendelMiddleware(opts) {
         acc[bundle.id] = bundle;
         return acc;
     }, {});
+    var loader = new MendelLoader(trees, module.parent);
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
@@ -23,6 +25,10 @@ function MendelMiddleware(opts) {
         req.mendel.getURL = function(bundle, variations) {
             var tree = trees.findTreeForVariations(bundle, variations);
             return getPath({ bundle: bundle, hash: tree.hash });
+        };
+
+        req.mendel.resolver = function(bundle, variations) {
+            return loader.resolver(bundle, variations);
         };
 
         // Match bundle route

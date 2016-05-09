@@ -5,36 +5,20 @@
 var path = require('path');
 var Module = require('module');
 
-function MendelLoader(tree) {
-    if (!(this instanceof MendelLoader)) {
-        return new MendelLoader(tree);
+function MendelResolver(parentModule, variations, outdir) {
+    if (!(this instanceof MendelResolver)) {
+        return new MendelResolver(parentModule, variations, outdir);
     }
 
-    this._tree = tree;
-    this._serveroutdir = tree.config.serveroutdir || process.cwd();
-}
-
-MendelLoader.prototype.resolver = function(context) {
-    var variations = this._getVariationMap(context);
-    return new MendelResolver(variations, this._serveroutdir);
-}
-
-MendelLoader.prototype._getVariationMap = function(context) {
-    var tree = this._tree.findTreeForVariations(context.bundle, context.variations);
-    return tree.variationMap;
-}
-
-module.exports = MendelLoader;
-
-function MendelResolver(variations, outdir) {
+    this._parentModule = parentModule || module.parent;
     this._variations = variations;
     this._serveroutdir = outdir;
     this._resolveCache = {};
 }
 
 MendelResolver.prototype.require = function (name) {
-    var parent = module.parent;
     var that = this;
+    var parent = that._parentModule;
     var rname = that.resolve(name);
     var modPath = Module._resolveFilename(rname || name, parent);
     var mod = Module._cache[modPath];
@@ -70,7 +54,7 @@ MendelResolver.prototype.require = function (name) {
         modExports = mendelMod.exports;
     }
 
-    return modExports;
+    return modExports.__esModule && modExports.default || modExports;
 }
 
 MendelResolver.prototype.resolve = function(name) {
@@ -82,3 +66,5 @@ MendelResolver.prototype.resolve = function(name) {
     }
     return this._resolveCache[name];
 }
+
+module.exports = MendelResolver;

@@ -34,6 +34,7 @@ test('mendel-loader-server', function(t){
     b.bundle(function(err) {
         if (err) {
             return t.fail(err.message || err);
+        }
         //TODO: Remove setTimeout once mendel-browserify exposes its stream events.
         setTimeout(function() {
             var tree = new Tree({
@@ -58,11 +59,7 @@ test('mendel-loader-server', function(t){
             }];
 
             inputs.forEach(function (i) {
-                var resolver = loader.resolver({
-                    bundle: 'app',
-                    variations: i.variations
-                });
-
+                var resolver = loader.resolver('app', i.variations);
                 var variation = i.variations.join(',');
 
                 var someNumber = resolver.require('some-number.js');
@@ -101,10 +98,7 @@ test('mendel-loader-server-syntax-error', function(t){
         });
         // test without 'new'
         var loader = Loader(tree);
-        var resolver = loader.resolver({
-            bundle: 'app',
-            variations: ['test_B']
-        });
+        var resolver = loader.resolver('app', ['test_B']);
 
         var invalidFile = path.join(srcDir, 'app/syntax-error.js');
         t.throws(function() {
