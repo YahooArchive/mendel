@@ -8,13 +8,13 @@ var fs = require('fs');
 var MendelResolver = require('./resolver');
 var inherits = require('util').inherits;
 
-function MendelResolverDev(parentModule, dirs, serveroutdir) {
+function MendelResolverDev(parentModule, dirs, config) {
     if (!(this instanceof MendelResolverDev)) {
-        return new MendelResolverDev(parentModule, dirs, serveroutdir);
+        return new MendelResolverDev(parentModule, dirs, config);
     }
 
-    MendelResolver.call(this, parentModule, {}, serveroutdir);
-    this._dirs = dirs;
+    MendelResolver.call(this, parentModule, {}, config.serveroutdir);
+    this._dirs = dirs && dirs.length ? dirs : [config.basetree];
 }
 
 inherits(MendelResolverDev, MendelResolver);

@@ -1,4 +1,3 @@
-var React = require('react');
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
@@ -18,14 +17,13 @@ app.get('/', function(req, res) {
 
     var resolver = req.mendel.resolver('main', variations);
 
-    var appComponent = resolver.require('components/app.js');
-    var App = React.createFactory(appComponent);
+    var Main = resolver.require('main.js');
 
     var html = [
         '<!DOCTYPE html>',
         '<html><head></head><body>',
             '<div id="main">',
-                ReactDOMServer.renderToStaticMarkup(App()),
+                ReactDOMServer.renderToStaticMarkup(Main()),
             '</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),

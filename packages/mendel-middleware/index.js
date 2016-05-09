@@ -40,7 +40,7 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
 
-    var loader = new MendelLoader(existingVariations, config.serveroutdir, module.parent);
+    var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
