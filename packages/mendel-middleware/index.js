@@ -11,8 +11,10 @@ var treenherit = require('mendel-treenherit');
 
 var parseConfig = require('./lib/config');
 var validVariations = require('./lib/variations');
+var resolveVariations = require('./lib/resolve-variations');
 var Swatch = require('./swatch');
 var CachedStreamCollection = require('./cached-stream-collection');
+var MendelLoader = require('mendel-loader-server/loader-dev');
 
 module.exports = MendelMiddleware;
 
@@ -38,12 +40,18 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
 
+    var loader = new MendelLoader(existingVariations, config, module.parent);
+
     return function(req, res, next) {
         req.mendel = req.mendel || {};
 
         req.mendel.getURL = function(bundle, variations) {
             var vars = variations.join(',') || config.base;
             return getPath({bundle: bundle, variations: vars});
+        };
+
+        req.mendel.resolver = function(bundle, variations) {
+            return loader.resolver(bundle, variations);
         };
 
         // Match bundle route
@@ -91,23 +99,6 @@ function namedParams(keys, reqParams) {
         params[param.name] = reqParams[index+1];
         return params;
     }, {});
-}
-
-function resolveVariations(existingVariations, variations) {
-    var i, j, evar, dir, resolved = [];
-    // walk in reverse and fill in reverse achieves desired order
-    for (i = existingVariations.length-1; i >= 0; i--) {
-        evar = existingVariations[i];
-        if (-1 !== variations.indexOf(evar.id)) {
-            for (j = evar.chain.length-1; j >= 0; j--) {
-                dir = evar.chain[j];
-                if (-1 === resolved.indexOf(dir)) {
-                    resolved.unshift(dir);
-                }
-            }
-        }
-    }
-    return resolved;
 }
 
 var streamCache = new CachedStreamCollection();
