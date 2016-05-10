@@ -15,5 +15,9 @@
     "multivariate"
   ],
   "author": "Irae <irae@irae.pro.br>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "browser-pack": "^6.0.1",
+    "path-to-regexp": "^1.2.1"
+  }
 }
