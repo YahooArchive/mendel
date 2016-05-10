@@ -68,7 +68,7 @@ function MendelMiddleware(opts) {
             return next();
         }
         var bundleConfig = bundles[params.bundle];
-        var dirs = params.variations.split(',');
+        var dirs = params.variations.split(/(,|%2C)/i);
         dirs = resolveVariations(existingVariations, dirs);
 
         if (!dirs.length || !bundleConfig) {
