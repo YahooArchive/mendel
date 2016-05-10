@@ -13,15 +13,23 @@ function requirify(b, opts) {
     function addHooks() {
         b.pipeline.get('dedupe').push(through.obj(function(row, enc, next) {
             var that = this;
-            var file = row.file || row.id;
-            var nm = file.split('/node_modules/')[1];
 
             function done() {
                 that.push(row);
                 next();
             }
 
+            if (!row.variation) {
+                // mendelify did now find a match,
+                // i.e. file is outside base or variation dirs, skipping.
+                return done();
+            }
+
+            var file = row.file || row.id;
+            var nm = file.split('/node_modules/')[1];
+
             if (nm) {
+                // ignore node_modules
                 return done();
             }
 
