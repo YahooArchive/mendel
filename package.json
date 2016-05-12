@@ -34,6 +34,7 @@
     "lint": "eslint .",
     "unit": "tap test/*.js",
     "unit-file": "tap",
+    "linkall": "node ./bin/linkall.js",
     "coverage": "tap test/*.js --coverage --nyc-arg=--all",
     "coverage-file": "tap --coverage --coverage-report=lcov",
     "coverage-html": "tap test/*.js --coverage --nyc-arg=--all --coverage-report=lcov",

@@ -1,7 +1,0 @@
-#!/bin/bash
-npm link
-for dir in `find packages -type d -d 1`; do
-    pushd $dir > /dev/null 2>&1
-    npm link
-    popd > /dev/null 2>&1
-done
