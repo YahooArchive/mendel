@@ -47,6 +47,7 @@ function Swatch(opts) {
 
     self.bundlers = {};
     self.buildPathCache = {};
+    self.monitors = [];
 
     // Default 'error' listener
     // https://nodejs.org/docs/v0.12.9/api/events.html#events_class_events_eventemitter
@@ -128,25 +129,42 @@ Swatch.prototype.watch = function() {
         return;
     }
 
+    watching[basedir] = true;
+
     function fileIsInOutdir(file) {
         return file.indexOf(outdir) === 0;
     }
 
-    watch.createMonitor(basedir, {
-        ignoreDotFiles: true,
-        interval: 500,
-        filter: fileIsInOutdir
-    }, function(monitor) {
-        self.monitor = monitor;
-        /*
-         * File deletions are handled by the watch monitor.
-         * They are removed from require cache and file system.
-         */
-        monitor.on("removed", self._handleFileRemoved.bind(self));
+    // watch only valid variations dirs
+    var watchDirs = flattenDirs(basedir, variations);
+    var pending = watchDirs.length;
 
-        watching[basedir] = true;
-        self.emit('ready', basedir);
-        self._log('Watching: ' + basedir);
+    watchDirs.forEach(function(dir) {
+        (function(wdir) {
+            watching[wdir] = true;
+
+            watch.createMonitor(wdir, {
+                ignoreDotFiles: true,
+                interval: 500,
+                filter: fileIsInOutdir
+            }, function(monitor) {
+                self.monitors.push({
+                    dir: wdir,
+                    monitor: monitor
+                });
+                /*
+                 * File deletions are handled by the watch monitor.
+                 * They are removed from require cache and file system.
+                 */
+                monitor.on("removed", self._handleFileRemoved.bind(self));
+
+                pending--;
+                if (!pending) {
+                    self.emit('ready', basedir);
+                    self._log('Watching: ' + basedir);
+                }
+            });
+        })(dir);
     });
 
     config.bundles.forEach(function(bundle) {
@@ -221,10 +239,12 @@ Swatch.prototype.stop = function() {
     var self = this;
     var basedir = self.config.basedir;
 
-    if (self.monitor) {
-        self.monitor.stop();
-        delete watching[basedir];
-    }
+    self.monitors.forEach(function(entry) {
+        entry.monitor.stop();
+        delete watching[entry.dir];
+    });
+
+    delete watching[basedir];
 
     Object.keys(self.bundlers).forEach(function(bundlerKey) {
         self.bundlers[bundlerKey].close();
@@ -249,4 +269,20 @@ function formatChanges(changes) {
     ];
 
     return header.concat(files).join('\n');
+}
+
+function flattenDirs(basedir, variations) {
+    // dedupe
+    var dirsMap = variations.reduce(function(dirs, variation) {
+        variation.chain.forEach(function(dir) {
+            dirs[dir] = true;
+        });
+        return dirs;
+    }, {});
+    // join full path
+    var dirs = Object.keys(dirsMap).map(function(dir) {
+        return path.join(basedir, dir);
+    });
+
+    return dirs;
 }
