@@ -5,6 +5,18 @@
 var path = require('path');
 var Module = require('module');
 
+var natives = Object.keys(process.binding('natives')).reduce(function(res, name){
+    res[name] = true;
+    return res;
+}, {});
+
+var NativeModule = {
+    exists: function(name) {
+        return natives[name] === true;
+    },
+    require: require
+};
+
 function MendelResolver(parentModule, variations, outdir) {
     if (!(this instanceof MendelResolver)) {
         return new MendelResolver(parentModule, variations, outdir);
@@ -14,13 +26,24 @@ function MendelResolver(parentModule, variations, outdir) {
     this._variations = variations;
     this._serveroutdir = outdir;
     this._resolveCache = {};
+    this._mendelModuleCache = {};
 }
 
 MendelResolver.prototype.require = function (name) {
+    if (NativeModule.exists(name)) {
+        return NativeModule.require(name);
+    }
+
     var that = this;
     var parent = that._parentModule;
     var rname = that.resolve(name);
     var modPath = Module._resolveFilename(rname || name, parent);
+    var modExports = that._mendelModuleCache[modPath];
+
+    if (modExports) {
+        return modExports;
+    }
+
     var mod = Module._cache[modPath];
 
     if (!mod) {
@@ -40,21 +63,25 @@ MendelResolver.prototype.require = function (name) {
         }
     }
 
-    var modExports = mod.exports;
+    modExports = mod.exports;
 
     if (modExports.__mendel_module__) {
         var mendelFn = modExports;
         var mendelMod = {
             exports: {},
-            require: function(request) {
-                return MendelResolver.prototype.require.apply(that, [request, parent]);
-            }
+            require: that.require.bind(that)
         };
+
+        // this is the 'incomplete' module to avoid infinite loops on circular dependencies
+        // similar to: https://nodejs.org/api/modules.html#modules_cycles
+        that._mendelModuleCache[modPath] = modExports;
         mendelFn.apply(that, [mendelMod.require, mendelMod, mendelMod.exports]);
         modExports = mendelMod.exports;
+        // this is the 'complete' module
+        that._mendelModuleCache[modPath] = modExports;
     }
 
-    return modExports.__esModule && modExports.default || modExports;
+    return modExports;
 }
 
 MendelResolver.prototype.resolve = function(name) {
