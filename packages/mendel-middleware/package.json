@@ -17,7 +17,10 @@
     "browserify": "^13.0.0",
     "stream-cache": "0.0.2",
     "watchify": "^3.7.0",
-    "xtend": "^4.0.1"
+    "xtend": "^4.0.1",
+    "mendel-treenherit": "*",
+    "mendel-loader-server": "*",
+    "mendel-requirify": "*"
   },
   "peerDependencies": {
     "express": "*"
