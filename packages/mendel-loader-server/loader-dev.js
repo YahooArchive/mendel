@@ -15,7 +15,7 @@ function MendelLoaderDev(existingVariations, config, parentModule) {
     this._parentModule = parentModule || module.parent;
 }
 
-MendelLoaderDev.prototype.resolver = function(bundle, variations) {
+MendelLoaderDev.prototype.resolver = function(variations) {
     var dirs = resolveVariations(this._existingVariations, variations);
     return new MendelResolverDev(this._parentModule, dirs, this._config);
 }

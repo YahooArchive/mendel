@@ -4,19 +4,41 @@
 
 var MendelResolver = require('./resolver');
 
-function MendelLoader(trees, parentModule) {
+function MendelLoader(trees, opts) {
     if (!(this instanceof MendelLoader)) {
-        return new MendelLoader(trees, parentModule);
+        return new MendelLoader(trees, opts);
     }
-
+    opts = opts || {};
     this._trees = trees;
-    this._serveroutdir = trees.config.serveroutdir || process.cwd();
-    this._parentModule = parentModule || module.parent;
+
+    var config = trees.config;
+
+    this._serveroutdir = config.serveroutdir || process.cwd();
+    this._parentModule = opts.parentModule || module.parent;
+
+    var bundles = opts.bundles;
+    if (!bundles) {
+        bundles = config.bundles.map(function(b) {
+            return b.id;
+        });
+    }
+    this._bundles = bundles;
 }
 
-MendelLoader.prototype.resolver = function(bundle, variations) {
-    var tree = this._trees.findTreeForVariations(bundle, variations);
-    return new MendelResolver(this._parentModule, tree.variationMap, this._serveroutdir);
+MendelLoader.prototype.resolver = function(variations) {
+    var trees = this._trees;
+    var bundles = this._bundles;
+    var mergedMap = {};
+
+    bundles.forEach(function (bundleId) {
+        var tree = trees.findTreeForVariations(bundleId, variations);
+        var vMap = tree.variationMap;
+        Object.keys(vMap).forEach(function(file) {
+            mergedMap[file] = vMap[file];
+        });
+    });
+
+    return new MendelResolver(this._parentModule, mergedMap, this._serveroutdir);
 }
 
 module.exports = MendelLoader;
