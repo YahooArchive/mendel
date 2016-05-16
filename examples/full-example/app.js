@@ -23,7 +23,7 @@ app.get('/', function(req, res) {
         '<!DOCTYPE html>',
         '<html><head></head><body>',
             '<div id="main">',
-                ReactDOMServer.renderToStaticMarkup(Main()),
+                ReactDOMServer.renderToString(Main()),
             '</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
