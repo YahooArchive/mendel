@@ -12,7 +12,7 @@ var treenherit = require('mendel-treenherit');
 var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
 var resolveVariations = require('mendel-development/resolve-variations');
-var Swatch = require('./swatch');
+var swatch = require('./swatch-worker');
 var CachedStreamCollection = require('./cached-stream-collection');
 var MendelLoader = require('mendel-development-loader');
 
@@ -30,7 +30,7 @@ function MendelMiddleware(opts) {
 
     // server side watch
     if (config.watch !== false) {
-        var swatch = new Swatch(opts).watch(); // eslint-disable-line no-unused-vars
+        var watcher = swatch.fork(opts); // eslint-disable-line no-unused-vars
     }
 
     var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
