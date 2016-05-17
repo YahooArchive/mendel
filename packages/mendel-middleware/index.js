@@ -50,9 +50,7 @@ function MendelMiddleware(opts) {
             return getPath({bundle: bundle, variations: vars});
         };
 
-        req.mendel.resolver = function(bundle, variations) {
-            return loader.resolver(bundle, variations);
-        };
+        req.mendel.resolver = loader.resolver.bind(loader);
 
         // Match bundle route
         var reqParams = bundleRoute.exec(req.url);

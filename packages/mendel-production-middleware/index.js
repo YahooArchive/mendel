@@ -17,7 +17,9 @@ function MendelMiddleware(opts) {
         acc[bundle.id] = bundle;
         return acc;
     }, {});
-    var loader = new MendelLoader(trees, module.parent);
+    var loader = new MendelLoader(trees, {
+        parentModule: module.parent
+    });
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
@@ -27,9 +29,7 @@ function MendelMiddleware(opts) {
             return getPath({ bundle: bundle, hash: tree.hash });
         };
 
-        req.mendel.resolver = function(bundle, variations) {
-            return loader.resolver(bundle, variations);
-        };
+        req.mendel.resolver = loader.resolver.bind(loader);
 
         // Match bundle route
         var reqParams = bundleRoute.exec(req.url);

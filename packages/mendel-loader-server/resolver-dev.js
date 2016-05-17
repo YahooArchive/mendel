@@ -4,7 +4,7 @@
 
 var path = require('path');
 var fs = require('fs');
-// var Module = require('module');
+var Module = require('module');
 var MendelResolver = require('./resolver');
 var inherits = require('util').inherits;
 
@@ -21,19 +21,26 @@ inherits(MendelResolverDev, MendelResolver);
 
 MendelResolverDev.prototype.resolve = function(name) {
     var outdir = this._serveroutdir;
+    var parent = this._parentModule;
+
     if (!this._resolveCache[name]) {
         var found;
+
         this._dirs.some(function(dir) {
             var fullPath = path.join(outdir, dir, name);
             if (fs.existsSync(fullPath)) {
                 found = fullPath;
                 return true;
             }
+
             return false;
         });
+
         if (found) {
-            this._resolveCache[name] = found;
+            name = found;
         }
+
+        this._resolveCache[name] = Module._resolveFilename(name, parent);
     }
     return this._resolveCache[name];
 }
