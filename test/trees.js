@@ -136,30 +136,32 @@ test('MendelTrees valid manifest runtime', function (t) {
         var result_1 = trees.findTreeForVariations('app', 'test_A');
         var result_2 = trees.findTreeForVariations('app', ['test_A', 'test_B']);
 
-        t.match(result_1, {deps:[], variationMap: {}},
+        t.match(result_1, {deps:[]},
             'Finds one variation with string input');
-        t.match(result_2, {deps:[], variationMap: {}},
+        t.match(result_2, {deps:[]},
             'Finds two variations with array input');
-
-        t.match(result_1.variationMap, {
-            'index.js': 'app',
-            'math.js': 'test_A',
-            'some-number.js': 'app',
-            'another-number.js': 'app'
-        }, 'result_1 variationMap sanity check');
-        t.match(result_2.variationMap, {
-            'index.js': 'app',
-            'math.js': 'test_A',
-            'some-number.js': 'test_B',
-            'another-number.js': 'app'
-        }, 'result_2 variationMap sanity check');
-
 
         var hash = result_1.hash;
 
         var decoded = trees.findTreeForHash('app', hash);
 
-        t.match(result_1.variationMap, decoded.variationMap,
+        t.match(result_1, decoded,
             'retrieves same tree from hahs');
+
+        var map_1 = trees.findServerVariationMap('test_A');
+        var map_2 = trees.findServerVariationMap(['test_A', 'test_B']);
+
+        t.match(map_1, {
+            'index.js': 'app',
+            'math.js': 'test_A',
+            'some-number.js': 'app',
+            'another-number.js': 'app'
+        }, 'map_1 variationMap sanity check');
+        t.match(map_2, {
+            'index.js': 'app',
+            'math.js': 'test_A',
+            'some-number.js': 'test_B',
+            'another-number.js': 'app'
+        }, 'map_2 variationMap sanity check');
     });
 });

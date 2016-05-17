@@ -63,16 +63,13 @@ var stub1 = {
     variations: ["a", "b", "special"],
     data: [{id:'a', variation:'a', sha:'ba'},{id:'b'},{id:'special'}]
 };
-var hashWithVariationMap = 'bWVuZGVsAQD_AQAGH7IIQx23k7vTZFt6FgWKHiokEg';
-walker = new MendelHashWalker(hashWithVariationMap);
+validHash = 'bWVuZGVsAQD_AQAGH7IIQx23k7vTZFt6FgWKHiokEg';
+walker = new MendelHashWalker(validHash);
 module = {data:[null, null, null, {id:'3', index:3, sha:'99'}]};
 walker.decoded.branches = [0];
 walker.find(stub1);
 
 var expected = {
-    variationMap: {
-        first: 'a'
-    },
     deps: [{
         id: 'a',
         variation: 'a',

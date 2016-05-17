@@ -66,13 +66,7 @@ walker._resolveBranch = function(module) {
 
 walker.find(branchModule);
 
-t.match(walker.variationMap, {leaf2:'variationValue'},
-    "store variations");
-
 var finalResult = {
-    variationMap: {
-        leaf2: 'variationValue'
-    },
     deps: [{
         id: 'stubData',
         sha: '010203'

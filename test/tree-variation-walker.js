@@ -44,7 +44,7 @@ t.equals(walker.conflicts, 1,
 t.match(walker.conflictList, {'first':true},
     'conflicts map');
 
-t.match(walker.found(), { variationMap: {},
+t.match(walker.found(), {
   deps: [ { id: 'a', sha: 'ba' } ],
   hash: 'bWVuZGVsAQD_AQAGH7IIQx23k7vTZFt6FgWKHiokEg',
   conflicts: 1,
