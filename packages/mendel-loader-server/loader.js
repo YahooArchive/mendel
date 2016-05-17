@@ -26,19 +26,9 @@ function MendelLoader(trees, opts) {
 }
 
 MendelLoader.prototype.resolver = function(variations) {
-    var trees = this._trees;
-    var bundles = this._bundles;
-    var mergedMap = {};
+    var variationMap = this._trees.findServerVariationMap(variations);
 
-    bundles.forEach(function (bundleId) {
-        var tree = trees.findTreeForVariations(bundleId, variations);
-        var vMap = tree.variationMap;
-        Object.keys(vMap).forEach(function(file) {
-            mergedMap[file] = vMap[file];
-        });
-    });
-
-    return new MendelResolver(this._parentModule, mergedMap, this._serveroutdir);
+    return new MendelResolver(this._parentModule, variationMap, this._serveroutdir);
 }
 
 module.exports = MendelLoader;
