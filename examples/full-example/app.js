@@ -14,17 +14,20 @@ app.set('query parser', 'simple');
 app.get('/', function(req, res) {
     var variations = (req.query.variations||'').trim()
     .split(',').filter(Boolean);
+    var serverRender = req.query.ssr !== 'false';
+    var optionalMarkup = "";
 
-    var resolver = req.mendel.resolver('main', variations);
+    if (serverRender) {
+        var resolver = req.mendel.resolver('main', variations);
+        var Main = resolver.require('main.js');
 
-    var Main = resolver.require('main.js');
+        optionalMarkup = ReactDOMServer.renderToString(Main())
+    }
 
     var html = [
         '<!DOCTYPE html>',
         '<html><head></head><body>',
-            '<div id="main">',
-                ReactDOMServer.renderToString(Main()),
-            '</div>',
+            '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
         '</body></html>'
