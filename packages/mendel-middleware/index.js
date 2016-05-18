@@ -2,7 +2,7 @@
 var pathToRegexp = require('path-to-regexp');
 var bpack = require('browser-pack');
 var MendelTrees = require('mendel-core/trees');
-var MendelLoader = require('mendel-loader-server');
+var MendelLoader = require('mendel-loader');
 
 module.exports = MendelMiddleware;
 

@@ -1,5 +1,5 @@
 {
-  "name": "mendel-production-middleware",
+  "name": "mendel-middleware",
   "version": "1.0.0",
   "description": "Mendel Middleware that uses generated manifests to output multilayer resolution of isomorphic applications.",
   "main": "index.js",
@@ -19,7 +19,7 @@
   "dependencies": {
     "browser-pack": "^6.0.1",
     "mendel-core": "1.0.0",
-    "mendel-loader-server": "1.0.0"
+    "mendel-loader": "1.0.0"
   },
   "peerDependencies": {
     "path-to-regexp": "^1.2.1"

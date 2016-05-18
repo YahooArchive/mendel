@@ -1,7 +1,7 @@
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
-var MendelMiddleware = require('mendel-production-middleware');
+var MendelMiddleware = require('mendel-middleware');
 if (process.env.NODE_ENV !== 'production') {
     MendelMiddleware = require('mendel-development-middleware');
 }

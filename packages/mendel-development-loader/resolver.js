@@ -5,7 +5,7 @@
 var path = require('path');
 var fs = require('fs');
 var Module = require('module');
-var MendelResolver = require('./resolver');
+var MendelResolver = require('mendel-loader/resolver');
 var inherits = require('util').inherits;
 
 function MendelResolverDev(parentModule, dirs, config) {
