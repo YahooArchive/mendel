@@ -12,6 +12,8 @@ var path = require('path');
 var async = require('async');
 
 var parseConfig = require('mendel-config');
+var mendelBrowserify = require('mendel-browserify');
+var mendelRequirify = require('mendel-requirify');
 
 var config = parseConfig();
 logObj(config);
@@ -31,7 +33,13 @@ async.each(config.bundles, function(rawBundle, doneBundle) {
     delete bundle.entries;
 
     var b = browserify(xtend(conf, bundle));
-    b.plugin(path.join(__dirname, '../packages/mendel-browserify'), bundle);
+    b.plugin(mendelBrowserify, bundle);
+
+    if (config.serveroutdir) {
+        b.plugin(mendelRequirify, {
+            outdir: config.serveroutdir
+        });
+    }
 
     [].concat(bundle.ignore).filter(Boolean)
         .forEach(function (i) {
