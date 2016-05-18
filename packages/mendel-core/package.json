@@ -1,0 +1,21 @@
+{
+  "name": "mendel-core",
+  "version": "1.0.0",
+  "description": "Mendel shared dependencies production use",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "dependencies": {
+    "concentrate": "^0.2.3",
+    "dissolve": "^0.3.3",
+    "mendel-config": "1.0.0",
+    "urlsafe-base64": "^1.0.0",
+    "xtend": "^4.0.1"
+  }
+}

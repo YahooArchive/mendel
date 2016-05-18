@@ -6,8 +6,8 @@
 var path = require('path');
 var xtend = require('xtend');
 
-var parseConfig = require('./config');
-var parseVariations = require('./variations');
+var parseConfig = require('mendel-config');
+var parseVariations = require('mendel-config/variations');
 var MendelVariationWalker = require('./tree-variation-walker');
 var MendelServerVariationWalker = require('./tree-variation-walker-server');
 var MendelHashWalker = require('./tree-hash-walker');

@@ -1,6 +1,6 @@
 var t = require('tap');
 
-var MendelHashWalker = require('../lib/tree-hash-walker');
+var MendelHashWalker = require('../packages/mendel-core/tree-hash-walker');
 t.equal(MendelHashWalker().constructor, MendelHashWalker, 'constructor');
 
 var validHash = 'bWVuZGVsAQD_AQAGH7IIQx23k7vTZFt6FgWKHiokEg';

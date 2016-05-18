@@ -1,5 +1,5 @@
 var t = require('tap');
-var proxy = require('../lib/proxy');
+var proxy = require('../packages/mendel-browserify/proxy');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 function Iface(name) {

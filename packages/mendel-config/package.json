@@ -1,0 +1,19 @@
+{
+  "name": "mendel-config",
+  "version": "1.0.0",
+  "description": "Mendel core configuration parser",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "dependencies": {
+    "isarray": "^1.0.0",
+    "js-yaml": "^3.6.1",
+    "xtend": "^4.0.1"
+  }
+}

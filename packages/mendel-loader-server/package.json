@@ -13,5 +13,8 @@
   ],
   "author": "David Gomez <david.garcia.mx@gmail.com>",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "mendel-development": "1.0.0",
+    "module": "^1.2.5"
+  }
 }

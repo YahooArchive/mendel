@@ -9,9 +9,9 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var treenherit = require('mendel-treenherit');
 
-var parseConfig = require('./lib/config');
-var validVariations = require('./lib/variations');
-var resolveVariations = require('./lib/resolve-variations');
+var parseConfig = require('mendel-config');
+var validVariations = require('mendel-config/variations');
+var resolveVariations = require('mendel-development/resolve-variations');
 var Swatch = require('./swatch');
 var CachedStreamCollection = require('./cached-stream-collection');
 var MendelLoader = require('mendel-loader-server/loader-dev');

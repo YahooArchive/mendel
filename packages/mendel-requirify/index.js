@@ -5,7 +5,7 @@
 var fs = require('fs-extra');
 var path = require('path');
 var through = require('through2');
-var mendelRequireTransform = require('../../lib/require-transform');
+var mendelRequireTransform = require('mendel-development/require-transform');
 
 function requirify(b, opts) {
     var outdir = opts.outdir || path.join(process.cwd(), 'mendel-requirify');

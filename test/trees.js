@@ -4,7 +4,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 
-var MendelTrees = require('../lib/trees');
+var MendelTrees = require('../packages/mendel-core/trees');
 
 var appPath = path.resolve(__dirname, 'app-samples/1/')
 var appBuild = path.join(appPath, 'build');
@@ -23,7 +23,7 @@ test('MendelTrees initialization', function (t) {
 
     process.chdir(appPath);
 
-    fs.unlinkSync(manifestPath);
+    if(fs.existsSync(manifestPath)) fs.unlinkSync(manifestPath);
     t.throws(MendelTrees, /bundle at path/, 'requires manifest to exist');
 
     fs.writeFileSync(manifestPath, '{invalid json}');

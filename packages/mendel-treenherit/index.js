@@ -4,7 +4,7 @@
    See the accompanying LICENSE file for terms. */
 
 var transformTools = require('browserify-transform-tools');
-var resolveInDirs = require('./lib/resolve-dirs');
+var resolveInDirs = require('./resolve-dirs');
 
         /*  CLI USAGE:
             browserify src/A/main.js \

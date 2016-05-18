@@ -1,0 +1,19 @@
+{
+  "name": "mendel-development",
+  "version": "1.0.0",
+  "description": "Mendel shared dependencies for build and development",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "dependencies": {
+    "falafel": "^1.2.0",
+    "shasum": "^1.0.2",
+    "through2": "^2.0.1"
+  }
+}

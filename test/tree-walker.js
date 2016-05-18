@@ -1,6 +1,6 @@
 var t = require('tap');
 
-var MendelWalker = require('../lib/tree-walker');
+var MendelWalker = require('../packages/mendel-core/tree-walker');
 
 var walker = MendelWalker();
 

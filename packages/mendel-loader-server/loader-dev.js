@@ -3,7 +3,7 @@
    See the accompanying LICENSE file for terms. */
 
 var MendelResolverDev = require('./resolver-dev');
-var resolveVariations = require('./lib/resolve-variations');
+var resolveVariations = require('mendel-development/resolve-variations');
 
 function MendelLoaderDev(existingVariations, config, parentModule) {
     if (!(this instanceof MendelLoaderDev)) {

@@ -1,5 +1,5 @@
 var t = require('tap');
-var requireTransform = require('../lib/require-transform');
+var requireTransform = require('../packages/mendel-development/require-transform');
 
 var mendelRequireRegexp = /__mendel_require__\(/;
 var requireRegexp = /\brequire\(/;

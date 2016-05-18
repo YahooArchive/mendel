@@ -3,7 +3,7 @@ var express = require('express');
 var logger = require('morgan');
 var MendelMiddleware = require('mendel-production-middleware');
 if (process.env.NODE_ENV !== 'production') {
-    MendelMiddleware = require('mendel-middleware');
+    MendelMiddleware = require('mendel-development-middleware');
 }
 
 var app = express();

@@ -1,7 +1,7 @@
 var t = require('tap');
 var path = require('path');
 
-var parseVariations = require('../lib/variations');
+var parseVariations = require('../packages/mendel-config/variations');
 
 var rootDir = path.resolve(__dirname, './variation-samples/1/variations');
 
