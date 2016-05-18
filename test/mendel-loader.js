@@ -6,10 +6,10 @@ var browserify = require('browserify');
 var mendelify = require('../packages/mendel-browserify');
 var requirify = require('../packages/mendel-requirify');
 var Tree = require('../packages/mendel-core/trees.js');
-var Loader = require('../packages/mendel-loader-server');
+var Loader = require('../packages/mendel-loader');
 
 var srcDir = path.resolve(__dirname, './app-samples/1');
-var buildDir = temp.mkdirSync('mendel-loader-server');
+var buildDir = temp.mkdirSync('mendel-loader');
 var mountDir = path.join(buildDir, 'server');
 
 test('mendel-loader-server', function(t){

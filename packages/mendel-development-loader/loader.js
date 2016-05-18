@@ -2,7 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var MendelResolverDev = require('./resolver-dev');
+var MendelResolverDev = require('./resolver');
 var resolveVariations = require('mendel-development/resolve-variations');
 
 function MendelLoaderDev(existingVariations, config, parentModule) {

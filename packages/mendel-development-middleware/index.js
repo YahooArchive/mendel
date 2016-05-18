@@ -14,7 +14,7 @@ var validVariations = require('mendel-config/variations');
 var resolveVariations = require('mendel-development/resolve-variations');
 var Swatch = require('./swatch');
 var CachedStreamCollection = require('./cached-stream-collection');
-var MendelLoader = require('mendel-loader-server/loader-dev');
+var MendelLoader = require('mendel-development-loader');
 
 module.exports = MendelMiddleware;
 

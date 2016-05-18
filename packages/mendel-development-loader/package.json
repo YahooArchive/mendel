@@ -1,7 +1,7 @@
 {
-  "name": "mendel-loader-server",
+  "name": "mendel-development-loader",
   "version": "1.0.0",
-  "description": "Mendel server side require hook.",
+  "description": "Mendel development server side require hook.",
   "main": "loader.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,6 +15,6 @@
   "license": "MIT",
   "dependencies": {
     "mendel-development": "1.0.0",
-    "module": "^1.2.5"
+    "mendel-loader": "1.0.0"
   }
 }
