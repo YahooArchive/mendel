@@ -19,7 +19,7 @@ app.get('/', function(req, res) {
 
     if (serverRender) {
         var resolver = req.mendel.resolver(variations);
-        var Main = resolver.require('./main.js');
+        var Main = resolver.require('main.js');
 
         optionalMarkup = ReactDOMServer.renderToString(Main())
     }

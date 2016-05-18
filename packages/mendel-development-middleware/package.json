@@ -15,14 +15,16 @@
   "license": "MIT",
   "dependencies": {
     "browserify": "^13.0.0",
-    "stream-cache": "0.0.2",
-    "watchify": "^3.7.0",
-    "xtend": "^4.0.1",
+    "fs-extra": "^0.30.0",
     "mendel-config": "1.0.0",
-    "mendel-treenherit": "1.0.0",
+    "mendel-development": "1.0.0",
     "mendel-loader-server": "1.0.0",
     "mendel-requirify": "1.0.0",
-    "mendel-development": "1.0.0"
+    "mendel-treenherit": "1.0.0",
+    "stream-cache": "0.0.2",
+    "watch": "^0.18.0",
+    "watchify": "^3.7.0",
+    "xtend": "^4.0.1"
   },
   "peerDependencies": {
     "express": "*",
