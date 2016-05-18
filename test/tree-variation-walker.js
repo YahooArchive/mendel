@@ -1,6 +1,6 @@
 var t = require('tap');
 
-var MendelVariationWalker = require('../lib/tree-variation-walker');
+var MendelVariationWalker = require('../packages/mendel-core/tree-variation-walker');
 
 t.equals(MendelVariationWalker().constructor, MendelVariationWalker, 'constructor');
 

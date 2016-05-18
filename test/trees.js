@@ -4,7 +4,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 
-var MendelTrees = require('../lib/trees');
+var MendelTrees = require('../packages/mendel-core/trees');
 
 var appPath = path.resolve(__dirname, 'app-samples/1/')
 var appBuild = path.join(appPath, 'build');

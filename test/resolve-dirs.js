@@ -1,7 +1,7 @@
 var test = require('tap').test;
 var path = require('path');
 
-var resolveInDirs = require('../lib/resolve-dirs');
+var resolveInDirs = require('../packages/mendel-treenherit/resolve-dirs');
 
 var appDir = path.resolve(__dirname, './app-samples/1/');
 

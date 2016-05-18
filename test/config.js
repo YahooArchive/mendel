@@ -2,7 +2,7 @@ var t = require('tap');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-var config = require('../lib/config');
+var config = require('../packages/mendel-config/config');
 var where;
 var opts;
 

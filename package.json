@@ -1,7 +1,6 @@
 {
   "name": "mendel",
-  "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",
@@ -68,7 +67,8 @@
     "through2": "^2.0.1",
     "urlsafe-base64": "^1.0.0",
     "watch": "~0.17.1",
-    "xtend": "^4.0.1"
+    "xtend": "^4.0.1",
+    "mendel-config": "1.0.0"
   },
   "devDependencies": {
     "eslint": "^2.3.0",

@@ -3,18 +3,18 @@
    See the accompanying LICENSE file for terms. */
 
 var browserify = require('browserify');
-var devnull = require('./lib/dev-null');
+var devnull = require('./dev-null');
 var EventEmitter = require('events').EventEmitter;
 var fs = require('fs-extra');
 var inherits = require('util').inherits;
-var mendelify = require('./lib/mendelify-plugin');
+var mendelify = require('./mendelify-plugin');
 var Module = require('module');
-var parseConfig = require('./lib/config');
+var parseConfig = require('mendel-config');
 var path = require('path');
 var requirify = require('mendel-requirify');
 var treenherit = require('mendel-treenherit');
-var validVariations = require('./lib/variations');
-var variationMatches = require('./lib/variation-matches');
+var validVariations = require('mendel-config/variations');
+var variationMatches = require('mendel-development/variation-matches');
 var watch = require('watch');
 var watchify = require('watchify');
 var xtend = require('xtend');

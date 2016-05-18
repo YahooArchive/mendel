@@ -9,10 +9,10 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var through = require('through2');
-var parseConfig = require('./lib/config');
-var validVariations = require('./lib/variations');
-var mendelify = require('./lib/mendelify-transform-stream');
-var proxy = require('./lib/proxy');
+var parseConfig = require('mendel-config');
+var validVariations = require('mendel-config/variations');
+var mendelify = require('mendel-development/mendelify-transform-stream');
+var proxy = require('./proxy');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 module.exports = MendelBrowserify;

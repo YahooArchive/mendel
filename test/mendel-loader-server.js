@@ -5,7 +5,7 @@ var Module = require('module');
 var browserify = require('browserify');
 var mendelify = require('../packages/mendel-browserify');
 var requirify = require('../packages/mendel-requirify');
-var Tree = require('../lib/trees.js');
+var Tree = require('../packages/mendel-core/trees.js');
 var Loader = require('../packages/mendel-loader-server');
 
 var srcDir = path.resolve(__dirname, './app-samples/1');

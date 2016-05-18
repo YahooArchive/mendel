@@ -2,7 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var mendelify = require('./mendelify-transform-stream');
+var mendelify = require('mendel-development/mendelify-transform-stream');
 
 function mendelifyPlugin(b, opts) {
     if (!opts.variations) {

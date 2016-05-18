@@ -11,7 +11,7 @@ var xtend = require('xtend');
 var path = require('path');
 var async = require('async');
 
-var parseConfig = require('../lib/config');
+var parseConfig = require('mendel-config');
 
 var config = parseConfig();
 logObj(config);

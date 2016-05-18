@@ -21,8 +21,8 @@
     "babel-preset-react": "^6.5.0",
     "eslint-plugin-react": "^5.0.1",
     "nodemon": "^1.9.2",
-    "mendel": "*",
-    "mendel-middleware": "*"
+    "mendel": "1.0.0",
+    "mendel-development-middleware": "*"
   },
   "babel": {
     "presets": [

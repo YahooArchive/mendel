@@ -6,7 +6,7 @@ var rimraf = require('rimraf');
 var through = require('through2');
 var browserify = require('browserify');
 var requirify = require('../packages/mendel-requirify');
-var requireTransform = require('../lib/require-transform');
+var requireTransform = require('../packages/mendel-development/require-transform');
 
 var srcDir = path.resolve(__dirname, './app-samples/1');
 

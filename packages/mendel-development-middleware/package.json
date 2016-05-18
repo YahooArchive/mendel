@@ -1,5 +1,5 @@
 {
-  "name": "mendel-middleware",
+  "name": "mendel-development-middleware",
   "version": "1.0.0",
   "description": "express middleware for meldel",
   "main": "index.js",
@@ -18,11 +18,14 @@
     "stream-cache": "0.0.2",
     "watchify": "^3.7.0",
     "xtend": "^4.0.1",
-    "mendel-treenherit": "*",
-    "mendel-loader-server": "*",
-    "mendel-requirify": "*"
+    "mendel-config": "1.0.0",
+    "mendel-treenherit": "1.0.0",
+    "mendel-loader-server": "1.0.0",
+    "mendel-requirify": "1.0.0",
+    "mendel-development": "1.0.0"
   },
   "peerDependencies": {
-    "express": "*"
+    "express": "*",
+    "path-to-regexp": "*"
   }
 }
