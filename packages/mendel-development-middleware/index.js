@@ -29,7 +29,9 @@ function MendelMiddleware(opts) {
     });
 
     // server side watch
-    var swatch = new Swatch(opts).watch(); // eslint-disable-line no-unused-vars
+    if (config.watch !== false) {
+        var swatch = new Swatch(opts).watch(); // eslint-disable-line no-unused-vars
+    }
 
     var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
     var getPath = pathToRegexp.compile(route);
