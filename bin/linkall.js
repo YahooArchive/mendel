@@ -63,14 +63,18 @@ npm('install async', rootdir, function() {
             }
 
 
-            console.log(
-                /examples/.test(file) ? 'local install' : 'global link',
-                pkg.name,
-                '...'
-            );
-            npm(/examples/.test(file) ? 'install' : 'link', file, function() {
-                linkedModules.push(pkg.name);
-                donePackage();
+            console.log('local install', pkg.name, '...');
+            npm('install', file, function() {
+                if (/packages/.test(file)) {
+                    console.log('local link', pkg.name, '...');
+                    npm('link', file, function() {
+                        linkedModules.push(pkg.name);
+                        donePackage();
+                    });
+                } else {
+                    linkedModules.push(pkg.name);
+                    donePackage();
+                }
             });
         }, function() {
             if (doAgain.length) {
