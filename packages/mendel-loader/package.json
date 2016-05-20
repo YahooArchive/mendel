@@ -13,6 +13,10 @@
   ],
   "author": "David Gomez <david.garcia.mx@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "mendel-development": "1.0.0"
   }

@@ -11,6 +11,10 @@
   ],
   "author": "Irae Carvalho <irae@irae.pro.br>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "concentrate": "^0.2.3",
     "dissolve": "^0.3.3",

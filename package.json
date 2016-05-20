@@ -1,6 +1,6 @@
 {
   "name": "mendel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",
@@ -24,6 +24,10 @@
     }
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "main": "lib/trees.js",
   "bin": {
     "mendel": "bin/index.js"
