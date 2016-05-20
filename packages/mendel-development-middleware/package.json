@@ -28,10 +28,7 @@
     "stream-cache": "0.0.2",
     "watch": "^0.18.0",
     "watchify": "^3.7.0",
-    "xtend": "^4.0.1"
-  },
-  "peerDependencies": {
-    "express": "*",
-    "path-to-regexp": "*"
+    "xtend": "^4.0.1",
+    "path-to-regexp": "^1.2.1"
   }
 }

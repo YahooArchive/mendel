@@ -246,7 +246,7 @@ function addTransform(bundle) {
     // This is unfortunate, we need to be the last require transform
     // I will pay someone a beer if they find out a better way
     bundle._transformOrder += 50;
-    bundle.transform(path.join(__dirname, "../mendel-treenherit"), {
+    bundle.transform("mendel-treenherit", {
         dirs: bundle.variation.chain,
     });
     bundle._transformOrder -= 50;

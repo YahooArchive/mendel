@@ -23,9 +23,7 @@
   "dependencies": {
     "browser-pack": "^6.0.1",
     "mendel-core": "1.0.0",
-    "mendel-loader": "1.0.0"
-  },
-  "peerDependencies": {
+    "mendel-loader": "1.0.0",
     "path-to-regexp": "^1.2.1"
   }
 }
