@@ -1,6 +1,6 @@
 {
   "name": "mendel-browserify",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Browserify plugin for creating bundle A/B test and other variations based on mendel tree merge model. Created for mendel.",
   "main": "index.js",
   "scripts": {
