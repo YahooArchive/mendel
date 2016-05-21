@@ -72,7 +72,7 @@ Swatch.prototype._getBuildPath = function(srcFile) {
     return destFile;
 }
 
-Swatch.prototype._uncacheModule = function(destFile) {
+Swatch.prototype.uncacheModule = function(destFile) {
     delete Module._cache[destFile];
 };
 
@@ -86,7 +86,7 @@ Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
 
     srcFiles.forEach(function (src) {
         var dest = self._getBuildPath(src);
-        self._uncacheModule(dest);
+        self.uncacheModule(dest);
         changes.files.push({src: src, dest: dest});
     });
 
@@ -98,7 +98,7 @@ Swatch.prototype._handleFileRemoved = function(srcFile) {
     var self = this;
     var destFile = self._getBuildPath(srcFile);
 
-    self._uncacheModule(destFile);
+    self.uncacheModule(destFile);
     fs.remove(destFile, function(err) {
         if (err) {
             return self.emit('error', err, {
@@ -167,6 +167,11 @@ Swatch.prototype.watch = function() {
         })(dir);
     });
 
+    var sharedWatchifyCache = {
+        cache: {},
+        packageCache: {}
+    };
+
     config.bundles.forEach(function(bundle) {
         if (!bundle.entries) {
             return;
@@ -176,10 +181,7 @@ Swatch.prototype.watch = function() {
 
         variations.forEach(function(variation) {
             var variationId = variation.id;
-            var bundleConfig = xtend({}, config, bundle, {
-                cache: {},
-                packageCache: {}
-            });
+            var bundleConfig = xtend({}, config, bundle, sharedWatchifyCache);
 
             bundleConfig.entries = bundleConfig.entries.map(function(entry) {
                 return path.join(bundleConfig.basetree, entry);
