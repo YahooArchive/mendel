@@ -1,6 +1,6 @@
 {
   "name": "mendel-loader",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Mendel server side require hook.",
   "main": "loader.js",
   "scripts": {
@@ -17,7 +17,5 @@
     "type": "git",
     "url": "https://github.com/yahoo/mendel"
   },
-  "dependencies": {
-    "mendel-development": "1.0.0"
-  }
+  "dependencies": {}
 }
