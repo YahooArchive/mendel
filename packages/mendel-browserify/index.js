@@ -160,7 +160,7 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
             data: [data],
         };
         ['id', 'entry', 'expose'].forEach(function(prop) {
-            if (typeof data[prop] !== undefined) {
+            if (typeof data[prop] !== 'undefined') {
                 newDep[prop] = data[prop];
             }
         })
