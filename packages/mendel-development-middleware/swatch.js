@@ -119,10 +119,12 @@ Swatch.prototype._log = function(msg) {
 
 Swatch.prototype.watch = function() {
     var self = this;
+    var start = process.hrtime();
     var config = self.config;
     var variations = self.variations;
     var basedir = config.basedir;
     var outdir = config.serveroutdir;
+    var isReady = false;
 
     if (watching[basedir]) {
         console.warn('Already watching: ' + basedir);
@@ -137,7 +139,7 @@ Swatch.prototype.watch = function() {
 
     // watch only valid variations dirs
     var watchDirs = flattenDirs(basedir, variations);
-    var pending = watchDirs.length;
+    var watchPending = watchDirs.length;
 
     watchDirs.forEach(function(dir) {
         (function(wdir) {
@@ -158,9 +160,9 @@ Swatch.prototype.watch = function() {
                  */
                 monitor.on("removed", self._handleFileRemoved.bind(self));
 
-                pending--;
-                if (!pending) {
-                    self.emit('ready', basedir);
+                watchPending--;
+                if (!watchPending) {
+                    self.emit('watch', basedir);
                     self._log('Watching: ' + basedir);
                 }
             });
@@ -172,11 +174,14 @@ Swatch.prototype.watch = function() {
         packageCache: {}
     };
 
-    config.bundles.forEach(function(bundle) {
-        if (!bundle.entries) {
-            return;
-        }
+    // only watch bundles that have entries
+    var bundles = config.bundles.filter(function(bundle) {
+        return bundle.entries && bundle.entries.length > 0;
+    });
 
+    var writePending = 0;
+
+    bundles.forEach(function(bundle) {
         var bundleId = bundle.id;
 
         variations.forEach(function(variation) {
@@ -195,6 +200,8 @@ Swatch.prototype.watch = function() {
             }
 
             function makeBundle(bundler) {
+                isReady = false;
+                writePending++;
                 var b = bundler.bundle();
                 b.on('error', bundleError);
                 b.on('transform', function (tr) {
@@ -216,23 +223,48 @@ Swatch.prototype.watch = function() {
                 variations: [variation]
             });
             bundler.plugin(requirify, {
-                outdir: outdir
+                outdir: outdir,
+                writeCache: {}
             });
             bundler.on('update', function(srcFiles) {
+                self.emit('update', srcFiles);
+                // reset time
+                start = process.hrtime();
                 /*
                  * When watchify emits file change, we remove it from the require cache
                  * and let the pipeline rebuild it
                  */
                 self._handleDepsChange(bundleId, variationId, srcFiles);
                 makeBundle(bundler);
-            })
+            });
 
             var bundlerKey = bundleId + ':' + variationId;
             self.bundlers[bundlerKey] = bundler;
 
+            bundler.on('mendel-requirify:finish', function(timeMillis) {
+                if (!isReady) {
+                    writePending--;
+                }
+                self.emit('finish', bundleId, variationId, timeMillis);
+                self._log('Finished ' + bundlerKey + ' in ' + timeMillis + ' ms');
+            });
+
             makeBundle(bundler);
         });
     });
+
+    function checkIsReady() {
+        if (!isReady && watchPending === 0 && writePending === 0) {
+            isReady = true;
+            var elapsed = process.hrtime(start);
+            var timeMillis = Math.floor(elapsed[0] * 1e3 + elapsed[1] * 1e-6);
+
+            self.emit('ready', timeMillis);
+        }
+    }
+
+    self.on('watch', checkIsReady);
+    self.on('finish', checkIsReady);
 
     return self;
 }

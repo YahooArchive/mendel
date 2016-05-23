@@ -80,9 +80,9 @@ MendelTrees.prototype._loadBundles = function() {
         } catch (error) {
             var newError = new Error();
             newError.code = error.code;
-            if (error.code === 'MODULE_NOT_FOUND') {
+            if (error.code === 'MODULE_NOT_FOUND' || error.code === 'ENOENT') {
                 newError.message = 'Could not find "' + bundle.id
-                                 + '" bundle at path '+ bundle.manifest;
+                                 + '" bundle at path '+ bundlePath;
             } else {
                 newError.message = 'Invalid bundle file at path '+ bundle.manifest;
             }

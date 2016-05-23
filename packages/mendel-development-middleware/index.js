@@ -20,6 +20,7 @@ module.exports = MendelMiddleware;
 
 function MendelMiddleware(opts) {
     var config = parseConfig(opts);
+    var watchEnabled = config.watch !== false;
     var existingVariations = validVariations(config);
     var base = config.base || 'base';
 
@@ -29,8 +30,21 @@ function MendelMiddleware(opts) {
     });
 
     // server side watch
-    if (config.watch !== false) {
-        var watcher = swatch.fork(opts); // eslint-disable-line no-unused-vars
+    var ssrReady = false;
+    var watcher;
+
+    if (watchEnabled !== false) {
+        watcher = swatch.fork(opts); // eslint-disable-line no-unused-vars
+
+        watcher.on('update', function() {
+            ssrReady = false;
+            console.log('Mendel updating...');
+        });
+
+        watcher.on('ready', function(timeMillis) {
+            ssrReady = true;
+            console.log('Mendel build done in ' + timeMillis + ' ms');
+        });
     }
 
     var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
@@ -54,10 +68,22 @@ function MendelMiddleware(opts) {
 
         req.mendel.resolver = loader.resolver.bind(loader);
 
+        function done() {
+            //TODO: this should apply for ssr routes only
+            if (watchEnabled && !ssrReady) {
+                console.log('Waiting for mendel to build server side modules...');
+                watcher.on('ready', function() {
+                    next();
+                });
+                return;
+            }
+            return next();
+        }
+
         // Match bundle route
         var reqParams = bundleRoute.exec(req.url);
         if (!reqParams) {
-            return next();
+            return done();
         }
         var params = namedParams(keys, reqParams);
         if (!(
@@ -65,14 +91,14 @@ function MendelMiddleware(opts) {
             params.variations &&
             bundles[params.bundle]
         )) {
-            return next();
+            return done();
         }
         var bundleConfig = bundles[params.bundle];
         var dirs = params.variations.split(/(,|%2C)/i);
         dirs = resolveVariations(existingVariations, dirs);
 
         if (!dirs.length || !bundleConfig) {
-            return next();
+            return done();
         }
 
         // Serve bundle
