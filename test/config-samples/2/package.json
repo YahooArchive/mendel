@@ -8,6 +8,11 @@
     "variations": {
       "json_A": null,
       "json_B": ["folder_B"]
+    },
+    "env": {
+      "test": {
+        "base": "testbase"
+      }
     }
   }
 }

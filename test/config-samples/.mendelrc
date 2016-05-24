@@ -55,3 +55,20 @@ variations:
 # if any dir is unexisting, it is just silently ignored
 # this allows for variation ids to have different names and/or combination
 # of directories
+
+# configurations can be overriden per environment
+env:
+  test:
+    bundles:
+      main:
+        transform:
+          - testify
+      test:
+          entries:
+            - foo.js
+            - bar.js
+  staging:
+    bundles:
+      test:
+          entries:
+            - bar.js
