@@ -11,6 +11,7 @@ var treenherit = require('mendel-treenherit');
 
 var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
+var applyExtraOptions = require('mendel-development/apply-extra-options');
 var resolveVariations = require('mendel-development/resolve-variations');
 var swatch = require('./swatch-worker');
 var CachedStreamCollection = require('./cached-stream-collection');
@@ -143,6 +144,7 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     });
 
     var bundler = browserify(bundleConfig);
+    applyExtraOptions(bundler, bundleConfig);
     bundler.transform(treenherit, { dirs: dirs });
     bundler.plugin(watchify);
 

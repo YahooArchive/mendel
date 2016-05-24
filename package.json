@@ -54,7 +54,6 @@
   "dependencies": {
     "async": "^1.5.2",
     "browserify": "^13.0.0",
-    "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
     "xtend": "^4.0.1",
     "mendel-config": "^1.0.2",

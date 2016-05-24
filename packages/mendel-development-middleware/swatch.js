@@ -15,6 +15,7 @@ var requirify = require('mendel-requirify');
 var treenherit = require('mendel-treenherit');
 var validVariations = require('mendel-config/variations');
 var variationMatches = require('mendel-development/variation-matches');
+var applyExtraOptions = require('mendel-development/apply-extra-options');
 var watch = require('watch');
 var watchify = require('watchify');
 var xtend = require('xtend');
@@ -218,6 +219,7 @@ Swatch.prototype.watch = function() {
             bundler.plugin(requirify, {
                 outdir: outdir
             });
+            applyExtraOptions(bundler, bundleConfig); // must happen after all plugins that have "proxy"
             bundler.on('update', function(srcFiles) {
                 /*
                  * When watchify emits file change, we remove it from the require cache

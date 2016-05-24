@@ -18,6 +18,7 @@
   "dependencies": {
     "falafel": "^1.2.0",
     "shasum": "^1.0.2",
-    "through2": "^2.0.1"
+    "through2": "^2.0.1",
+    "glob": "^7.0.3"
   }
 }
