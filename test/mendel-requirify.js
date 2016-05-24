@@ -73,7 +73,6 @@ test('mendel-requirify-defaults', function (t) {
     run(t, null, outFile, function(row) {
         row.id = path.basename(row.file);
         row.variation = experiment;
-        delete row.file;
         return row;
     }, function (t) {
         rimraf(outDir, function () {
