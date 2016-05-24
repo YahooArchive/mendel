@@ -23,11 +23,11 @@ test('MendelTrees initialization', function (t) {
 
     process.chdir(appPath);
 
-    if(fs.existsSync(manifestPath)) fs.unlinkSync(manifestPath);
-    t.throws(MendelTrees, /bundle at path/, 'requires manifest to exist');
-
     fs.writeFileSync(manifestPath, '{invalid json}');
-    t.throws(MendelTrees, /Invalid bundle file/, 'requires valid manifest');
+    t.throws(MendelTrees, {message: /Invalid bundle file/}, 'requires valid manifest');
+
+    if(fs.existsSync(manifestPath)) fs.unlinkSync(manifestPath);
+    t.throws(MendelTrees, {message: /Could not find/}, 'requires manifest to exist');
 
     process.chdir(__dirname);
 });
