@@ -32,12 +32,11 @@ function Swatch(opts) {
     EventEmitter.call(self);
 
     var config = parseConfig(opts);
-    var devOpts = opts && opts.development || {};
 
     self.config = xtend(config, {
         verbose: false,
         silent: false
-    }, devOpts);
+    });
 
     var base = config.base || 'base';
 

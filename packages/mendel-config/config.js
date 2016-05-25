@@ -7,54 +7,55 @@ var path = require("path");
 var fs = require("fs");
 var xtend = require("xtend");
 var yaml = require('js-yaml');
+var defaultConfig = require('./defaults');
 
 module.exports = function(config) {
     if (typeof config === 'string') config = { basedir: config };
     config = config || {};
 
-    var where = config.basedir && path.resolve(config.basedir) || process.cwd();
+    var def = defaultConfig();
+    var where = config.basedir && path.resolve(config.basedir) || def.basedir;
     var fileConfig = findConfig(where);
+    var environment = process.env.MENDEL_ENV || process.env.NODE_ENV;
+
     config.basedir = fileConfig.basedir || where;
 
-    config = xtend(fileConfig, config);
+    config = xtend(def, fileConfig, config);
 
-    if (!config.outdir) {
-        config.outdir = path.join(config.basedir, 'mendel-build');
-    } else {
-        config.outdir = path.resolve(config.basedir, config.outdir);
+    if (environment) {
+        config.environment = environment;
     }
 
-    config.bundlesoutdir = path.join(
-        config.outdir,
-        config.bundlesoutdir || ''
-    );
+    var envConfig = config.env[config.environment];
 
-    config.serveroutdir = path.join(
-        config.outdir,
-        config.serveroutdir || ''
-    );
-
-    if (config.bundles) {
-        config.bundles = Object.keys(config.bundles).map(function(bundleName) {
-          var bundle = config.bundles[bundleName];
-          bundle.id = bundleName;
-          bundle.manifest = bundleName + '.manifest.json';
-          bundle.outdir = config.outdir;
-          bundle.bundlesoutdir = config.bundlesoutdir;
-          bundle.outfile = bundle.outfile || bundleName + '.js';
-          return bundle;
-        });
+    if (envConfig) {
+        config = mergeRecursive(config, envConfig);
     }
+    delete config.env;
+
+    config.outdir = path.resolve(config.basedir, config.outdir);
+
+    config.bundlesoutdir = path.join(config.outdir, config.bundlesoutdir);
+
+    config.serveroutdir = path.join(config.outdir, config.serveroutdir);
+
+    config.bundles = Object.keys(config.bundles).map(function(bundleName) {
+        var bundle = config.bundles[bundleName];
+
+        bundle.id = bundleName;
+        bundle.manifest = bundleName + '.manifest.json';
+        bundle.outdir = config.outdir;
+        bundle.bundlesoutdir = config.bundlesoutdir;
+        bundle.outfile = bundle.outfile || bundleName + '.js';
+
+        return bundle;
+    });
 
     // single bundles and fallback
-    if (!config.bundleName) {
-        if (config.outfile) {
-            config.bundleName = path.parse(config.outfile).name;
-        } else {
-            config.bundleName = 'bundle';
-        }
+    if (config.outfile) {
+        config.bundleName = path.parse(config.outfile).name;
+        config.manifest = config.bundleName + '.manifest.json';
     }
-    config.manifest = config.bundleName + '.manifest.json';
 
     return config;
 };
@@ -92,4 +93,22 @@ function findConfig(where) {
 
 function loadFromYaml(path) {
     return yaml.safeLoad(fs.readFileSync(path, 'utf8'));
+}
+
+
+function mergeRecursive(dest, src) {
+    for (var key in src) {
+        if (src.hasOwnProperty(key)) {
+            if (isObject(dest[key]) && isObject(src[key])) {
+                dest[key] = mergeRecursive(dest[key], src[key]);
+            } else {
+                dest[key] = src[key];
+            }
+        }
+    }
+    return dest;
+}
+
+function isObject(obj) {
+    return ({}).toString.call(obj).slice(8, -1).toLowerCase() === 'object';
 }

@@ -3,6 +3,7 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 
 var config = require('../packages/mendel-config/config');
+var origEnv = process.env.NODE_ENV;
 var where;
 var opts;
 
@@ -47,10 +48,14 @@ t.match(config(opts), {
     bundleName: 'testBundle'
 }, "custom bundleName and outdir");
 
-
 opts = {
     outdir: '../build',
     outfile: 'app.js',
+    env: {
+        test: {
+            outdir: '../build/test'
+        }
+    }
 };
 t.match(config(opts), {
     basedir: path.resolve(__dirname),
@@ -58,4 +63,42 @@ t.match(config(opts), {
     bundleName: 'app'
 }, "bundleName based on outfile");
 
+where = './config-samples';
+t.match(config(where), {
+    bundles: [
+        {id: 'vendor'},
+        {id: 'main', transform: ['reactify']},
+    ]
+}, 'default environment');
 
+process.env.MENDEL_ENV = 'test';
+t.match(config(where), {
+    bundles: [
+        {id: 'vendor'},
+        {id: 'main', transform: ['testify']},
+        {id: 'test', entries: ['foo.js', 'bar.js']}
+    ]
+}, 'test environment');
+
+t.match(config(opts), {
+    outdir: path.resolve(__dirname, '../build/test')
+}, "merge env config options");
+
+process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));
+t.match(config(), {
+    base: 'testbase'
+}, "merge package.json env configs");
+
+delete process.env.MENDEL_ENV;
+
+process.chdir(path.resolve(__dirname));
+process.env.NODE_ENV = 'staging';
+t.match(config(where), {
+    bundles: [
+        {id: 'vendor'},
+        {id: 'main', transform: ['reactify']},
+        {id: 'test', entries: ['bar.js']}
+    ]
+}, 'staging environment');
+
+process.env.NODE_ENV = origEnv;
