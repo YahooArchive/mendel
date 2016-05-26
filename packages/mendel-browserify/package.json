@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "defined": "^1.0.0",
-    "isarray": "^1.0.0",
     "mendel-config": "^1.0.2",
     "mendel-development": "^1.0.2",
     "mendel-treenherit": "^1.0.2",
