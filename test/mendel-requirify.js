@@ -29,10 +29,7 @@ function run(t, outDir, outFile, rowTransform, cb) {
     b.plugin(requirify, {
         outdir: outDir
     });
-    b.bundle(function (err) {
-        if (err) {
-            t.fail(err.message || err);
-        }
+    b.on('mendel-requirify:finish', function () {
         var src;
         try {
             src = fs.readFileSync(outFile, 'utf-8');
@@ -53,6 +50,11 @@ function run(t, outDir, outFile, rowTransform, cb) {
             }
             t.end();
         });
+    });
+    b.bundle(function (err) {
+        if (err) {
+            t.fail(err.message || err);
+        }
     });
 }
 

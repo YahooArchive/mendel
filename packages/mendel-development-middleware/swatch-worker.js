@@ -31,10 +31,13 @@ function start() {
 
             // events to forward
             var events = [
+                'update',
                 'changed',
                 'removed',
-                'ready',
-                'error'
+                'error',
+                'watch',
+                'finish',
+                'ready'
             ];
             events.forEach(notifyParent);
 
@@ -92,6 +95,7 @@ module.exports.fork = function(opts) {
 
     return {
         on: workerEvents.on.bind(workerEvents),
+        once: workerEvents.once.bind(workerEvents),
         stop: function() {
             worker.send({cmd: 'stop'});
             worker.kill();
