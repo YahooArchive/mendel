@@ -60,6 +60,17 @@ function MendelBrowserify(baseBundle, opts) {
         var vopts = xtend(self.baseOptions);
         var browserify = baseBundle.constructor;
         var pipeline = baseBundle.pipeline.constructor;
+
+        vopts.plugin = [].concat(vopts.plugin).filter(Boolean)
+            .filter(function(plugin) {
+                if (typeof plugin === 'string') {
+                    return plugin !== 'mendel-browserify';
+                } else if(MendelBrowserify.constructor === plugin.constructor) {
+                    return false;
+                }
+                return true;
+            });
+
         var variationBundle = browserify(vopts);
 
         self.prepareBundle(variationBundle, variation);
