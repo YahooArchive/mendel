@@ -9,7 +9,7 @@ mkdirp.sync(appBuild);
 process.chdir(appPath);
 
 test('mendel-browserify', function (t) {
-    t.plan(2);
+    t.plan(3);
     var calls;
 
 
@@ -41,6 +41,16 @@ test('mendel-browserify', function (t) {
 
     mendelPlugin(new Bro({
         plugin: ['mendel-browserify', 2]
+    }), {basedir: './'});
+    callsWithPlugins = calls.filter(function(opts) {
+        return opts.plugin.length >= 2;
+    });
+    t.equal(callsWithPlugins.length, 1);
+
+    calls = [];
+
+    mendelPlugin(new Bro({
+        plugin: [ ['mendel-browserify', {}], [mendelPlugin, {}]]
     }), {basedir: './'});
     callsWithPlugins = calls.filter(function(opts) {
         return opts.plugin.length >= 2;
