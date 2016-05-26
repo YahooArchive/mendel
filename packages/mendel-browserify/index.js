@@ -130,7 +130,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
     var self = this;
     var deps = bundle.pipeline.get('deps');
 
-    deps.push(mendelify(self.variations));
+    deps.push(mendelify(self.variationsWithBase));
     deps.push(through.obj(function(row, enc, next) {
         self.pushBundleManifest(row);
         this.push(row);
