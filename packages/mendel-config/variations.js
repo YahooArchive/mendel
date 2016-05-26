@@ -4,7 +4,6 @@
 
 var fs = require('fs');
 var path = require('path');
-var isarray = require('isarray');
 
 module.exports = function(config) {
     var basedir = config.basedir || process.cwd();
@@ -13,12 +12,12 @@ module.exports = function(config) {
 
     var variations = Object.keys(vars).map(function(dir) {
         if(dir === '_') return;
-        if (isarray(vars[dir] && vars[dir]._)) {
+        if (Array.isArray(vars[dir] && vars[dir]._)) {
             vars[dir] = vars[dir]._;
         }
 
         var chain = [dir]
-                    .concat(isarray(vars[dir]) ? vars[dir] : [])
+                    .concat(Array.isArray(vars[dir]) ? vars[dir] : [])
                     .map(relativeRoot)
                     .filter(existsInBasedir);
 

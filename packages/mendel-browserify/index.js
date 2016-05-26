@@ -7,7 +7,6 @@ var xtend = require('xtend');
 var defined = require('defined');
 var fs = require('fs');
 var path = require('path');
-var isarray = require('isarray');
 var mkdirp = require('mkdirp');
 var through = require('through2');
 var parseConfig = require('mendel-config');
@@ -248,7 +247,7 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
 
 function nonMendelPlugins(plugins) {
     return [].concat(plugins).filter(Boolean).filter(function(plugin) {
-        if (isarray(plugin)) plugin = plugin[0];
+        if (Array.isArray(plugin)) plugin = plugin[0];
         if (typeof plugin === 'string') {
             return plugin !== 'mendel-browserify';
         } else if(MendelBrowserify.constructor === plugin.constructor) {
