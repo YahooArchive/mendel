@@ -49,7 +49,7 @@ module.exports = function(config) {
         bundle.outfile = bundle.outfile || bundleName + '.js';
 
         return bundle;
-    });
+    }).filter(Boolean);
 
     // single bundles and fallback
     if (config.outfile) {
