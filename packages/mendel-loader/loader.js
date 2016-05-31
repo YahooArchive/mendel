@@ -23,6 +23,7 @@ function MendelLoader(trees, opts) {
         });
     }
     this._bundles = bundles;
+    this._ssrReady = true;
 }
 
 MendelLoader.prototype.resolver = function(variations) {
@@ -30,5 +31,9 @@ MendelLoader.prototype.resolver = function(variations) {
 
     return new MendelResolver(this._parentModule, variationMap, this._serveroutdir);
 }
+
+MendelLoader.prototype.isSsrReady = function() {
+    return this._ssrReady;
+};
 
 module.exports = MendelLoader;

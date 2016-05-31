@@ -54,6 +54,7 @@ function MendelMiddleware(opts) {
         };
 
         req.mendel.resolver = loader.resolver.bind(loader);
+        req.mendel.isSsrReady = loader.isSsrReady.bind(loader);
 
         // Match bundle route
         var reqParams = bundleRoute.exec(req.url);
