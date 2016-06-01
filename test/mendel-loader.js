@@ -33,7 +33,9 @@ test('mendel-loader-server', function(t){
 
     b.bundle(function(err) {
         if (err) {
-            return t.fail(err.message || err);
+            return temp.cleanup(function() {
+                t.fail(err.message || err);
+            });
         }
         //TODO: Remove setTimeout once mendel-browserify exposes its stream events.
         setTimeout(function() {

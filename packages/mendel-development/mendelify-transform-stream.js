@@ -23,6 +23,8 @@ function mendelifyTransformStream(variations) {
             }
         });
 
+
+        row.rawSource = row.source;
         row.source = mendelifyRequireTransform(row.file, row.source, variations);
         row.sha = shasum(row.source);
 

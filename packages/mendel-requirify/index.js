@@ -6,23 +6,19 @@ var fs = require('fs-extra');
 var path = require('path');
 var through = require('through2');
 var mendelRequireTransform = require('mendel-development/require-transform');
+var variationMatches = require('mendel-development/variation-matches');
 
 function requirify(b, opts) {
     var outdir = opts.outdir || path.join(process.cwd(), 'mendel-requirify');
+    var dirs = opts.dirs || (b.variation && b.variation.chain) || [];
 
     function addHooks() {
-        b.pipeline.get('dedupe').push(through.obj(function(row, enc, next) {
+        b.pipeline.get('label').push(through.obj(function(row, enc, next) {
             var that = this;
 
             function done() {
                 that.push(row);
                 next();
-            }
-
-            if (!row.variation) {
-                // mendelify did now find a match,
-                // i.e. file is outside base or variation dirs, skipping.
-                return done();
             }
 
             var file = row.file || row.id;
@@ -33,10 +29,15 @@ function requirify(b, opts) {
                 return done();
             }
 
-            var dest = path.join(outdir, row.variation, row.id);
-            var out = fs.createOutputStream(dest);
-            out.write(mendelRequireTransform(row.source, true));
-            out.end(done);
+            var match = variationMatches([{chain: dirs}], file);
+
+            if (match) {
+                var dest = path.join(outdir, match.dir, match.file);
+                var out = fs.createOutputStream(dest);
+                var src = row.rawSource || row.source;
+                out.end(mendelRequireTransform(src, dirs, true));
+            }
+            done();
         }));
     }
 

@@ -14,7 +14,7 @@ app.set('query parser', 'simple');
 app.get('/', function(req, res) {
     var variations = (req.query.variations||'').trim()
     .split(',').filter(Boolean);
-    var serverRender = req.query.ssr !== 'false';
+    var serverRender = req.query.ssr !== 'false' && req.mendel.isSsrReady();
     var optionalMarkup = "";
 
     if (serverRender) {

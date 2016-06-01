@@ -24,6 +24,7 @@ MendelResolverDev.prototype.resolve = function(name) {
     var parent = this._parentModule;
 
     if (!this._resolveCache[name]) {
+        var mod = name;
         var found;
 
         this._dirs.some(function(dir) {
@@ -37,10 +38,10 @@ MendelResolverDev.prototype.resolve = function(name) {
         });
 
         if (found) {
-            name = found;
+            mod = found;
         }
 
-        this._resolveCache[name] = Module._resolveFilename(name, parent);
+        this._resolveCache[name] = Module._resolveFilename(mod, parent);
     }
     return this._resolveCache[name];
 }
