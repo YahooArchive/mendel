@@ -1,10 +1,12 @@
 import React from 'react';
 
-var count = 0;
-
 class Button extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
     render() {
-        return <button>Button #{++count}</button>;
+        return <button {...this.props} >{this.props.children}</button>;
     }
 }
 
