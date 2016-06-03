@@ -14,7 +14,9 @@ function MendelLoaderDev(existingVariations, config, parentModule) {
     this._existingVariations = existingVariations;
     this._config = config;
     this._parentModule = parentModule || module.parent;
-    this._ssrReady = isValidDir(config.serveroutdir);
+    this._ssrReady = false;
+
+    this._checkSsrReady();
 }
 
 MendelLoaderDev.prototype.resolver = function(variations) {
@@ -26,8 +28,35 @@ MendelLoaderDev.prototype.resolver = function(variations) {
 };
 
 MendelLoaderDev.prototype.isSsrReady = function() {
-    return this._ssrReady;
+    return this._checkSsrReady();
 };
+
+var _checkingSsrDir = {};
+MendelLoaderDev.prototype._checkSsrReady = function() {
+    var that = this;
+    var config = that._config;
+    var outdir = config.serveroutdir;
+
+    function checkDir(timeout, retryTimes) {
+        _checkingSsrDir[outdir] = true;
+        that._ssrReady = isValidDir(outdir);
+
+        if (!that._ssrReady && retryTimes > 0) {
+            that._checkSsrTimer = setTimeout(function() {
+                checkDir(timeout * 2, --retryTimes);
+            }, timeout);
+        } else {
+            clearTimeout(that._checkSsrTimer);
+            delete _checkingSsrDir[outdir];
+        }
+    }
+
+    if (!that._ssrReady && !_checkingSsrDir[outdir]) {
+        checkDir(1000, 5);
+    }
+
+    return that._ssrReady;
+}
 
 module.exports = MendelLoaderDev;
 
