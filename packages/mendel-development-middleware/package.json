@@ -1,6 +1,6 @@
 {
   "name": "mendel-development-middleware",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "express middleware for meldel",
   "main": "index.js",
   "scripts": {
@@ -20,11 +20,11 @@
   "dependencies": {
     "browserify": "^13.0.0",
     "fs-extra": "^0.30.0",
-    "mendel-config": "^1.0.2",
-    "mendel-development": "^1.0.2",
-    "mendel-development-loader": "^1.0.3",
-    "mendel-requirify": "^1.0.4",
-    "mendel-treenherit": "^1.0.2",
+    "mendel-config": "^1.0.5",
+    "mendel-development": "^1.0.5",
+    "mendel-development-loader": "^1.0.5",
+    "mendel-requirify": "^1.0.5",
+    "mendel-treenherit": "^1.0.5",
     "stream-cache": "0.0.2",
     "watch": "^0.18.0",
     "watchify": "^3.7.0",
