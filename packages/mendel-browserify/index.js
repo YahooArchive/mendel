@@ -13,6 +13,7 @@ var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('./proxy');
+var tmp = require('tmp');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 module.exports = MendelBrowserify;
@@ -177,17 +178,23 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
             existingData.variations.push(variation);
             existingData.data.push(data);
         } else if (existingData.data[variationIndex].sha !== dep.sha) {
+            // write a copy of the two offenders on a temp directory
+            var tempDir = tmp.dirSync().name;
+            var filename = id.replace(/\//g, '_');
+            fs.writeFileSync(path.join(tempDir, 'A.'+filename),
+                existingData.data[variationIndex].source);
+            fs.writeFileSync(path.join(tempDir, 'B.'+filename),
+                dep.source);
+
             throw new Error('Files with same variation ('+
-                variation+') and id ('+id+') should have the same SHA');
+                variation+') and id ('+id+') should have the same SHA' +
+                '\nsee ' + path.resolve(tempDir) + ' for details.');
         }
     }
 }
 
 MendelBrowserify.prototype.doneManifest = function() {
-    var bundleManifest = {
-        indexes: this._manifestIndexes,
-        bundles: this._manifestBundles,
-    };
+    var bundleManifest = this.sortedManifest();
 
     mkdirp.sync(this.opts.outdir);
 
@@ -201,6 +208,35 @@ MendelBrowserify.prototype.doneManifest = function() {
             if (err) throw err;
         }
     );
+}
+
+MendelBrowserify.prototype.sortedManifest = function() {
+    var sortedManifest = {
+        indexes: {},
+        bundles: []
+    };
+
+    var self = this;
+    Object.keys(this._manifestIndexes).sort().forEach(function(file) {
+        var bundle = self._manifestBundles[self._manifestIndexes[file]];
+        sortedManifest.bundles.push(bundle);
+
+        var index = sortedManifest.bundles.indexOf(bundle);
+        sortedManifest.indexes[file] = index;
+        bundle.index = index;
+
+        bundle.data.forEach(function(dep) {
+            var oldSubDeps = dep.deps;
+            var newSubDeps = {};
+            Object.keys(oldSubDeps).sort().forEach(function(key) {
+                newSubDeps[key] = oldSubDeps[key];
+            });
+            dep.deps = newSubDeps;
+        });
+
+    });
+
+    return sortedManifest;
 }
 
 MendelBrowserify.prototype.writeVariation = function(bundle) {
