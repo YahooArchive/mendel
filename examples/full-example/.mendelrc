@@ -16,6 +16,13 @@ bundles:
     external: *vendor_list
     transform:
       - babelify
+    plugin:
+      -
+        - extractify
+        - lazy:
+            - outfile: ./build/client/base/lazy.js
+              entries:
+              - ./isomorphic/base/components/lazy.js
   # WARNING: This temporary bundle is not part of the example
   #          The dev team needs this here for a while in order to
   #          do some work in parallel branches
