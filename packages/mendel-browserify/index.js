@@ -131,8 +131,12 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
 }
 
 MendelBrowserify.prototype.createManifest = function(bundle) {
+    // the parts that we care about pipeline are:
+    // record, deps, json, unbom, unshebang
+    // the later 3 are just small transformations we also need
+    // but semantically we are dealing with deps
+    var deps = bundle.pipeline.get('unshebang');
     var self = this;
-    var deps = bundle.pipeline.get('deps');
 
     deps.push(mendelify(self.variationsWithBase));
     deps.push(through.obj(function(row, enc, next) {
