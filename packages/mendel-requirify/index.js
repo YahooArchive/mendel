@@ -35,7 +35,7 @@ function requirify(b, opts) {
                 var dest = path.join(outdir, match.dir, match.file);
                 var out = fs.createOutputStream(dest);
                 var src = row.rawSource || row.source;
-                out.end(mendelRequireTransform(src, dirs, true));
+                out.end(mendelRequireTransform(dest, src, dirs, true));
             }
             done();
         }));

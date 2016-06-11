@@ -2,6 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms.*/
 
+var path = require('path');
 var falafel = require('falafel');
 var isRequire = require('./falafel-util').isRequire;
 var variationMatches = require('./variation-matches');
@@ -15,7 +16,7 @@ function _wrap(src) {
     return wrapper[0] + src + wrapper[1];
 }
 
-function replaceRequiresOnSource (src, dirs, wrap) {
+function replaceRequiresOnSource (destinationPath, src, dirs, wrap) {
     var opts = {
         ecmaVersion: 6,
         allowReturnOutsideFunction: true
@@ -27,6 +28,12 @@ function replaceRequiresOnSource (src, dirs, wrap) {
 
             if (match) {
                 node.update("__mendel_require__('" + match.file + "')");
+            } else if (isAbsolutePath(module)) {
+                node.update(
+                    "require('"+
+                    path.relative(path.dirname(destinationPath), module)+
+                    "')"
+                );
             }
         }
     }).toString();
@@ -37,3 +44,11 @@ function replaceRequiresOnSource (src, dirs, wrap) {
 module.exports = replaceRequiresOnSource;
 module.exports.wrapper = wrapper;
 module.exports.wrap = _wrap;
+
+// isAbsolutePath copied from browserify MIT licenced source code
+function isAbsolutePath (file) {
+    var regexp = process.platform === 'win32' ?
+        /^\w:/ :
+        /^\//;
+    return regexp.test(file);
+}

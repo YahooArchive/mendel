@@ -1,6 +1,6 @@
 {
   "name": "mendel-development",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Mendel shared dependencies for build and development",
   "main": "index.js",
   "scripts": {
