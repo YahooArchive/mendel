@@ -19,13 +19,12 @@ function mendelifyTransformStream(variations, expose) {
 
         Object.keys(row.deps).forEach(function (key) {
             if (!avoidMendelify(row.deps[key])) {
-                var depMatch = variationMatches(variations, key);
-                if (depMatch) {
-                    row.deps[depMatch.file] = depsValue(
-                        row.deps[key], variations, expose
-                    );
-                    delete row.deps[key];
-                }
+                var value = row.deps[key];
+                delete row.deps[key];
+
+                var newKey = pathOrVariationMatch(key, variations);
+                var newValue = depsValue(value, variations, expose);
+                row.deps[newKey] = newValue;
             }
         });
 
@@ -45,12 +44,20 @@ function avoidMendelify(file) {
     return isExternal || isNodeModule;
 }
 
+function pathOrVariationMatch(path, variations) {
+    var match = variationMatches(variations, path);
+    if (match) {
+        return match.file;
+    }
+    return path;
+}
+
 function depsValue(path, variations, expose) {
     var exposedModule = exposeKey(expose, path);
     if (exposedModule) {
         return exposedModule;
     }
-    return variationMatches(variations, path).file;
+    return pathOrVariationMatch(path, variations);
 }
 
 function exposeKey(expose, file) {
