@@ -29,7 +29,9 @@ function mendelifyTransformStream(variations, expose) {
         });
 
         row.rawSource = row.source;
-        row.source = mendelifyRequireTransform(row.file, row.source, variations);
+        if (!avoidMendelify(row.file)) {
+            row.source = mendelifyRequireTransform(row.file, row.source, variations);
+        }
         row.sha = shasum(row.source);
 
         this.push(row);
