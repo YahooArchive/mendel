@@ -15,7 +15,11 @@ function resolveInDirs(file, dirs, base, parent, callback) {
     var finalPath, lastError;
     async.detectSeries(dirs, function(dir, doneModule) {
         var parentInsideIterateeDir = path.join(base, dir, parent);
-        var opts = { filename: parentInsideIterateeDir };
+        var opts = {
+            filename: parentInsideIterateeDir,
+            extensions: [ ".js", ".coffee", ".coffee.md", ".litcoffee",
+                            ".jsx", ".es", ".es6"]
+        };
         resolve(file, opts, function(err, path) {
             if (!err) {
                 finalPath = path;

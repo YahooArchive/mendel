@@ -1,6 +1,6 @@
 {
   "name": "mendel",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",
@@ -57,7 +57,7 @@
     "mkdirp": "^0.5.1",
     "xtend": "^4.0.1",
     "mendel-config": "^1.0.5",
-    "mendel-browserify": "^1.0.7",
+    "mendel-browserify": "^1.0.8",
     "mendel-development": "^1.0.8",
     "mendel-requirify": "^1.0.7"
   },

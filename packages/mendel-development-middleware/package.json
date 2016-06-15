@@ -1,6 +1,6 @@
 {
   "name": "mendel-development-middleware",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "express middleware for meldel",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
     "mendel-development": "^1.0.6",
     "mendel-development-loader": "^1.0.6",
     "mendel-requirify": "^1.0.6",
-    "mendel-treenherit": "^1.0.5",
+    "mendel-treenherit": "^1.0.6",
     "stream-cache": "0.0.2",
     "watch": "^0.18.0",
     "watchify": "^3.7.0",
