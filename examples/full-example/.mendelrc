@@ -16,6 +16,16 @@ bundles:
     external: *vendor_list
     transform:
       - babelify
+  # WARNING: This temporary bundle is not part of the example
+  #          The dev team needs this here for a while in order to
+  #          do some work in parallel
+  temporary:
+    entries:
+      - components/lazy.js
+    external: *vendor_list
+    transform:
+      - babelify
+  # END WARNING.
 
 variationsdir: isomorphic/variations
 variations:
