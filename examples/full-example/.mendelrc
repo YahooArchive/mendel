@@ -26,7 +26,7 @@ bundles:
   # WARNING: This temporary bundle is not part of the example
   #          The dev team needs this here for a while in order to
   #          do some work in parallel branches
-  temporary:
+  lazy:
     entries:
       - components/lazy.js
     external: *vendor_list
