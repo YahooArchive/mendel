@@ -7,32 +7,33 @@ base: base
 basetree: isomorphic/base
 bundles:
   vendor:
-    require: &vendor_list
+    require:
       - react
       - react-dom
   main:
     entries:
       - main.js
-    external: *vendor_list
+    require:
+      - ./isomorphic/base/components/button.js
+      - ./isomorphic/variations/bucket_A/components/button.js
+      - ./isomorphic/variations/partner_C/components/button.js
+    external:
+      - react
+      - react-dom
+      - ./isomorphic/base/components/lazy.js
     transform:
       - babelify
-    plugin:
-      -
-        - extractify
-        - lazy:
-            - outfile: ./build/client/base/lazy.js
-              entries:
-              - ./isomorphic/base/components/lazy.js
-  # WARNING: This temporary bundle is not part of the example
-  #          The dev team needs this here for a while in order to
-  #          do some work in parallel branches
   lazy:
-    entries:
-      - components/lazy.js
-    external: *vendor_list
+    require:
+      - ./isomorphic/base/components/lazy.js
+    external:
+      - react
+      - react-dom
+      - ./isomorphic/base/components/button.js
+      - ./isomorphic/variations/bucket_A/components/button.js
+      - ./isomorphic/variations/partner_C/components/button.js
     transform:
       - babelify
-  # END WARNING
 
 variationsdir: isomorphic/variations
 variations:
