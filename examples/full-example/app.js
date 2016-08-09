@@ -24,9 +24,21 @@ app.get('/', function(req, res) {
         optionalMarkup = ReactDOMServer.renderToString(Main())
     }
 
+    var exposed = req.mendel.getExposed(variations);
+    var depBundleMap = Object.keys(exposed).reduce(function(acc, bundle) {
+        exposed[bundle].deps.forEach(function(dep) {
+            acc[dep.expose] = exposed[bundle].path;
+        });
+        return acc;
+    }, {});
+
     var html = [
         '<!DOCTYPE html>',
-        '<html><head></head><body>',
+        '<html><head>',
+       '<script>window.exposedDeps=',
+        JSON.stringify(depBundleMap),
+        ';</script>',
+        '</head><body>',
             '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
