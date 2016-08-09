@@ -20,6 +20,7 @@ function MendelMiddleware(opts) {
     var loader = new MendelLoader(trees, {
         parentModule: module.parent
     });
+    var exposedBundleVariations = {};
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
@@ -27,6 +28,38 @@ function MendelMiddleware(opts) {
         req.mendel.getURL = function(bundle, variations) {
             var tree = trees.findTreeForVariations(bundle, variations);
             return getPath({ bundle: bundle, hash: tree.hash });
+        };
+
+        req.mendel.getExposed = function(variations) {
+            if (!variations) {
+                variations = 'base';
+            }
+
+            if (exposedBundleVariations[variations]) {
+                return exposedBundleVariations[variations];
+            }
+
+            var exposedBundleVariation = Object.keys(trees.bundles).reduce(function(acc, bundle) {
+                var vTree = trees.findTreeForVariations(bundle, variations);
+                acc[bundle] = {
+                    hash: vTree.hash,
+                    path: getPath({ bundle: bundle, hash: vTree.hash }),
+                    deps: vTree.deps.reduce(function(deps, dep) {
+                        if (dep.expose) {
+                            deps.push({
+                                id: dep.id,
+                                entry: dep.entry,
+                                expose: dep.expose,
+                            })
+                        }
+                        return deps;
+                    }, [])
+                };
+                return acc;
+            }, {});
+
+            exposedBundleVariations[variations] = exposedBundleVariation;
+            return exposedBundleVariation;
         };
 
         req.mendel.resolver = loader.resolver.bind(loader);
