@@ -24,6 +24,23 @@ function MendelMiddleware(opts) {
     return function(req, res, next) {
         req.mendel = req.mendel || {};
 
+        req.mendel.getBundleEntries = function() {
+            return Object.keys(trees.bundles).reduce(
+
+                function(outputBundles, id) {
+                    var bundleDeps = trees.bundles[id].bundles;
+                    outputBundles[id] = bundleDeps.filter(function(dep) {
+                        return !!dep.expose || !!dep.entry;
+                    }).map(function(dep) {
+                        return dep.id;
+                    });
+                    return outputBundles;
+                },
+
+                {} // outputBundles
+            );
+        };
+
         req.mendel.getURL = function(bundle, variations) {
             var tree = trees.findTreeForVariations(bundle, variations);
             return getPath({ bundle: bundle, hash: tree.hash });
