@@ -30,6 +30,11 @@ app.get('/', function(req, res) {
             '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
+            // WARNING: This temporary "lazy" bundle is not part of the example
+            // The dev team needs this here for a while in order to
+            // do some work in parallel branches
+            bundle(req, 'temporary', variations),
+            // END WARNING
         '</body></html>'
     ].join('\n');
 

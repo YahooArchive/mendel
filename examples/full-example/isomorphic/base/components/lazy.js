@@ -3,7 +3,12 @@ import Button from './button';
 
 class Lazy extends React.Component {
     render() {
-        return <Button>Button Lazy</Button>
+        return (
+            <p>
+                Lazy Content with
+                <Button>Lazy Button</Button>
+            </p>
+        );
     }
 }
 

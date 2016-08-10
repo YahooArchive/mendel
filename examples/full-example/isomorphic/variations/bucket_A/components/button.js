@@ -4,7 +4,11 @@ var count = 0;
 
 class Button extends React.Component {
     render() {
-        return <button className="bucket_A">Button A #{++count}</button>;
+        return (
+            <button {...this.props}>
+                {this.props.children} A#{++count}
+            </button>
+        );
     }
 }
 

@@ -18,14 +18,14 @@ bundles:
       - babelify
   # WARNING: This temporary bundle is not part of the example
   #          The dev team needs this here for a while in order to
-  #          do some work in parallel
+  #          do some work in parallel branches
   temporary:
     entries:
       - components/lazy.js
     external: *vendor_list
     transform:
       - babelify
-  # END WARNING.
+  # END WARNING
 
 variationsdir: isomorphic/variations
 variations:
