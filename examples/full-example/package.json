@@ -21,9 +21,9 @@
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.3.0",
     "eslint-plugin-react": "^5.0.1",
-    "extractify": "^1.0.4",
     "mendel": "*",
     "mendel-development-middleware": "*",
+    "mendel-extractify": "*",
     "nodemon": "^1.9.2"
   },
   "babel": {
