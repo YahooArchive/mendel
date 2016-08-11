@@ -9,7 +9,6 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var through = require('through2');
-var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('./proxy');
@@ -18,47 +17,49 @@ var onlyPublicMethods = proxy.onlyPublicMethods;
 
 module.exports = MendelBrowserify;
 
-function MendelBrowserify(baseBundle, opts) {
+function MendelBrowserify(baseBundle, pluginOptions) {
     if (!(this instanceof MendelBrowserify)) {
-        return new MendelBrowserify(baseBundle, opts);
+        return new MendelBrowserify(baseBundle, pluginOptions);
     }
+
+    pluginOptions = JSON.parse(JSON.stringify(pluginOptions));
 
     var self = this;
     var argv = baseBundle.argv || {};
+    var baseOptions = baseBundle._options;
+
     this.baseBundle = baseBundle;
-    this.baseOptions = baseBundle._options;
+    this.baseOptions = baseOptions;
+    this.pluginOptions = pluginOptions;
 
-    opts.basedir = defined(
-        opts.basedir, argv.basedir, this.baseOptions.basedir
+    baseOptions.basedir = baseOptions.basedir || process.cwd();
+    baseOptions.outfile = defined(
+        baseOptions.outfile, argv.outfile, argv.o
     );
-    opts.outfile = defined(
-        opts.outfile, argv.outfile, argv.o, this.baseOptions.outfile
-    );
 
-    opts = parseConfig(xtend(opts));
-    this.opts = opts;
-
-    if (opts.bundle && opts.bundles[opts.bundle]) {
-        this.baseOptions = xtend(this.baseOptions, opts.bundles[opts.bundle]);
+    if (!pluginOptions.bundleName && baseOptions.outfile) {
+        pluginOptions.bundleName = path.parse(baseOptions.outfile).name;
     }
 
+    pluginOptions.manifest = pluginOptions.bundleName + '.manifest.json';
 
     this._manifestPending = 0;
     this._manifestIndexes = {};
     this._manifestBundles = [];
 
     this.baseVariation = {
-        id: opts.base || 'base',
-        chain: [opts.basetree || 'base'],
+        id: pluginOptions.base || 'base',
+        chain: [pluginOptions.basetree || 'base'],
     };
-    this.variations = validVariations(xtend(this.baseOptions, opts));
+
+    this.variations = validVariations(pluginOptions);
     this.variationsWithBase = [this.baseVariation].concat(this.variations);
 
 
     this.prepareBundle(baseBundle, this.baseVariation);
 
     this.variations.forEach(function(variation) {
-        var vopts = xtend(self.baseOptions);
+        var vopts = xtend({}, self.baseOptions);
         var browserify = baseBundle.constructor;
         var pipeline = baseBundle.pipeline.constructor;
 
@@ -82,7 +83,7 @@ function MendelBrowserify(baseBundle, opts) {
                 return self.listVariation(variationBundle);
             }
 
-            if (self.opts.outfile) {
+            if (self.baseOptions.outfile) {
                 self.writeVariation(variationBundle);
             } else {
                 return variationBundle.bundle().pipe(process.stdout);
@@ -116,8 +117,8 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
     var self = this;
     function mendelDebg(row, enc, next) {
         var dirs = [
-            self.opts.basetree,
-            self.opts.variationsdir,
+            self.pluginOptions.basetree,
+            self.pluginOptions.variationsdir,
             'node_modules'
         ];
         var look = new RegExp("/("+dirs.join('|')+")/");
@@ -200,11 +201,11 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
 MendelBrowserify.prototype.doneManifest = function() {
     var bundleManifest = this.sortedManifest();
 
-    mkdirp.sync(this.opts.outdir);
+    mkdirp.sync(this.pluginOptions.outdir);
 
     var manifest = path.resolve(
-        defined(this.baseOptions.outdir, this.opts.outdir),
-        defined(this.baseOptions.manifest, this.opts.manifest)
+        this.pluginOptions.outdir,
+        this.pluginOptions.manifest
     );
 
     validateManifest(bundleManifest, manifest);
@@ -251,13 +252,10 @@ MendelBrowserify.prototype.writeVariation = function(bundle) {
 
 MendelBrowserify.prototype.variationDest = function(bundle) {
     var variation = bundle.variation.id;
-    var filename = path.parse(this.opts.outfile).base;
-
+    var filename = path.parse(this.baseOptions.outfile).base;
     var variationOut = path.resolve(
-        defined(
-            this.baseOptions.bundlesoutdir,
-            this.opts.bundlesoutdir
-        ),
+        this.pluginOptions.outdir,
+        this.pluginOptions.bundlesoutdir,
         variation,
         filename
     );
@@ -335,9 +333,10 @@ function nonMendelPlugins(plugins) {
 function addTransform(bundle) {
     // This is unfortunate, we need to be the last require transform
     // I will pay someone a beer if they find out a better way
-    bundle._transformOrder += 50;
-    bundle.transform(require("mendel-treenherit"), {
-        dirs: bundle.variation.chain,
-    });
-    bundle._transformOrder -= 50;
+    bundle._transforms[20 + bundle._transforms.length] = {
+        transform: require("mendel-treenherit"),
+        options: {
+            dirs: bundle.variation.chain,
+        }
+    };
 }
