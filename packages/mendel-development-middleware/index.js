@@ -44,6 +44,40 @@ function MendelMiddleware(opts) {
     return function(req, res, next) {
         req.mendel = req.mendel || {};
 
+        req.mendel.getBundleEntries = function() {
+            console.log(bundles)
+            return Object.keys(bundles).reduce(
+
+                function(outputBundles, id) {
+                    var bundle = bundles[id];
+                    var outputEntries = [];
+
+                    [].concat(bundle.entries).filter(Boolean).forEach(
+                        function(entry) {
+                            existingVariations.forEach(function(variation) {
+                                variation.chain.forEach(function(dirPath) {
+                                    var absolutePath = path.resolve(
+                                        config.basedir, dirPath, entry
+                                    );
+                                    if (-1 === outputEntries
+                                        .indexOf(absolutePath)
+                                    ){
+                                        outputEntries.push(absolutePath);
+                                    }
+
+                                });
+                            });
+                        }
+                    );
+
+                    outputBundles[id] = outputEntries;
+                    return outputBundles;
+                },
+
+                {} // outputBundles
+            );
+        };
+
         req.mendel.getURL = function(bundle, variations) {
             var vars = variations.join(',') || config.base;
             return getPath({bundle: bundle, variations: vars});
