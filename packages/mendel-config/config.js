@@ -15,7 +15,10 @@ module.exports = function(config) {
 
     var def = defaultConfig();
     var where = config.basedir && path.resolve(config.basedir) || def.basedir;
-    var fileConfig = findConfig(where);
+    var fileConfig = {};
+    if (config.config !== false) {
+        fileConfig = findConfig(where);
+    }
     var environment = process.env.MENDEL_ENV || process.env.NODE_ENV;
 
     config.basedir = fileConfig.basedir || where;

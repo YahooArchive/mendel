@@ -17,15 +17,21 @@ function mendelifyTransformStream(variations, expose) {
             }
         }
 
-        Object.keys(row.deps).forEach(function (key) {
-            if (!avoidMendelify(row.deps[key])) {
-                var value = row.deps[key];
-                delete row.deps[key];
+        if (typeof row.expose === 'string') {
+            row.expose = pathOrVariationMatch(row.expose, variations);
+        }
 
-                var newKey = pathOrVariationMatch(key, variations);
-                var newValue = depsValue(value, variations, expose);
-                row.deps[newKey] = newValue;
+        Object.keys(row.deps).forEach(function (key) {
+            var value = row.deps[key];
+            delete row.deps[key];
+
+            var newKey = pathOrVariationMatch(key, variations);
+            var newValue = value;
+
+            if (!avoidMendelify(row.deps[key])) {
+                newValue = depsValue(value, variations, expose);
             }
+            row.deps[newKey] = newValue;
         });
 
         row.rawSource = row.source;
@@ -55,10 +61,15 @@ function pathOrVariationMatch(path, variations) {
 }
 
 function depsValue(path, variations, expose) {
+    if (typeof path !== 'string') {
+        return path;
+    }
+
     var exposedModule = exposeKey(expose, path);
     if (exposedModule) {
-        return exposedModule;
+        return pathOrVariationMatch(exposedModule, variations);
     }
+
     return pathOrVariationMatch(path, variations);
 }
 
