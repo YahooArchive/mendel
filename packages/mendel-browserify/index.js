@@ -197,8 +197,8 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     }
 }
 
-MendelBrowserify.prototype.doneManifest = function(bundle) {
-    var bundleManifest = remapModules(this.sortedManifest(), bundle._expose);
+MendelBrowserify.prototype.doneManifest = function() {
+    var bundleManifest = this.sortedManifest();
 
     mkdirp.sync(this.opts.outdir);
 
@@ -206,11 +206,11 @@ MendelBrowserify.prototype.doneManifest = function(bundle) {
         defined(this.baseOptions.outdir, this.opts.outdir),
         defined(this.baseOptions.manifest, this.opts.manifest)
     );
-    fs.writeFile(
-        manifest, JSON.stringify(bundleManifest, null, 2),
-        function (err) {
-            if (err) throw err;
-        }
+
+    validateManifest(bundleManifest, manifest);
+
+    fs.writeFileSync(
+        manifest, JSON.stringify(bundleManifest, null, 2)
     );
 }
 
@@ -285,38 +285,39 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
     });
 }
 
-function remapModules(manifest, expose) {
+function validateManifest(manifest, originalPath) {
+    var errors = [];
+
     manifest.bundles.forEach(function(bundle) {
         bundle.data.forEach(function(module) {
             Object.keys(module.deps).forEach(function(key) {
-                var exposeModule = exposeKey(expose, module.deps[key]);
-                if (exposeModule) {
-                    module.deps[key] = exposeModule;
-                }
 
                 var externalModule = module.deps[key] === false;
                 var existsInManifest = module.deps[key] in manifest.indexes;
+
                 if (!externalModule && !existsInManifest) {
-                    throw new Error('mendel-browserify compilation error: \n'+
-                        key+":"+module.deps[key] + ' missing from '+ bundle.id);
+                    errors.push(
+                        key + ":" + module.deps[key] +
+                                        ' missing from '+ bundle.id);
                 }
             });
         });
-
     });
 
-    return manifest;
-}
+    if (errors.length) {
+        console.log('\nmendel-browserify compilation errors: \n');
+        errors.forEach(function(log){
+            console.log('  ' + log);
+        });
 
-function exposeKey(expose, file) {
-    var exposedModule = false;
-    Object.keys(expose).forEach(function(key) {
-        var value = expose[key];
-        if (file === value) {
-            exposedModule = key;
-        }
-    });
-    return exposedModule;
+        var tempDir = tmp.dirSync().name;
+        var filename = 'debug.' + path.parse(originalPath).base;
+        var destination = path.resolve(tempDir, filename);
+        fs.writeFileSync(destination, JSON.stringify(manifest, null, 2));
+
+        console.log('\n' + destination + ' written \n');
+        process.exit(2);
+    }
 }
 
 function nonMendelPlugins(plugins) {
