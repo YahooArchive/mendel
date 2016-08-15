@@ -5,7 +5,6 @@ module.exports = function() {
         bundlesoutdir: '',
         serveroutdir: '',
         bundleName: 'bundle',
-        manifest: 'bundle.manifest.json',
         base: 'base',
         basetree: 'base',
         variationsdir: '',

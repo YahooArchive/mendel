@@ -9,6 +9,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var through = require('through2');
+var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('./proxy');
@@ -22,26 +23,30 @@ function MendelBrowserify(baseBundle, pluginOptions) {
         return new MendelBrowserify(baseBundle, pluginOptions);
     }
 
-    pluginOptions = JSON.parse(JSON.stringify(pluginOptions));
+    pluginOptions = JSON.parse(JSON.stringify(pluginOptions || {}));
 
     var self = this;
     var argv = baseBundle.argv || {};
     var baseOptions = baseBundle._options;
 
-    this.baseBundle = baseBundle;
-    this.baseOptions = baseOptions;
-    this.pluginOptions = pluginOptions;
-
-    baseOptions.basedir = baseOptions.basedir || process.cwd();
     baseOptions.outfile = defined(
         baseOptions.outfile, argv.outfile, argv.o
     );
-
-    if (!pluginOptions.bundleName && baseOptions.outfile) {
+    if (baseOptions.outfile) {
         pluginOptions.bundleName = path.parse(baseOptions.outfile).name;
     }
 
-    pluginOptions.manifest = pluginOptions.bundleName + '.manifest.json';
+    pluginOptions = parseConfig(pluginOptions);
+    baseOptions.basedir = baseOptions.basedir || pluginOptions.basedir;
+
+
+    if (!pluginOptions.manifest) {
+        pluginOptions.manifest = pluginOptions.bundleName + '.manifest.json';
+    }
+
+    this.baseBundle = baseBundle;
+    this.baseOptions = baseOptions;
+    this.pluginOptions = pluginOptions;
 
     this._manifestPending = 0;
     this._manifestIndexes = {};
@@ -54,6 +59,15 @@ function MendelBrowserify(baseBundle, pluginOptions) {
 
     this.variations = validVariations(pluginOptions);
     this.variationsWithBase = [this.baseVariation].concat(this.variations);
+
+    console.log('mendel-browserify config', require('util').inspect({
+        baseOptions: baseOptions,
+        pluginOptions: pluginOptions,
+        variationsWithBase: this.variationsWithBase,
+    }, {
+        colors: true,
+        depth: null,
+    }));
 
 
     this.prepareBundle(baseBundle, this.baseVariation);

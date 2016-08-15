@@ -59,6 +59,7 @@ variations:
 # configurations can be overriden per environment
 env:
   test:
+    bundlesoutdir: client-test
     bundles:
       main:
         transform:
