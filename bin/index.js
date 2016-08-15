@@ -15,17 +15,26 @@ var applyExtraOptions = require('mendel-development/apply-extra-options');
 var mendelBrowserify = require('mendel-browserify');
 var mendelRequirify = require('mendel-requirify');
 
-var config = parseConfig();
-logObj(config);
+var rawConfig = parseConfig();
+logObj(rawConfig);
 
-var outdir = config.bundlesoutdir || config.outdir;
+var outdir = rawConfig.bundlesoutdir || rawConfig.outdir;
 mkdirp.sync(outdir);
+
+var config = ['basedir','outdir','bundlesoutdir','serveroutdir',
+    'base','basetree','variationsroute','hashroute',
+    'variationsdir','variations', 'bundles'].reduce(function(cfg, key) {
+        cfg[key] = rawConfig[key];
+        return cfg;
+    }, {});
 
 async.each(config.bundles, function(rawBundle, doneBundle) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
     var conf = {
         basedir: config.basedir,
-        outfile: path.join(bundle.bundlesoutdir, config.base, bundle.outfile)
+        outfile: path.join(
+            config.bundlesoutdir, config.base, bundle.bundleName + '.js'
+        )
     };
     mkdirp.sync(path.dirname(conf.outfile));
 
@@ -33,7 +42,7 @@ async.each(config.bundles, function(rawBundle, doneBundle) {
     delete bundle.entries;
 
     var b = browserify(xtend(conf, bundle));
-    b.plugin(mendelBrowserify, bundle);
+    b.plugin(mendelBrowserify, config);
 
     if (config.serveroutdir) {
         b.plugin(mendelRequirify, {
