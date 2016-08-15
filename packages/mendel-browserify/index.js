@@ -36,7 +36,9 @@ function MendelBrowserify(baseBundle, pluginOptions) {
         pluginOptions.bundleName = path.parse(baseOptions.outfile).name;
     }
 
-    pluginOptions = parseConfig(pluginOptions);
+    pluginOptions = parseConfig(xtend(
+        {}, {basedir: baseOptions.basedir}, pluginOptions
+    ));
     baseOptions.basedir = baseOptions.basedir || pluginOptions.basedir;
 
 
