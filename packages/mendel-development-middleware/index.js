@@ -39,6 +39,15 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
 
+    var allDirs = existingVariations.reduce(function(allDirs, variation) {
+        variation.chain.forEach(function(path) {
+            if (-1 === allDirs.indexOf(path)) allDirs.push(path);
+        });
+        return allDirs;
+    }, []);
+
+    console.log(allDirs);
+
     var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
@@ -52,20 +61,21 @@ function MendelMiddleware(opts) {
                     var bundle = bundles[id];
                     var outputEntries = [];
 
-                    [].concat(bundle.entries).filter(Boolean).forEach(
+                    [].concat(bundle.entries, bundle.require)
+                    .filter(Boolean)
+                    .forEach(
                         function(entry) {
-                            existingVariations.forEach(function(variation) {
-                                variation.chain.forEach(function(dirPath) {
-                                    var absolutePath = path.resolve(
-                                        config.basedir, dirPath, entry
-                                    );
-                                    if (-1 === outputEntries
-                                        .indexOf(absolutePath)
-                                    ){
-                                        outputEntries.push(absolutePath);
-                                    }
-
-                                });
+                            var match = variationMatches(existingVariations, entry);
+                            if (match) entry = match.file;
+                            allDirs.forEach(function(dirPath) {
+                                var absolutePath = path.resolve(
+                                    config.basedir, dirPath, entry
+                                );
+                                if (-1 === outputEntries
+                                    .indexOf(absolutePath)
+                                ){
+                                    outputEntries.push(absolutePath);
+                                }
                             });
                         }
                     );
