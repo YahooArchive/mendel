@@ -10,55 +10,44 @@ var yaml = require('js-yaml');
 var defaultConfig = require('./defaults');
 
 module.exports = function(config) {
+    var defaults = defaultConfig();
+
+    // figure out basedir before we look for a fileconfig
     if (typeof config === 'string') config = { basedir: config };
     config = config || {};
+    config.basedir = config.basedir || defaults.basedir;
 
-    var def = defaultConfig();
-    var where = config.basedir && path.resolve(config.basedir) || def.basedir;
     var fileConfig = {};
+    // support --no-config or {config: false} to skip looking for file configs
     if (config.config !== false) {
-        fileConfig = findConfig(where);
+        fileConfig = findConfig(config.basedir);
     }
+
+    // merge by priority
+    config = xtend(defaults, fileConfig, config);
+
+    if (fileConfig.basedir) {
+        config.basedir = fileConfig.basedir;
+    }
+
+    // merge environment based config
     var environment = process.env.MENDEL_ENV || process.env.NODE_ENV;
-
-    config.basedir = fileConfig.basedir || where;
-
-    config = xtend(def, fileConfig, config);
-
     if (environment) {
         config.environment = environment;
     }
-
     var envConfig = config.env[config.environment];
-
     if (envConfig) {
         config = mergeRecursive(config, envConfig);
     }
     delete config.env;
 
+    // Final parsing
+    config.basedir = path.resolve(config.basedir);
     config.outdir = path.resolve(config.basedir, config.outdir);
-
     config.bundlesoutdir = path.join(config.outdir, config.bundlesoutdir);
-
     config.serveroutdir = path.join(config.outdir, config.serveroutdir);
+    config.bundles = parseBundles(config.bundles);
 
-    config.bundles = Object.keys(config.bundles).map(function(bundleName) {
-        var bundle = config.bundles[bundleName];
-
-        bundle.id = bundleName;
-        bundle.manifest = bundleName + '.manifest.json';
-        bundle.outdir = config.outdir;
-        bundle.bundlesoutdir = config.bundlesoutdir;
-        bundle.outfile = bundle.outfile || bundleName + '.js';
-
-        return bundle;
-    }).filter(Boolean);
-
-    // single bundles and fallback
-    if (config.outfile) {
-        config.bundleName = path.parse(config.outfile).name;
-        config.manifest = config.bundleName + '.manifest.json';
-    }
 
     return config;
 };
@@ -80,7 +69,7 @@ function findConfig(where) {
 
         var packagejson = path.join(loc, "package.json");
         if (fs.existsSync(packagejson)) {
-            var pkg = require(packagejson);
+            var pkg = require(path.resolve(packagejson));
             if (pkg.mendel) {
                 config = pkg.mendel;
                 config.basedir = path.dirname(packagejson);
@@ -91,13 +80,30 @@ function findConfig(where) {
         parts.pop();
     } while (parts.length);
 
-    return {};
+    return {
+        basedir: where,
+    };
 }
 
 function loadFromYaml(path) {
     return yaml.safeLoad(fs.readFileSync(path, 'utf8'));
 }
 
+function parseBundles(bundles) {
+    if (!bundles) return bundles;
+    var bundlesArray = Object.keys(bundles).filter(Boolean);
+    if (!bundlesArray.length) return bundlesArray;
+
+    return bundlesArray.map(function(bundleName) {
+        var bundle = bundles[bundleName];
+
+        bundle.id = bundleName;
+        bundle.bundleName = bundleName;
+        bundle.manifest = bundleName + '.manifest.json';
+
+        return bundle;
+    }).filter(Boolean);
+}
 
 function mergeRecursive(dest, src) {
     for (var key in src) {

@@ -23,6 +23,7 @@
     "eslint-plugin-react": "^5.0.1",
     "mendel": "*",
     "mendel-development-middleware": "*",
+    "mendel-extractify": "*",
     "nodemon": "^1.9.2"
   },
   "babel": {

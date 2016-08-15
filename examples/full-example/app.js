@@ -33,7 +33,7 @@ app.get('/', function(req, res) {
             // WARNING: This temporary "lazy" bundle is not part of the example
             // The dev team needs this here for a while in order to
             // do some work in parallel branches
-            entryMap(req, 'temporary', variations),
+            entryMap(req, 'lazy', variations),
             // END WARNING
         '</body></html>'
     ].join('\n');
