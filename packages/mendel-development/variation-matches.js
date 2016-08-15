@@ -4,7 +4,7 @@
 
 module.exports = variationMatches;
 function variationMatches(variations, path) {
-    if (path.indexOf('node_modules')) return;
+    if (path.indexOf('node_modules') >= 0 ) return;
     var result;
     variations.some(function(variation) {
         return variation.chain.some(function(dir) {

@@ -27,26 +27,26 @@ browserify      "isomorphic/base/main.js"                        \
     --transform "babelify"                                       \
     --debug                                                      \
                                                                  \
-    --plugin [  "mendel-extractify"                              \
-                --extract [                                      \
-                    [                                            \
-                        --outfile "build/client/base/lazy.js"    \
-                        --entries [                              \
-                            "isomorphic/base/components/lazy.js" \
-                        ]                                        \
-                    ]                                            \
+    --plugin [  "mendel-browserify"                              \
+                --no-config                                      \
+                --basetree      "isomorphic/base"                \
+                --variations [                                   \
+                    --bucket_A                                   \
                 ]                                                \
+                --variationsdir "isomorphic/variations"          \
+                --outdir        "build"                          \
+                --bundlesoutdir "client"                         \
     ]                                                            \
                                                                  \
-    # --plugin [  "mendel-browserify"                              \
-    #             --no-config                                      \
-    #             --basetree      "isomorphic/base"                \
-    #             --variations [                                   \
-    #                 --bucket_A                                   \
+    # --plugin [  "mendel-extractify"                              \
+    #             --extract [                                      \
+    #                 [                                            \
+    #                     --outfile "build/client/base/lazy.js"    \
+    #                     --entries [                              \
+    #                         "isomorphic/base/components/lazy.js" \
+    #                     ]                                        \
+    #                 ]                                            \
     #             ]                                                \
-    #             --variationsdir "isomorphic/variations"          \
-    #             --outdir        "build"                          \
-    #             --bundlesoutdir "client"                         \
     # ]                                                            \
 
 

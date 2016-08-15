@@ -347,10 +347,26 @@ function nonMendelPlugins(plugins) {
 function addTransform(bundle) {
     // This is unfortunate, we need to be the last require transform
     // I will pay someone a beer if they find out a better way
+    ++ bundle._pending;
+    ++ bundle._transformPending;
+
     bundle._transforms[20 + bundle._transforms.length] = {
         transform: require("mendel-treenherit"),
         options: {
             dirs: bundle.variation.chain,
         }
     };
+
+    process.nextTick(function resolved () {
+      -- bundle._pending;
+      if (-- bundle._transformPending === 0) {
+          bundle._transforms.forEach(function (transform) {
+            bundle.pipeline.write(transform);
+          });
+
+          if (bundle._pending === 0) {
+            bundle.emit('_ready');
+          }
+      }
+    });
 }
