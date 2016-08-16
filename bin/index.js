@@ -16,7 +16,12 @@ var mendelBrowserify = require('mendel-browserify');
 var mendelRequirify = require('mendel-requirify');
 
 var rawConfig = parseConfig();
-logObj(rawConfig);
+if (process.argv.some(function(arg) {
+    return arg.indexOf('verbose') >= 0;
+})) {
+    logObj(rawConfig);
+}
+
 
 var outdir = rawConfig.bundlesoutdir || rawConfig.outdir;
 mkdirp.sync(outdir);
@@ -28,7 +33,7 @@ var config = ['basedir','outdir','bundlesoutdir','serveroutdir',
         return cfg;
     }, {});
 
-async.each(config.bundles, function(rawBundle, doneBundle) {
+async.eachSeries(config.bundles, function(rawBundle, doneBundle) {
     var bundle = JSON.parse(JSON.stringify(rawBundle));
     var conf = {
         basedir: config.basedir,
@@ -42,6 +47,7 @@ async.each(config.bundles, function(rawBundle, doneBundle) {
     delete bundle.entries;
 
     var b = browserify(xtend(conf, bundle));
+    console.log('------- mendel-cli', bundle.id);
     b.plugin(mendelBrowserify, config);
 
     if (config.serveroutdir) {

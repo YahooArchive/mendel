@@ -40,3 +40,4 @@ function proxy(iface, src, dest, opts) {
 
 module.exports = proxy;
 module.exports.onlyPublicMethods = onlyPublicMethods;
+module.exports.proxyMethod = proxyMethod;

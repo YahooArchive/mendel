@@ -7,6 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var through = require('through2');
 var proxy = require('mendel-development/proxy');
+var pluginInterop = require('mendel-development/multi-plugin-interop');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 // Run browserify with --debug to see al pipeline steps we take
@@ -14,10 +15,18 @@ var debug = false;
 
 module.exports = MendelExtractify;
 
+MendelExtractify.prototype.pluginInterop = true;
 function MendelExtractify(baseBundle, pluginOptions) {
     if (!(this instanceof MendelExtractify)) {
         return new MendelExtractify(baseBundle, pluginOptions);
     }
+
+    pluginInterop.addDebugInfo(baseBundle, 'mendel-extractify', 'parent');
+    pluginInterop.registerPlugin(baseBundle, MendelExtractify, pluginOptions);
+    pluginInterop.trackPlugins(baseBundle);
+
+    if (baseBundle.__extractifyChildren) return;
+
     var baseOptions = baseBundle._options;
     baseOptions.basedir = baseOptions.basedir || process.cwd();
 
@@ -29,7 +38,7 @@ function MendelExtractify(baseBundle, pluginOptions) {
     pluginOptions.extract = pluginOptions.extract.filter(Boolean);
     if (!pluginOptions.extract.length) return;
 
-    if (baseOptions.debug) {
+    if (pluginOptions.verbose) {
         debug = true;
     }
 
@@ -140,9 +149,19 @@ function MendelExtractify(baseBundle, pluginOptions) {
         }
         var childOptions = xtend({}, baseOptions, inputChildOptions);
 
-        childOptions.plugin = avoidSamePlugin(childOptions.plugin);
+        // childOptions.plugin = avoidSamePlugin(childOptions.plugin);
+        console.log('child plugins', childOptions.plugin);
+        delete childOptions.plugin;
 
         var childBundle = browserify(childOptions);
+        childBundle.__extractifyChildren = true;
+
+        pluginInterop.trackPlugins(childBundle);
+        pluginInterop.addDebugInfo(childBundle, 'mendel-extractify', 'child');
+        pluginInterop.filterPlugins(childBundle);
+        pluginInterop.getPlugins(childBundle).forEach(function(plugin) {
+            childBundle.plugin(plugin);
+        });
 
         proxy(browserify, baseBundle, childBundle, {
             filters: [onlyPublicMethods],
@@ -257,7 +276,11 @@ function MendelExtractify(baseBundle, pluginOptions) {
         // Since we proxy methods, we need to wait for the baseBundle
         // bundle command, which means no more writes to records or
         // to the pineline. At this point is safe to start our bundle
-        baseBundle.on('bundle', function onBaseBundleStart() {
+        baseBundle.on('bundle', function onBaseBundleStart(b) {
+            b.on('end', function() {
+                pluginInterop.logDebugInfo(
+                    baseBundle, 'done mendel-extractify');
+            });
             childBundle.bundle(function(err) {
                 if (err) console.log(err);
 
@@ -271,6 +294,7 @@ function MendelExtractify(baseBundle, pluginOptions) {
         });
 
         function runRealChildBundle() {
+            pluginInterop.addDebugInfo(childBundle, 'dry=false');
             dryRun = false;
             var out = process.stdout;
 
@@ -278,6 +302,11 @@ function MendelExtractify(baseBundle, pluginOptions) {
                 childOptions.outfile &&
                 childOptions.outfile !== baseOptions.outfile
             ) out = childOptions.outfile;
+
+            childBundle.on('bundle', function(b) { b.on('end', function() {
+                pluginInterop.logDebugInfo(
+                    childBundle, 'done mendel-extractify');
+            })});
 
             childBundle.bundle().pipe(
                 fs.createWriteStream(out)

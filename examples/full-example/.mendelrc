@@ -6,10 +6,10 @@ serveroutdir: server
 base: base
 basetree: isomorphic/base
 bundles:
-  vendor:
-    require:
-      - react
-      - react-dom
+  # vendor:
+  #   require:
+  #     - react
+  #     - react-dom
   main:
     entries:
       - main.js
@@ -21,15 +21,22 @@ bundles:
       - ./isomorphic/base/components/lazy.js
     transform:
       - babelify
-  lazy:
-    require:
-      - ./isomorphic/base/components/lazy.js
-    external:
-      - react
-      - react-dom
-      - ./isomorphic/base/components/button.js
-    transform:
-      - babelify
+    plugin:
+      -
+        - mendel-extractify
+        - extract:
+          - outfile: build/client/base/lazy.js
+            entries:
+              - isomorphic/base/components/lazy.js
+  # lazy:
+  #   require:
+  #     - ./isomorphic/base/components/lazy.js
+  #   external:
+  #     - react
+  #     - react-dom
+  #     - ./isomorphic/base/components/button.js
+  #   transform:
+  #     - babelify
 
 variationsdir: isomorphic/variations
 variations:

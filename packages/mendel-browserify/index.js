@@ -15,17 +15,26 @@ var variationMatches = require('mendel-development/variation-matches');
 var resolveInDirs = require('mendel-treenherit/resolve-dirs');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('mendel-development/proxy');
+var pluginInterop = require('mendel-development/multi-plugin-interop');
 var tmp = require('tmp');
+var inspect = require('util').inspect;
 var onlyPublicMethods = proxy.onlyPublicMethods;
+
+var debug = false;
 
 module.exports = MendelBrowserify;
 
+MendelBrowserify.prototype.pluginInterop = true;
 function MendelBrowserify(baseBundle, pluginOptions) {
     if (!(this instanceof MendelBrowserify)) {
         return new MendelBrowserify(baseBundle, pluginOptions);
     }
 
     pluginOptions = JSON.parse(JSON.stringify(pluginOptions || {}));
+
+    if (pluginOptions.verbose) {
+        debug = true;
+    }
 
     var self = this;
     var argv = baseBundle.argv || {};
@@ -43,10 +52,17 @@ function MendelBrowserify(baseBundle, pluginOptions) {
     ));
     baseOptions.basedir = baseOptions.basedir || pluginOptions.basedir;
 
+    pluginInterop.addDebugInfo(baseBundle, 'mendel-browserify', 'base');
+    pluginInterop.registerPlugin(baseBundle, MendelBrowserify, pluginOptions);
+    pluginInterop.trackPlugins(baseBundle);
+    if (baseBundle.__mendelChildren) return;
+
 
     if (!pluginOptions.manifest) {
         pluginOptions.manifest = pluginOptions.bundleName + '.manifest.json';
     }
+
+    console.log('base mendel', pluginOptions.bundleName);
 
     this.baseBundle = baseBundle;
     this.baseOptions = baseOptions;
@@ -64,7 +80,7 @@ function MendelBrowserify(baseBundle, pluginOptions) {
     this.variations = validVariations(pluginOptions);
     this.variationsWithBase = [this.baseVariation].concat(this.variations);
 
-    console.log('mendel-browserify config', require('util').inspect({
+    debug && console.log('mendel-browserify config', inspect({
         baseOptions: baseOptions,
         pluginOptions: pluginOptions,
         variationsWithBase: this.variationsWithBase,
@@ -73,7 +89,6 @@ function MendelBrowserify(baseBundle, pluginOptions) {
         depth: null,
     }));
 
-
     this.prepareBundle(baseBundle, this.baseVariation);
 
     this.variations.forEach(function(variation) {
@@ -81,9 +96,20 @@ function MendelBrowserify(baseBundle, pluginOptions) {
         var browserify = baseBundle.constructor;
         var pipeline = baseBundle.pipeline.constructor;
 
-        vopts.plugin = nonMendelPlugins(vopts.plugin);
+        delete vopts.plugin;
 
         var variationBundle = browserify(vopts);
+        variationBundle.__mendelChildren = true;
+
+        pluginInterop.trackPlugins(variationBundle);
+        pluginInterop.addDebugInfo(
+            variationBundle, 'mendel-browserify', variation.id);
+
+        pluginInterop.filterPlugins(variationBundle);
+
+        pluginInterop.getPlugins(baseBundle).forEach(function(plugin) {
+            variationBundle.plugin(plugin);
+        });
 
         self.prepareBundle(variationBundle, variation);
 
@@ -202,6 +228,8 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
 
     ++ self._manifestPending;
     bundle.on('bundle', function(b) { b.on('end', function() {
+        pluginInterop.logDebugInfo(
+            bundle, 'done mendel-browserify', self.pluginOptions.bundleName);
         if (-- self._manifestPending === 0) {
             self.doneManifest(bundle);
         }
@@ -370,18 +398,6 @@ function validateManifest(manifest, originalPath) {
         console.log('\n' + destination + ' written \n');
         process.exit(2);
     }
-}
-
-function nonMendelPlugins(plugins) {
-    return [].concat(plugins).filter(Boolean).filter(function(plugin) {
-        if (Array.isArray(plugin)) plugin = plugin[0];
-        if (typeof plugin === 'string') {
-            return plugin !== 'mendel-browserify';
-        } else if(MendelBrowserify.constructor === plugin.constructor) {
-            return false;
-        }
-        return true;
-    });
 }
 
 function addTransform(bundle) {
