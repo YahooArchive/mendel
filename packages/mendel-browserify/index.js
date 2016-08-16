@@ -193,7 +193,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
     var deps = bundle.pipeline.get('unshebang');
     var self = this;
 
-    deps.push(mendelify(self.variationsWithBase, bundle._expose));
+    deps.push(mendelify(self.variationsWithBase, bundle));
     deps.push(through.obj(function(row, enc, next) {
         self.pushBundleManifest(row);
         this.push(row);

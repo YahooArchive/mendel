@@ -53,8 +53,6 @@ browserify                                                               \
     --external  "react"                                                  \
     --external  "react-dom"                                              \
     --external  "./isomorphic/base/components/button.js"                 \
-    --external  "./isomorphic/variations/bucket_A/components/button.js"  \
-    --external  "./isomorphic/variations/partner_C/components/button.js" \
     --outfile   "build/client/base/lazy.js"                              \
     --transform "babelify"                                               \
                                                                          \
