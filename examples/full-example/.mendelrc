@@ -15,8 +15,6 @@ bundles:
       - main.js
     require:
       - ./isomorphic/base/components/button.js
-      - ./isomorphic/variations/bucket_A/components/button.js
-      - ./isomorphic/variations/partner_C/components/button.js
     external:
       - react
       - react-dom

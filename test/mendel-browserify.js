@@ -20,9 +20,7 @@ test('mendel-browserify', function (t) {
         this.transform = function(){};
         this.pipeline = {
             get: function(){
-                return {
-                    push: function(){}
-                };
+                return [];
             }
         };
         this.on = function(){};

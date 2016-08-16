@@ -11,6 +11,8 @@ var mkdirp = require('mkdirp');
 var through = require('through2');
 var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
+var variationMatches = require('mendel-development/variation-matches');
+var resolveInDirs = require('mendel-treenherit/resolve-dirs');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('./proxy');
 var tmp = require('tmp');
@@ -112,6 +114,8 @@ MendelBrowserify.prototype.prepareBundle = function(bundle, variation) {
     bundle.variation = variation;
     addTransform(bundle);
 
+    this.transformRecords(bundle);
+
     if (bundle.argv) {
         if (bundle.argv.deps) {
             console.log(
@@ -127,6 +131,40 @@ MendelBrowserify.prototype.prepareBundle = function(bundle, variation) {
     }
 
     this.createManifest(bundle);
+}
+
+MendelBrowserify.prototype.transformRecords = function(bundle) {
+    var self = this;
+
+    var record = bundle.pipeline.get('record');
+    record.unshift(through.obj(function(row, enc, next) {
+        var recordStream = this;
+        if(!row.file) return done();
+
+        var match = variationMatches(self.variationsWithBase, row.file);
+        if (match) {
+            resolveInDirs(
+                './' + match.file, // relative to variation
+                bundle.variation.chain,
+                self.baseOptions.basedir,
+                'fake.js', // we just need a file relative to any variation
+                function(err, finalPath) {
+                    if (!finalPath) {
+                        return done();
+                    }
+                    row.file = finalPath;
+                    done();
+                }
+            );
+        } else {
+            done();
+        }
+
+        function done() {
+            recordStream.push(row);
+            next();
+        }
+    }));
 }
 
 MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
