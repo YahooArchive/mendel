@@ -20,7 +20,7 @@
   "dependencies": {
     "defined": "^1.0.0",
     "mendel-config": "^1.0.5",
-    "mendel-development": "^1.0.9",
+    "mendel-development": "^1.0.10",
     "mendel-treenherit": "^1.0.6",
     "mkdirp": "^0.5.1",
     "shasum": "^1.0.2",

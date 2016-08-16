@@ -6,7 +6,7 @@ var xtend = require('xtend');
 var fs = require('fs');
 var path = require('path');
 var through = require('through2');
-var proxy = require('./proxy');
+var proxy = require('mendel-development/proxy');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 // Run browserify with --debug to see al pipeline steps we take

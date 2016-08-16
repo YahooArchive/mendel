@@ -14,7 +14,7 @@ var validVariations = require('mendel-config/variations');
 var variationMatches = require('mendel-development/variation-matches');
 var resolveInDirs = require('mendel-treenherit/resolve-dirs');
 var mendelify = require('mendel-development/mendelify-transform-stream');
-var proxy = require('./proxy');
+var proxy = require('mendel-development/proxy');
 var tmp = require('tmp');
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
