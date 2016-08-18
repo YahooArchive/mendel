@@ -52,17 +52,18 @@ function MendelBrowserify(baseBundle, pluginOptions) {
     ));
     baseOptions.basedir = baseOptions.basedir || pluginOptions.basedir;
 
-    pluginInterop.addDebugInfo(baseBundle, 'mendel-browserify', 'base');
+    pluginInterop.addDebugInfo(
+        baseBundle, 'mendel-browserify', pluginOptions.bundleName, 'base'
+    );
     pluginInterop.registerPlugin(baseBundle, MendelBrowserify, pluginOptions);
     pluginInterop.trackPlugins(baseBundle);
-    if (baseBundle.__mendelChildren) return;
 
 
     if (!pluginOptions.manifest) {
         pluginOptions.manifest = pluginOptions.bundleName + '.manifest.json';
     }
 
-    console.log('base mendel', pluginOptions.bundleName);
+    // console.log('base mendel', pluginOptions.bundleName);
 
     this.baseBundle = baseBundle;
     this.baseOptions = baseOptions;
@@ -98,18 +99,29 @@ function MendelBrowserify(baseBundle, pluginOptions) {
 
         delete vopts.plugin;
 
+        console.log('mendel-browserify create',
+                pluginOptions.bundleName, variation.id);
         var variationBundle = browserify(vopts);
-        variationBundle.__mendelChildren = true;
 
-        pluginInterop.trackPlugins(variationBundle);
         pluginInterop.addDebugInfo(
-            variationBundle, 'mendel-browserify', variation.id);
+            variationBundle,
+            'mendel-browserify',
+            pluginOptions.bundleName,
+            variation.id
+        );
+        pluginInterop.trackPlugins(variationBundle);
 
-        pluginInterop.filterPlugins(variationBundle);
+        function notMendel(plugin) {
+            return plugin !== MendelBrowserify;
+        }
 
-        pluginInterop.getPlugins(baseBundle).forEach(function(plugin) {
-            variationBundle.plugin(plugin);
-        });
+        pluginInterop.filterPlugins(variationBundle, notMendel);
+
+        pluginInterop.getPlugins(baseBundle).filter(notMendel).forEach(
+            function(plugin) {
+                variationBundle.plugin(plugin);
+            }
+        );
 
         self.prepareBundle(variationBundle, variation);
 
@@ -229,7 +241,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
     ++ self._manifestPending;
     bundle.on('bundle', function(b) { b.on('end', function() {
         pluginInterop.logDebugInfo(
-            bundle, 'done mendel-browserify', self.pluginOptions.bundleName);
+            bundle, '[DONE] mendel-browserify', self.pluginOptions.bundleName);
         if (-- self._manifestPending === 0) {
             self.doneManifest(bundle);
         }

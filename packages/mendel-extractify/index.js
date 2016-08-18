@@ -25,8 +25,6 @@ function MendelExtractify(baseBundle, pluginOptions) {
     pluginInterop.registerPlugin(baseBundle, MendelExtractify, pluginOptions);
     pluginInterop.trackPlugins(baseBundle);
 
-    if (baseBundle.__extractifyChildren) return;
-
     var baseOptions = baseBundle._options;
     baseOptions.basedir = baseOptions.basedir || process.cwd();
 
@@ -150,18 +148,25 @@ function MendelExtractify(baseBundle, pluginOptions) {
         var childOptions = xtend({}, baseOptions, inputChildOptions);
 
         // childOptions.plugin = avoidSamePlugin(childOptions.plugin);
-        console.log('child plugins', childOptions.plugin);
+        // console.log('child plugins', childOptions.plugin);
         delete childOptions.plugin;
 
+        console.log('mendel-extractify create child');
         var childBundle = browserify(childOptions);
-        childBundle.__extractifyChildren = true;
 
-        pluginInterop.trackPlugins(childBundle);
         pluginInterop.addDebugInfo(childBundle, 'mendel-extractify', 'child');
-        pluginInterop.filterPlugins(childBundle);
-        pluginInterop.getPlugins(childBundle).forEach(function(plugin) {
-            childBundle.plugin(plugin);
-        });
+        pluginInterop.trackPlugins(childBundle);
+
+        function notExtractify(plugin) {
+            return plugin !== MendelExtractify;
+        }
+
+        pluginInterop.filterPlugins(childBundle, notExtractify);
+        pluginInterop.getPlugins(childBundle).filter(notExtractify).forEach(
+            function(plugin) {
+                childBundle.plugin(plugin);
+            }
+        );
 
         proxy(browserify, baseBundle, childBundle, {
             filters: [onlyPublicMethods],
@@ -279,7 +284,7 @@ function MendelExtractify(baseBundle, pluginOptions) {
         baseBundle.on('bundle', function onBaseBundleStart(b) {
             b.on('end', function() {
                 pluginInterop.logDebugInfo(
-                    baseBundle, 'done mendel-extractify');
+                    baseBundle, '[DONE] mendel-extractify');
             });
             childBundle.bundle(function(err) {
                 if (err) console.log(err);
@@ -305,7 +310,7 @@ function MendelExtractify(baseBundle, pluginOptions) {
 
             childBundle.on('bundle', function(b) { b.on('end', function() {
                 pluginInterop.logDebugInfo(
-                    childBundle, 'done mendel-extractify');
+                    childBundle, '[DONE] mendel-extractify');
             })});
 
             childBundle.bundle().pipe(

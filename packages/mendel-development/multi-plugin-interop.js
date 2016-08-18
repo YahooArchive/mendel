@@ -22,7 +22,7 @@ interop.trackPlugins = function(bundle) {
 
             pluginCacheAdd(bundle, plugin, options);
             interop.logDebugInfo(
-                bundle, 'add to cache because of plugin call', inspect(plugin));
+                bundle, '.plugin()', inspect(plugin));
         }
     }
     bundle.registered = true;
@@ -36,7 +36,7 @@ interop.registerPlugin = function(bundle, plugin, options) {
         throw new Error('Duplicate plugin registered');
     }
     pluginCacheAdd(bundle, plugin, options);
-    interop.logDebugInfo(bundle, 'add to cache because registerPlugin');
+    interop.logDebugInfo(bundle, 'registerPlugin', inspect(plugin));
 }
 
 interop.filterPlugins = function(bundle, additionalFilter) {
@@ -45,15 +45,15 @@ interop.filterPlugins = function(bundle, additionalFilter) {
     bundle.plugin = function(plugin, opts) {
         var pluginFunction = normalizePlugin(bundle, plugin);
         if (pluginCacheHas(bundle, pluginFunction)) {
-            console.log('disallow duplicate')
+            // console.log('disallow duplicate');
             return;
         } else {
-            console.log('not a duplicate');
+            // console.log('not a duplicate');
         }
 
         if (Array.isArray(plugin)) opts = plugin[1];
         if (!additionalFilter || additionalFilter(pluginFunction, opts)) {
-            console.log('allowed to add', inspect(pluginFunction))
+            // console.log('allowed to add', inspect(pluginFunction))
             var args = Array.prototype.slice.call(arguments);
             oldMethod.apply(bundle, args);
         }

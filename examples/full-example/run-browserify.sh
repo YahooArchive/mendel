@@ -41,9 +41,6 @@ browserify      "isomorphic/base/main.js"                                \
                 --basetree      "isomorphic/base"                        \
                 --variations [                                           \
                     --bucket_A                                           \
-                    --bucket_D [ 'partner_C' ]                           \
-                    --feature_B                                          \
-                    --partner_C                                          \
                 ]                                                        \
                 --variationsdir "isomorphic/variations"                  \
                 --outdir        "build"                                  \
