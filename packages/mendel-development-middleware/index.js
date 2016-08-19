@@ -39,10 +39,51 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
 
+    var allDirs = existingVariations.reduce(function(allDirs, variation) {
+        variation.chain.forEach(function(path) {
+            if (-1 === allDirs.indexOf(path)) allDirs.push(path);
+        });
+        return allDirs;
+    }, []);
+
     var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
+
+        req.mendel.getBundleEntries = function() {
+            return Object.keys(bundles).reduce(
+
+                function(outputBundles, id) {
+                    var bundle = bundles[id];
+                    var outputEntries = [];
+
+                    [].concat(bundle.entries, bundle.require)
+                    .filter(Boolean)
+                    .forEach(
+                        function(entry) {
+                            var match = variationMatches(existingVariations, entry);
+                            if (match) entry = match.file;
+                            allDirs.forEach(function(dirPath) {
+                                var absolutePath = path.resolve(
+                                    config.basedir, dirPath, entry
+                                );
+                                if (-1 === outputEntries
+                                    .indexOf(absolutePath)
+                                ){
+                                    outputEntries.push(absolutePath);
+                                }
+                            });
+                        }
+                    );
+
+                    outputBundles[id] = outputEntries;
+                    return outputBundles;
+                },
+
+                {} // outputBundles
+            );
+        };
 
         req.mendel.getURL = function(bundle, variations) {
             var vars = variations.join(',') || config.base;
