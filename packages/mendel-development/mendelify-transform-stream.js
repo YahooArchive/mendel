@@ -35,7 +35,7 @@ function mendelifyTransformStream(variations, bundle) {
             var newKey = key;
             var newValue = value;
 
-            if (!avoidMendelify(value)) {
+            if (!avoidMendelify(value) || shouldExternalize(externals, key)) {
                 newKey = pathOrVariationMatch(key, variations);
             }
 
@@ -82,11 +82,15 @@ function depsValue(path, matchFile, variations, bundle) {
     }
 
     // remove externals from deps
-    if (someArrayItemEndsWith(externals, matchFile)) {
+    if (shouldExternalize(externals, matchFile)) {
         return false;
     }
 
     return pathOrVariationMatch(path, variations);
+}
+
+function shouldExternalize(externals, file) {
+    return someArrayItemEndsWith(externals, file);
 }
 
 function someArrayItemEndsWith(stringArray, partialString) {

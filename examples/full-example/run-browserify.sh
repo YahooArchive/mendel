@@ -20,7 +20,6 @@ mkdir -p build/client/base
 browserify      "isomorphic/base/main.js"                                \
     --external  "react"                                                  \
     --external  "react-dom"                                              \
-    --external  "react-dom"                                              \
     --outfile   "build/client/base/main.js"                              \
     --transform "babelify"                                               \
     --debug                                                              \
