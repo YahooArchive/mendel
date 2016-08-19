@@ -32,8 +32,12 @@ function mendelifyTransformStream(variations, bundle) {
             var value = row.deps[key];
             delete row.deps[key];
 
-            var newKey = pathOrVariationMatch(key, variations);
+            var newKey = key;
             var newValue = value;
+
+            if (!avoidMendelify(value)) {
+                newKey = pathOrVariationMatch(key, variations);
+            }
 
             newValue = depsValue(value, newKey, variations, bundle);
             row.deps[newKey] = newValue;
