@@ -20,7 +20,6 @@ browserify                                                       \
 browserify      "isomorphic/base/main.js"                                \
     --external  "react"                                                  \
     --external  "react-dom"                                              \
-    --external  "react-dom"                                              \
     --external  "./isomorphic/base/components/lazy.js"                   \
     --require   "./isomorphic/base/components/button.js"                 \
     --outfile   "build/client/base/main.js"                              \
