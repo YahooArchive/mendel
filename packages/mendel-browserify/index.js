@@ -380,16 +380,35 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
 function validateManifest(manifest, originalPath) {
     var errors = [];
 
-    manifest.bundles.forEach(function(bundle) {
-        bundle.data.forEach(function(module) {
-            Object.keys(module.deps).forEach(function(key) {
+    var requires = /require\(['"](.*?)['"]\)/g;
+    var multilineComments = /\/\*(?:\n|.)*\*\//gm;
+    var endOfLineComments = /\/\/\*.*/g;
 
-                var externalModule = module.deps[key] === false;
-                var existsInManifest = module.deps[key] in manifest.indexes;
+    manifest.bundles.forEach(function(bundle) {
+        bundle.data.forEach(function(row) {
+            var depNames = Object.keys(row.deps);
+
+            // Find require() on source that don't have a key in deps
+            var noCommentsSource = row.source
+                                      .replace(multilineComments, '')
+                                      .replace(endOfLineComments, '');
+            var match;
+            while ((match = requires.exec(noCommentsSource)) !== null) {
+                if (-1 === depNames.indexOf(match[1])) {
+                    errors.push(
+                        "can't require '" + match[1] + "' from " + row.id
+                    );
+                }
+            }
+
+            // Find dependencies not included in the manifest
+            depNames.forEach(function(key) {
+                var externalModule = row.deps[key] === false;
+                var existsInManifest = row.deps[key] in manifest.indexes;
 
                 if (!externalModule && !existsInManifest) {
                     errors.push(
-                        key + ":" + module.deps[key] +
+                        key + ":" + row.deps[key] +
                                         ' missing from '+ bundle.id);
                 }
             });
