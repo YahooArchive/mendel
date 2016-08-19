@@ -46,15 +46,12 @@ function MendelMiddleware(opts) {
         return allDirs;
     }, []);
 
-    console.log(allDirs);
-
     var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
 
         req.mendel.getBundleEntries = function() {
-            console.log(bundles)
             return Object.keys(bundles).reduce(
 
                 function(outputBundles, id) {
