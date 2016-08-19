@@ -25,7 +25,6 @@ interop.trackPlugins = function(bundle) {
                 bundle, '.plugin()', inspect(plugin));
         }
     }
-    bundle.registered = true;
     proxyMethod('plugin', bundle, listener);
 };
 
@@ -97,14 +96,12 @@ function normalizePlugin(bundle, plugin) {
 }
 
 function pluginCacheAdd(bundle, plugin, options) {
-    bundle._allinteropplugins = bundle._allinteropplugins || [];
     if (!pluginCacheHas(bundle, plugin)) {
         bundle._allinteropplugins.push([plugin, options]);
     }
 }
 
 function pluginCacheHas(bundle, plugin) {
-    bundle._allinteropplugins = bundle._allinteropplugins || [];
     return bundle._allinteropplugins.some(function(entry) {
         // console.log(inspect(entry[0]), '===', inspect(plugin), entry[0] === plugin);
         return entry[0] === plugin;
