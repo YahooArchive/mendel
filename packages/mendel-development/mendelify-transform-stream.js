@@ -10,7 +10,8 @@ var mendelifyRequireTransform = require('./mendelify-require-transform');
 function mendelifyTransformStream(variations, bundle) {
     var externals = bundle._external;
     return through.obj(function mendelify(row, enc, next) {
-        if (!avoidMendelify(row.file)) {
+        var avoidMendelifyRow = avoidMendelify(row.file);
+        if (!avoidMendelifyRow) {
             var match = variationMatches(variations, row.file);
             if (match) {
                 // Remove variations of externals from bundle
@@ -34,14 +35,12 @@ function mendelifyTransformStream(variations, bundle) {
             var newKey = pathOrVariationMatch(key, variations);
             var newValue = value;
 
-            if (!avoidMendelify(row.deps[key])) {
-                newValue = depsValue(value, newKey, variations, bundle);
-            }
+            newValue = depsValue(value, newKey, variations, bundle);
             row.deps[newKey] = newValue;
         });
 
         row.rawSource = row.source;
-        if (!avoidMendelify(row.file)) {
+        if (!avoidMendelifyRow) {
             row.source = mendelifyRequireTransform(row.file, row.source, variations);
         }
         row.sha = shasum(row.source);
