@@ -8,7 +8,7 @@ var xtend = require('xtend');
 
 var MendelWalker = require('./tree-walker');
 
-util.inherits(MendelVariationWalker, MendelWalker)
+util.inherits(MendelVariationWalker, MendelWalker);
 module.exports = MendelVariationWalker;
 
 function MendelVariationWalker(_lookupChains, _base) {
@@ -53,12 +53,12 @@ MendelVariationWalker.prototype._resolveBranch = function(module) {
         index: pathIndex,
         resolved: resolved
     };
-}
+};
 
 MendelVariationWalker.prototype.found = function() {
     return xtend(MendelWalker.prototype.found.call(this), {
         conflicts: this.conflicts,
         conflictList: this.conflictList
     });
-}
+};
 

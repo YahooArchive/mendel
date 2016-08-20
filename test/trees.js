@@ -6,7 +6,7 @@ var exec = require('child_process').exec;
 
 var MendelTrees = require('../packages/mendel-core/trees');
 
-var appPath = path.resolve(__dirname, 'app-samples/1/')
+var appPath = path.resolve(__dirname, 'app-samples/1/');
 var appBuild = path.join(appPath, 'build');
 var manifestPath = path.join(appBuild, 'app.manifest.json');
 mkdirp.sync(appBuild);

@@ -150,7 +150,7 @@ function cachedStreamBundle(bundleConfig, dirs, cb) {
     getCachedWatchfy(id, bundleConfig, dirs, function(err, watchBundle) {
         // multiple kinds of error handling start
         function boundError(e) {
-            streamCache.sendError(id, e)
+            streamCache.sendError(id, e);
         }
         if (err) return cb(boundError(err));
 

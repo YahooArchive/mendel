@@ -131,7 +131,7 @@ MendelBrowserify.prototype.prepareBundle = function(bundle, variation) {
     }
 
     this.createManifest(bundle);
-}
+};
 
 MendelBrowserify.prototype.transformRecords = function(bundle) {
     var self = this;
@@ -165,7 +165,7 @@ MendelBrowserify.prototype.transformRecords = function(bundle) {
             next();
         }
     }));
-}
+};
 
 MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
     var self = this;
@@ -183,7 +183,7 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
         next();
     }
     bundle.pipeline.get("debug").splice(0, 1, through.obj(mendelDebg));
-}
+};
 
 MendelBrowserify.prototype.createManifest = function(bundle) {
     // the parts that we care about pipeline are:
@@ -205,8 +205,8 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
         if (-- self._manifestPending === 0) {
             self.doneManifest(bundle);
         }
-    })});
-}
+    });});
+};
 
 MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     var self = this;
@@ -226,7 +226,7 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
             if (typeof data[prop] !== 'undefined') {
                 newDep[prop] = data[prop];
             }
-        })
+        });
         allBundles.push(newDep);
         newDep.index = allBundles.indexOf(newDep);
         bundleIndexes[id] = newDep.index;
@@ -250,7 +250,7 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
                 '\nsee ' + path.resolve(tempDir) + ' for details.');
         }
     }
-}
+};
 
 MendelBrowserify.prototype.doneManifest = function() {
     var bundleManifest = this.sortedManifest();
@@ -267,7 +267,7 @@ MendelBrowserify.prototype.doneManifest = function() {
     fs.writeFileSync(
         manifest, JSON.stringify(bundleManifest, null, 2)
     );
-}
+};
 
 MendelBrowserify.prototype.sortedManifest = function() {
     var sortedManifest = {
@@ -296,13 +296,13 @@ MendelBrowserify.prototype.sortedManifest = function() {
     });
 
     return sortedManifest;
-}
+};
 
 MendelBrowserify.prototype.writeVariation = function(bundle) {
     var variationOut = this.variationDest(bundle);
 
     return bundle.bundle().pipe(fs.createWriteStream(variationOut));
-}
+};
 
 MendelBrowserify.prototype.variationDest = function(bundle) {
     var variation = bundle.variation.id;
@@ -317,7 +317,7 @@ MendelBrowserify.prototype.variationDest = function(bundle) {
     mkdirp.sync(path.dirname(variationOut));
 
     return variationOut;
-}
+};
 
 MendelBrowserify.prototype.listVariation = function(bundle) {
     if (!this._logBase) {
@@ -335,7 +335,7 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
     bundle.bundle(function() {
         process.stdout.write('\n'+bundle._log.join('\n\t')+'\n');
     });
-}
+};
 
 function validateManifest(manifest, originalPath) {
     var errors = [];

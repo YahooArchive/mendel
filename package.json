@@ -64,7 +64,7 @@
   "devDependencies": {
     "eslint": "^2.3.0",
     "eslint-cli": "^1.1.0",
-    "eslint-plugin-react": "^5.0.1",
+    "eslint-plugin-react": "^5.2.2",
     "module": "^1.2.5",
     "rimraf": "^2.5.2",
     "tap": "^5.7.0",

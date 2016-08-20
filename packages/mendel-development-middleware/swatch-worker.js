@@ -96,5 +96,5 @@ module.exports.fork = function(opts) {
             worker.send({cmd: 'stop'});
             worker.kill();
         }
-    }
-}
+    };
+};

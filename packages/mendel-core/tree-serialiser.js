@@ -29,12 +29,12 @@ TreeSerialiser.prototype._metadata = function() {
     var version = 1;
     this._meta = true;
     return this.string(name).uint8(version);
-}
+};
 
 TreeSerialiser.prototype.pushBranch = function(index) {
     if (this._result) throw new Error("Can't pushPath after result");
     return this.uint8(index);
-}
+};
 
 TreeSerialiser.prototype.pushFileHash = function(sha) {
     if (this._result) throw new Error("Can't pushFileHash after result");
@@ -43,7 +43,7 @@ TreeSerialiser.prototype.pushFileHash = function(sha) {
         this._hash.update(sha);
     }
     return this;
-}
+};
 
 TreeSerialiser.prototype.result = function() {
     if (this._result) return this._result;
@@ -57,6 +57,6 @@ TreeSerialiser.prototype.result = function() {
     );
 
     return this._result;
-}
+};
 
 module.exports = TreeSerialiser;

@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');

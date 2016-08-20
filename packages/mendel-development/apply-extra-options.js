@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var path = require('path');
 var glob = require('glob');
 
@@ -14,7 +18,7 @@ function applyExtraOptions(b, options) {
                   b.ignore(i);
                 }
                 else {
-                  files.forEach(function (file) { b.ignore(file) });
+                  files.forEach(function (file) { b.ignore(file); });
                 }
                 if (--b._pending === 0) b.emit('_ready');
             });
@@ -28,7 +32,7 @@ function applyExtraOptions(b, options) {
             b._pending ++;
             glob(u, function (err, files) {
                 if (err) return b.emit('error', err);
-                files.forEach(function (file) { b.exclude(file) });
+                files.forEach(function (file) { b.exclude(file); });
                 if (--b._pending === 0) b.emit('_ready');
             });
         })
@@ -53,8 +57,8 @@ function applyExtraOptions(b, options) {
             else add(x, {});
 
             function add (x, opts) {
-                if (/^[\/.]/.test(x)) b.external(path.resolve(x), opts)
-                else b.external(x, opts)
+                if (/^[\/.]/.test(x)) b.external(path.resolve(x), opts);
+                else b.external(x, opts);
             }
         })
     ;

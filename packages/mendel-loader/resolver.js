@@ -81,7 +81,7 @@ MendelResolver.prototype.require = function (name) {
     }
 
     return modExports;
-}
+};
 
 MendelResolver.prototype.resolve = function(name) {
     var parent = this._parentModule;
@@ -97,6 +97,6 @@ MendelResolver.prototype.resolve = function(name) {
     }
 
     return this._resolveCache[name];
-}
+};
 
 module.exports = MendelResolver;

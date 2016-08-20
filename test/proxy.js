@@ -16,7 +16,7 @@ Iface.prototype = {
     filteredMethod: function() {
         return this.name + ' filteredMethod';
     }
-}
+};
 
 function spy(obj, methods) {
     methods.forEach(function(m) {

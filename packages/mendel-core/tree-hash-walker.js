@@ -9,7 +9,7 @@ var xtend = require('xtend');
 var deserialize = require('./tree-deserialiser');
 var MendelWalker = require('./tree-walker');
 
-util.inherits(MendelHashWalker, MendelWalker)
+util.inherits(MendelHashWalker, MendelWalker);
 module.exports = MendelHashWalker;
 
 function MendelHashWalker(inputHash) {
@@ -45,12 +45,12 @@ MendelHashWalker.prototype._resolveBranch = function(module) {
         index: nextPath,
         resolved: resolved || {}
     };
-}
+};
 
 MendelHashWalker.prototype._error = function(msg) {
     this.error = this.error || new Error(msg);
     this.error.code = "TRVRSL";
-}
+};
 
 MendelHashWalker.prototype.found = function() {
     this._result = MendelWalker.prototype.found.call(this);
@@ -64,4 +64,4 @@ MendelHashWalker.prototype.found = function() {
     return xtend(this._result, {
         error: this.error
     });
-}
+};

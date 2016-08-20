@@ -56,11 +56,11 @@ function MendelExtractify(baseBundle, pluginOptions) {
     var extractDone = false;
     var extractCheck = function() {
         if (waitFor === 0 && extractDone) extractDone();
-    }
+    };
     var extractReady = function() {
         waitFor--;
         extractCheck();
-    }
+    };
     // Once all is called and once record phase is done, we can proceed to the
     // next browserify step
     baseBundle.pipeline.get('record').push(

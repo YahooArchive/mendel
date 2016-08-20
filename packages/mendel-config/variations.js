@@ -40,5 +40,5 @@ module.exports = function(config) {
     }
 
     return variations;
-}
+};
 

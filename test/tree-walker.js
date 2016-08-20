@@ -45,8 +45,8 @@ walker._resolveBranch = function(module) {
     return {
         resolved: module.data[1],
         index: 1
-    }
-}
+    };
+};
 
 t.match(walker.find(branchModule), {id:"secondItem", sha:"0506FF"},
     "Traverse module with custom function");
@@ -61,8 +61,8 @@ walker._resolveBranch = function(module) {
     return {
         resolved: module.data[2],
         index: 2
-    }
-}
+    };
+};
 
 walker.find(branchModule);
 
