@@ -16,6 +16,7 @@ var resolveInDirs = require('mendel-treenherit/resolve-dirs');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('mendel-development/proxy');
 var tmp = require('tmp');
+var inspect = require('util').inspect;
 var onlyPublicMethods = proxy.onlyPublicMethods;
 
 module.exports = MendelBrowserify;
@@ -64,14 +65,17 @@ function MendelBrowserify(baseBundle, pluginOptions) {
     this.variations = validVariations(pluginOptions);
     this.variationsWithBase = [this.baseVariation].concat(this.variations);
 
-    console.log('mendel-browserify config', require('util').inspect({
-        baseOptions: baseOptions,
-        pluginOptions: pluginOptions,
-        variationsWithBase: this.variationsWithBase,
-    }, {
-        colors: true,
-        depth: null,
-    }));
+    pluginOptions.verbose && console.log(
+        'mendel-browserify config \n',
+        inspect({
+            baseOptions: baseOptions,
+            pluginOptions: pluginOptions,
+            variationsWithBase: this.variationsWithBase,
+        }, {
+            colors: true,
+            depth: null,
+        })
+    );
 
 
     this.prepareBundle(baseBundle, this.baseVariation);
