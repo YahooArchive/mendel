@@ -12,6 +12,8 @@ var through = require('through2');
 var parseConfig = require('mendel-config');
 var validVariations = require('mendel-config/variations');
 var variationMatches = require('mendel-development/variation-matches');
+var sortManifest = require('mendel-development/sort-manifest');
+var validateManifest = require('mendel-development/validate-manifest');
 var resolveInDirs = require('mendel-treenherit/resolve-dirs');
 var mendelify = require('mendel-development/mendelify-transform-stream');
 var proxy = require('mendel-development/proxy');
@@ -257,7 +259,10 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
 };
 
 MendelBrowserify.prototype.doneManifest = function() {
-    var bundleManifest = this.sortedManifest();
+    var bundleManifest = sortManifest(
+        this._manifestIndexes,
+        this._manifestBundles
+    );
 
     mkdirp.sync(this.pluginOptions.outdir);
 
@@ -271,35 +276,6 @@ MendelBrowserify.prototype.doneManifest = function() {
     fs.writeFileSync(
         manifest, JSON.stringify(bundleManifest, null, 2)
     );
-};
-
-MendelBrowserify.prototype.sortedManifest = function() {
-    var sortedManifest = {
-        indexes: {},
-        bundles: []
-    };
-
-    var self = this;
-    Object.keys(this._manifestIndexes).sort().forEach(function(file) {
-        var bundle = self._manifestBundles[self._manifestIndexes[file]];
-        sortedManifest.bundles.push(bundle);
-
-        var index = sortedManifest.bundles.indexOf(bundle);
-        sortedManifest.indexes[file] = index;
-        bundle.index = index;
-
-        bundle.data.forEach(function(dep) {
-            var oldSubDeps = dep.deps;
-            var newSubDeps = {};
-            Object.keys(oldSubDeps).sort().forEach(function(key) {
-                newSubDeps[key] = oldSubDeps[key];
-            });
-            dep.deps = newSubDeps;
-        });
-
-    });
-
-    return sortedManifest;
 };
 
 MendelBrowserify.prototype.writeVariation = function(bundle) {
@@ -340,59 +316,7 @@ MendelBrowserify.prototype.listVariation = function(bundle) {
     });
 };
 
-function validateManifest(manifest, originalPath) {
-    var errors = [];
 
-    var requires = /require\(['"](.*?)['"]\)/g;
-    var multilineComments = /\/\*(?:\n|.)*\*\//gm;
-    var endOfLineComments = /\/\/\*.*/g;
-
-    manifest.bundles.forEach(function(bundle) {
-        bundle.data.forEach(function(row) {
-            var depNames = Object.keys(row.deps);
-
-            // Find require() on source that don't have a key in deps
-            var noCommentsSource = row.source
-                                      .replace(multilineComments, '')
-                                      .replace(endOfLineComments, '');
-            var match;
-            while ((match = requires.exec(noCommentsSource)) !== null) {
-                if (-1 === depNames.indexOf(match[1])) {
-                    errors.push(
-                        "can't require '" + match[1] + "' from " + row.id
-                    );
-                }
-            }
-
-            // Find dependencies not included in the manifest
-            depNames.forEach(function(key) {
-                var externalModule = row.deps[key] === false;
-                var existsInManifest = row.deps[key] in manifest.indexes;
-
-                if (!externalModule && !existsInManifest) {
-                    errors.push(
-                        key + ":" + row.deps[key] +
-                                        ' missing from '+ bundle.id);
-                }
-            });
-        });
-    });
-
-    if (errors.length) {
-        console.log('\nmendel-browserify compilation errors: \n');
-        errors.forEach(function(log){
-            console.log('  ' + log);
-        });
-
-        var tempDir = tmp.dirSync().name;
-        var filename = 'debug.' + path.parse(originalPath).base;
-        var destination = path.resolve(tempDir, filename);
-        fs.writeFileSync(destination, JSON.stringify(manifest, null, 2));
-
-        console.log('\n' + destination + ' written \n');
-        process.exit(2);
-    }
-}
 
 function nonMendelPlugins(plugins) {
     return [].concat(plugins).filter(Boolean).filter(function(plugin) {
