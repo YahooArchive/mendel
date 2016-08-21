@@ -311,8 +311,7 @@ MendelBrowserify.prototype.writeVariation = function(bundle) {
 MendelBrowserify.prototype.variationDest = function(bundle) {
     var variation = bundle.variation.id;
     var filename = path.parse(this.baseOptions.outfile).base;
-    var variationOut = path.resolve(
-        this.pluginOptions.outdir,
+    var variationOut = path.join(
         this.pluginOptions.bundlesoutdir,
         variation,
         filename

@@ -42,10 +42,18 @@ module.exports = function(config) {
     delete config.env;
 
     // Final parsing
-    config.basedir = path.resolve(config.basedir);
-    config.outdir = path.resolve(config.basedir, config.outdir);
-    config.bundlesoutdir = path.join(config.outdir, config.bundlesoutdir);
-    config.serveroutdir = path.join(config.outdir, config.serveroutdir);
+    if (!path.isAbsolute(config.basedir)) {
+        config.basedir = path.resolve(config.basedir);
+    }
+    if (!path.isAbsolute(config.outdir)) {
+        config.outdir = path.join(config.basedir, config.outdir);
+    }
+    if (!path.isAbsolute(config.bundlesoutdir)) {
+        config.bundlesoutdir = path.join(config.outdir, config.bundlesoutdir);
+    }
+    if (!path.isAbsolute(config.serveroutdir)) {
+        config.serveroutdir = path.join(config.outdir, config.serveroutdir);
+    }
     config.bundles = parseBundles(config.bundles);
 
 

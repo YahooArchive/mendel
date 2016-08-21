@@ -52,7 +52,10 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
 
     flattenFilenameArrays(bundle);
 
-    bundle.entries = normalizeEntries(bundle.entries);
+    var entries = normalizeEntries(bundle.entries);
+    delete bundle.entries;
+    var requires = bundle.require;
+    delete bundle.require;
 
     var b = browserify(xtend(conf, bundle));
     b.plugin(mendelBrowserify, config);
@@ -62,6 +65,15 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
             outdir: config.serveroutdir
         });
     }
+
+    // those need to be called after mendelBrowserify was added
+    [].concat(entries).filter(Boolean).forEach(function (file) {
+        b.add(file, { basedir: conf.basedir });
+    });
+
+    [].concat(requires).filter(Boolean).forEach(function (file) {
+        b.require(file, { basedir: conf.basedir });
+    });
 
     applyExtraOptions(b, bundle);
 
