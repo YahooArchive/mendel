@@ -58,6 +58,8 @@ function validateManifest(manifest, originalPath, stepName) {
         fs.writeFileSync(destination, JSON.stringify(manifest, null, 2));
 
         console.log('\n' + destination + ' written \n');
-        process.exit(2);
+        var e = new Error('Invalid manifest');
+        e.code = "INVALID_MANIFEST";
+        throw e;
     }
 }

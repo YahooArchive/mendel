@@ -13,7 +13,7 @@ var validateManifest = require('mendel-development/validate-manifest');
 
 module.exports = postProcessManifests;
 
-function postProcessManifests(config) {
+function postProcessManifests(config, finish) {
     var resolveProcessor = processorResolver.bind(null, config);
 
     var processors = [
@@ -22,9 +22,10 @@ function postProcessManifests(config) {
         [sortManifestProcessor, config],
         [validateManifestProcessor, config],
         [writeManifest, config]
-    ]);
+    ]).filter(Boolean);
 
     async.map(processors, resolveProcessor, function(err, processors) {
+        // istanbul ignore if
         if (err) throw err;
         var input = config.bundles;
 
@@ -32,16 +33,20 @@ function postProcessManifests(config) {
         function(processorPair, doneStep) {
             var processor = processorPair[0];
             var opts = processorPair[1];
+            // istanbul ignore if
             if(config.verbose) {
                 opts.verbose = config.verbose;
                 console.log('Running manifest processor', inspect(processor));
             }
-
-            processor(input, opts, function(output) {
-                input = output;
-                doneStep();
-            });
-        });
+            try {
+                processor(input, opts, function(output) {
+                    input = output;
+                    doneStep();
+                });
+            } catch(e) {
+                doneStep(e);
+            }
+        }, finish);
     });
 }
 
@@ -57,6 +62,7 @@ function processorResolver(config, processorIn, doneProcessor) {
             basedir: config.basedir
         };
         resolve(processor, resolveOpts, function (err, path) {
+            // istanbul ignore if
             if (err) return doneProcessor(err);
             var newProcessor = [require(path), opts];
             doneProcessor(null, newProcessor);
@@ -68,9 +74,9 @@ function processorResolver(config, processorIn, doneProcessor) {
 
 function loadManifests(bundles, config, next) {
     var manifests = bundles.reduce(function(manifests, bundle) {
-        manifests[bundle.bundleName] = require(
-            path.join(config.outdir, bundle.manifest)
-        );
+        var file = path.join(config.outdir, bundle.manifest);
+        delete require.cache[require.resolve(file)];
+        manifests[bundle.bundleName] = require(file);
         return manifests;
     }, {});
     next(manifests);
@@ -105,10 +111,12 @@ function writeManifest(manifests, config, next) {
         var filename = config.bundles.filter(function(bundle) {
             return bundle.bundleName === bundleName;
         })[0].manifest;
+        var file = path.join(config.outdir, filename);
         fs.writeFileSync(
-            path.join(config.outdir, filename),
+            file,
             JSON.stringify(manifests[bundleName], null, 2)
         );
+        delete require.cache[require.resolve(file)];
     });
     next();
 }
