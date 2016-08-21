@@ -8,7 +8,7 @@ var tmp = require('tmp');
 
 module.exports = validateManifest;
 
-function validateManifest(manifest, originalPath) {
+function validateManifest(manifest, originalPath, stepName) {
     var errors = [];
 
     var requires = /require\(['"](.*?)['"]\)/g;
@@ -47,7 +47,7 @@ function validateManifest(manifest, originalPath) {
     });
 
     if (errors.length) {
-        console.log('\nmendel-browserify compilation errors: \n');
+        console.log('\n'+stepName+' manifest errors: \n');
         errors.forEach(function(log){
             console.log('  ' + log);
         });

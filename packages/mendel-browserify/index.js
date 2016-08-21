@@ -209,7 +209,7 @@ MendelBrowserify.prototype.createManifest = function(bundle) {
     ++ self._manifestPending;
     bundle.on('bundle', function(b) { b.on('end', function() {
         if (-- self._manifestPending === 0) {
-            self.doneManifest(bundle);
+            self.doneManifest(self.baseBundle);
         }
     });});
 };
@@ -258,7 +258,7 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
     }
 };
 
-MendelBrowserify.prototype.doneManifest = function() {
+MendelBrowserify.prototype.doneManifest = function(bundle) {
     var bundleManifest = sortManifest(
         this._manifestIndexes,
         this._manifestBundles
@@ -271,10 +271,14 @@ MendelBrowserify.prototype.doneManifest = function() {
         this.pluginOptions.manifest
     );
 
-    validateManifest(bundleManifest, manifest);
+    validateManifest(bundleManifest, manifest, 'mendel-browserify');
 
-    fs.writeFileSync(
-        manifest, JSON.stringify(bundleManifest, null, 2)
+    fs.writeFile(
+        manifest, JSON.stringify(bundleManifest, null, 2),
+        function(err) {
+            if (err) throw err;
+            bundle.emit('manifest');
+        }
     );
 };
 
