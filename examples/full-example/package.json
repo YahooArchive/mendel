@@ -22,6 +22,7 @@
     "babelify": "^7.3.0",
     "eslint-plugin-react": "^5.0.1",
     "mendel": "*",
+    "mendel-manifest-extract-bundles": "*",
     "mendel-development-middleware": "*",
     "mendel-extractify": "*",
     "nodemon": "^1.9.2"

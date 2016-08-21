@@ -1,0 +1,23 @@
+{
+  "name": "mendel-manifest-extract-bundles",
+  "version": "0.0.1",
+  "description": "Parses a list of manifests, extract common dependencies and expose them from the parent bundle.",
+  "main": "manifest-extract.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel",
+    "mendel-manifest-processor",
+    "build"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
+  "dependencies": {
+    "mendel-development": "^1.0.10"
+  }
+}

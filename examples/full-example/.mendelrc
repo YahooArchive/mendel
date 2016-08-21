@@ -12,9 +12,7 @@ bundles:
       - react-dom
   main:
     entries:
-      - main.js
-    require:
-      - ./isomorphic/base/components/button.js
+      - ./isomorphic/base/main.js
     external:
       - react
       - react-dom
@@ -27,9 +25,14 @@ bundles:
     external:
       - react
       - react-dom
-      - ./isomorphic/base/components/button.js
     transform:
       - babelify
+
+manifestProcessors:
+  -
+    - mendel-manifest-extract-bundles
+    - external: lazy
+      from: main
 
 variationsdir: isomorphic/variations
 variations:
