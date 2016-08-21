@@ -15,6 +15,7 @@ function manifestExtractBundles(manifests, options, next) {
         return fromFiles.indexOf(file) >= 0;
     });
 
+    // istanbul ignore if
     if(options.verbose) {
         console.log([
             'found', intersection.length, 'files intersecting between',
@@ -56,6 +57,7 @@ function manifestExtractBundles(manifests, options, next) {
         });
     });
 
+    // istanbul ignore if
     if (options.verbose) {
         var remaining = Object.keys(externalManifest.indexes).length;
         console.log([
