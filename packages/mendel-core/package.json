@@ -1,6 +1,6 @@
 {
   "name": "mendel-core",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Mendel shared dependencies production use",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "dependencies": {
     "concentrate": "^0.2.3",
     "dissolve": "^0.3.3",
-    "mendel-config": "^1.0.5",
+    "mendel-config": "^1.1.0",
     "stream-browserify": "^2.0.1",
     "urlsafe-base64": "^1.0.0",
     "xtend": "^4.0.1"

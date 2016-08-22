@@ -1,6 +1,7 @@
 {
   "name": "mendel-extractify",
   "version": "0.0.2",
+  "private": true,
   "description": "Browserify plugin for Mendel, with the same behavior as extractify",
   "main": "index.js",
   "scripts": {
