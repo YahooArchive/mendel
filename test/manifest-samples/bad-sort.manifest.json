@@ -1,0 +1,36 @@
+{
+  "indexes": {
+    "zoo": 0,
+    "foo": 1,
+    "bar": 2
+  },
+  "bundles": [
+    {"variations": ["var"],
+    "id": "zoo",
+    "data": [{
+      "source": "",
+      "deps": {}
+    }]},
+    {"variations": ["var"],
+    "id": "foo",
+    "data": [{
+      "source": "",
+      "deps": {
+        "zoo":"zoo",
+        "bar":"bar"
+      }
+    }]},
+    {"variations": ["var"],
+    "id": "bar",
+    "data": [{
+      "source": "",
+      "deps": {}
+    }]},
+    {"variations": ["var"],
+    "id": "dont-exists",
+    "data": [{
+      "source": "",
+      "deps": {}
+    }]}
+  ]
+}

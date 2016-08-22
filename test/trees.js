@@ -124,7 +124,7 @@ test('MendelTrees valid manifest runtime', function (t) {
     process.chdir(appPath);
     mkdirp.sync(appBuild);
     exec('./run.sh', { cwd: appPath }, function(error) {
-        if (error) return t.fail('should create manifest but failed', error);
+        if (error) return t.bailout('should create manifest but failed', error);
 
         var trees = MendelTrees();
         var variationCount = trees.variations.length;

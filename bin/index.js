@@ -15,6 +15,8 @@ var applyExtraOptions = require('mendel-development/apply-extra-options');
 var mendelBrowserify = require('mendel-browserify');
 var mendelRequirify = require('mendel-requirify');
 
+var postProcessManifests = require('./post-process-manifest');
+
 var debug = process.argv.some(function(arg) {
     return /--verbose/.test(arg);
 });
@@ -34,6 +36,7 @@ var config = ['basedir','outdir','bundlesoutdir','serveroutdir',
     });
 
 if(debug) {
+    rawConfig.verbose = true;
     config.verbose = true;
     console.log('mendel parsed config');
     logObj(config);
@@ -77,12 +80,17 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
 
     applyExtraOptions(b, bundle);
 
+    b.on('manifest', doneBundle);
+
     var finalBundle = b.bundle();
-    finalBundle.on('end', doneBundle);
     if (conf.outfile) {
         finalBundle.pipe(fs.createWriteStream(conf.outfile));
     } else {
         finalBundle.pipe(process.stdout);
+    }
+}, function() {
+    if (Array.isArray(rawConfig.manifestProcessors)) {
+        postProcessManifests(rawConfig);
     }
 });
 

@@ -1,0 +1,29 @@
+{
+  "indexes": {
+    "foo": 0,
+    "parent": 1,
+    "other": 2
+  },
+  "bundles": [{
+    "variations": ["var"],
+    "data": [{
+      "source": "",
+      "deps": {}
+    }]
+  },{
+    "variations": ["var"],
+    "data": [{
+      "source": "",
+      "deps": {
+        "foo":"foo",
+        "other": "other"
+      }
+    }]
+  },{
+    "variations": ["var"],
+    "data": [{
+      "source": "",
+      "deps": {}
+    }]
+  }]
+}
