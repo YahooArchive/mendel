@@ -98,6 +98,7 @@ function loadFromYaml(path) {
 }
 
 function parseBundles(bundles) {
+    // istanbul ignore if
     if (!bundles) return bundles;
     var bundlesArray = Object.keys(bundles).filter(Boolean);
     if (!bundlesArray.length) return bundlesArray;
@@ -116,6 +117,7 @@ function parseBundles(bundles) {
 
 function mergeRecursive(dest, src) {
     for (var key in src) {
+        // istanbul ignore else
         if (src.hasOwnProperty(key)) {
             if (isObject(dest[key]) && isObject(src[key])) {
                 dest[key] = mergeRecursive(dest[key], src[key]);

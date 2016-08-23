@@ -34,6 +34,25 @@ where = './config-samples/1/';
 t.match(config(where), {basedir: path.resolve(where)},
     "find .mendelrc, basedir defaults to it's path");
 
+t.match(config({
+    basedir: path.resolve(where),
+    config: false
+}), {
+    bundles: []
+}, "skip file config option for CLI use");
+
+t.match(config({
+    basedir: path.resolve(where),
+    outdir: path.resolve(where, 'myoutdir'),
+    bundlesoutdir: path.resolve(where, 'myoutdir/le-bundles'),
+    serveroutdir: path.resolve(where, 'myoutdir/le-node')
+}), {
+    basedir: path.resolve(where),
+    outdir: path.resolve(where, 'myoutdir'),
+    bundlesoutdir: path.resolve(where, 'myoutdir/le-bundles'),
+    serveroutdir: path.resolve(where, 'myoutdir/le-node')
+}, "leaves absolite paths untouched");
+
 where = './config-samples/3/';
 t.match(config(where), {
     basedir: path.resolve(__dirname),
