@@ -53,8 +53,6 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
 
     mkdirp.sync(path.dirname(conf.outfile));
 
-    flattenFilenameArrays(bundle);
-
     var entries = normalizeEntries(bundle.entries);
     delete bundle.entries;
     var requires = bundle.require;
@@ -110,26 +108,6 @@ function normalizeEntries(entries) {
             }
         }
         return entry;
-    });
-}
-
-function flattenFilenameArrays(bundle) {
-    ['entries', 'require', 'external', 'exclude', 'ignore']
-    .forEach(function(param) {
-        var inputArray = bundle[param];
-        if (!Array.isArray(inputArray)) return;
-
-        var i = 0;
-        while (i <= inputArray.length) {
-            var item = inputArray[i];
-            if (Array.isArray(item)) {
-                Array.prototype.splice.apply(
-                    inputArray,
-                    [i, 1].concat(item)
-                );
-            }
-            i++;
-        }
     });
 }
 

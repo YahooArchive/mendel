@@ -108,6 +108,7 @@ function parseBundles(bundles) {
         bundle.id = bundleName;
         bundle.bundleName = bundleName;
         bundle.manifest = bundleName + '.manifest.json';
+        flattenFilenameArrays(bundle);
 
         return bundle;
     }).filter(Boolean);
@@ -124,6 +125,26 @@ function mergeRecursive(dest, src) {
         }
     }
     return dest;
+}
+
+function flattenFilenameArrays(bundle) {
+    ['entries', 'require', 'external', 'exclude', 'ignore']
+    .forEach(function(param) {
+        var inputArray = bundle[param];
+        if (!Array.isArray(inputArray)) return;
+
+        var i = 0;
+        while (i <= inputArray.length) {
+            var item = inputArray[i];
+            if (Array.isArray(item)) {
+                Array.prototype.splice.apply(
+                    inputArray,
+                    [i, 1].concat(item)
+                );
+            }
+            i++;
+        }
+    });
 }
 
 function isObject(obj) {

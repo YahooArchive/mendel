@@ -24,7 +24,9 @@ bundles:
       - main.js
     # defaults to bundle_id
     dest: path_relative_to_dest/main.js
-    external: *vendor_list
+    external:
+      - *vendor_list
+      - './foo.js'
     transform:
       - reactify
 

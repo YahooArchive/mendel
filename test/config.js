@@ -58,6 +58,18 @@ t.match(config(where), {
     ]
 }, 'default environment');
 
+t.match(config(where), {
+    bundles: [
+        {id: 'vendor'},
+        { id: 'main',  external: [
+            'react',
+            'react-dom',
+            'xml-beautifier',
+            './foo.js'
+        ]}
+    ]
+}, 'flattens arrays if externals');
+
 process.env.MENDEL_ENV = 'test';
 t.match(config(where), {
     bundles: [

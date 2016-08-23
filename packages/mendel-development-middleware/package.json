@@ -1,6 +1,6 @@
 {
   "name": "mendel-development-middleware",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "express middleware for meldel",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "dependencies": {
     "browserify": "^13.0.0",
     "fs-extra": "^0.30.0",
-    "mendel-config": "^1.1.0",
+    "mendel-config": "^1.1.1",
     "mendel-development": "^1.1.0",
     "mendel-development-loader": "^1.1.0",
     "mendel-requirify": "^1.0.6",
