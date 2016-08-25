@@ -74,12 +74,166 @@ function MendelMiddleware(opts) {
             return notFound(res, decodedResults && decodedResults.error);
         }
         pack.pipe(res);
-        decodedResults.deps.forEach(function(dep) {
-            pack.write(dep);
-        });
+        var modules = indexedDeps(decodedResults.deps.filter(Boolean));
+        for (var i = 0; i < modules.length; i++) {
+            pack.write(modules[i]);
+        }
         pack.end();
     };
 }
+
+/*
+Here is a piece of hard to read JavaScript.
+This compresses the bundle by renaming all dependency indexes from file paths
+to a numbered index.
+
+Here is a sample transformation:
+[
+  {
+    "entry": true,
+    "id": "/User/me/projects/site/src/main.js",
+    "deps": {
+      "./colors.js": "/User/me/projects/site/src/colors.js",
+      "./shared.js": "/User/me/projects/site/src/shared.js"
+    }
+  },
+  {
+    "id": "/User/me/projects/site/src/colors.js",
+    "deps": {
+      "external-lib": false
+    }
+  },
+  {
+    "expose": "shared",
+    "id": "/User/me/projects/site/src/shared.js",
+    "deps": {}
+  }
+]
+
+Should become:
+[
+  {
+    "entry": true,
+    "id": 1,
+    "deps": {
+      "./colors.js": 2,
+      "./shared.js": "shared"
+    }
+  },
+  {
+    "id": 2,
+    "deps": {
+      "external-lib": false
+    }
+  },
+  {
+    "expose": "shared",
+    "id": "shared",
+    "deps": {}
+  }
+]
+
+*/
+
+function indexedDeps(mods) {
+    // the index can't be ever 0 because 0 is false for browserify
+    var newModIndex = [0];
+
+    // indexes are created first, because deps can come unordered
+    mods.forEach(function(mod){
+        if (!mod.expose) newModIndex.push(mod.id);
+    });
+
+    // create a new array of modified modules
+    return mods.map(function(oldMod) {
+        return Object.keys(oldMod).reduce(function(newMod, prop) {
+
+            if (prop === 'deps') { // deps needs to be reindexed
+                newMod.deps = Object.keys(oldMod.deps).reduce(
+                    function(newDeps, name) {
+                        var id = oldMod.deps[name];
+                        var index = newModIndex.indexOf(id);
+                        if (index > -1) {
+                            newDeps[name] = index;
+                        } else {
+                            // deps not indexed are exposed or external
+                            newDeps[name] = id;
+                        }
+                        return newDeps;
+                    },
+                {});
+            }
+
+
+            else if(prop === 'id') { // id needs to be reindexed
+                var index = newModIndex.indexOf(oldMod.id);
+                if (index > -1) {
+                    newMod.id = index;
+                } else {
+                    // unless it is entry or exposed
+                    newMod.id = oldMod.expose || oldMod.id;
+                }
+            }
+
+            else {
+                // for all other props we just copy over
+                newMod[prop] = oldMod[prop];
+            }
+
+            return newMod;
+        }, {});
+    });
+}
+
+/******
+
+Here is a non-functional but more performant implementation of the same
+transformation above. I don't think it would pay off in performance, but
+I am keeping it here since I didn't benchmark. The above should be more
+maintainable.
+
+function indexedDeps(mods) {
+    var i, key, deps, index, newId, newDeps, newMod, map, newMods;
+    // indexes can't start with 0 because 0 is false for browserify runtime
+    map = [''];
+    // stores indexes
+    for (i = 0; i < mods.length; i++) {
+        if (mods[i].expose) continue;
+        map.push(mods[i].id);
+    }
+
+    // create new mods
+    newMods = [];
+    for (i = 0; i < mods.length; i++) {
+        // shallow copy original deps
+        newMod = {};
+        for(key in mods[i]) {
+            newMod[key] = mods[i][key];
+        }
+
+        // create new deps
+        deps = mods[i].deps;
+        newDeps = {};
+        for(key in deps) {
+            index = map.indexOf(deps[key]);
+            if (index > -1) {
+                newDeps[key] = index;
+            } else {
+                newDeps[key] = deps[key];
+            }
+        }
+
+        // replace props on new mod
+        newId = map.indexOf(newMod.id);
+        if (newId > -1) newMod.id = newId;
+        newMod.deps = newDeps;
+        newMods.push(newMod);
+    }
+
+    return newMods;
+}
+
+****/
 
 function notFound(res, error) {
     var message = "Mendel: ";
