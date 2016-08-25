@@ -26,8 +26,6 @@ bundles:
     external:
       - *vendor_list
       - './foo.js'
-    transform:
-      - reactify
 
 # relative to basedir/mendelrc if present
 variationsdir: variations_root
