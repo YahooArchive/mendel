@@ -6,7 +6,7 @@ basedir: src_root
 dest: output_root
 
 # defaults to "base"
-base: name_for_base_bundle
+base: name_for_base_variation
 # relative to basedir, defaults to "base"
 basetree: base_root
 
@@ -18,7 +18,6 @@ bundles:
     require: &vendor_list
       - react
       - react-dom
-      - xml-beautifier
   main:
     entries:
       - main.js

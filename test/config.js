@@ -83,7 +83,6 @@ t.match(config(where), {
         { id: 'main',  external: [
             'react',
             'react-dom',
-            'xml-beautifier',
             './foo.js'
         ]}
     ]
