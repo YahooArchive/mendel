@@ -2,6 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
+var fs = require('fs');
 var path = require('path');
 var xtend = require('xtend');
 var Module = require('module');
@@ -185,9 +186,7 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     }
 
     // TODO: async lookup of entries
-    bundleConfig.entries = (bundleConfig.entries||[]).map(function(entry) {
-        return path.join(bundleConfig.basetree, entry);
-    });
+    bundleConfig.entries = normalizeEntries(bundleConfig.entries||[], bundleConfig);
 
     var bundler = browserify(bundleConfig);
     applyExtraOptions(bundler, bundleConfig);
@@ -203,6 +202,25 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
 
     watchfyCache[id] = bundler;
     cb(null, watchfyCache[id]);
+}
+
+function normalizeEntries(entries, config) {
+    return [].concat(entries).filter(Boolean)
+    .map(function(entry) {
+        if (typeof entry === 'string') {
+            if(!fs.existsSync(path.join(config.basedir, entry))) {
+                var messages = [
+                    '[warn] paths relative to variation are deprecated',
+                    'you can fix this by changing',
+                    entry,
+                    'in your configuration'
+                ];
+                console.log(messages.join(' '));
+                entry = path.join(config.basedir, config.basetree, entry);
+            }
+        }
+        return entry;
+    });
 }
 
 function invalidateNodeCache(dirs, files, serveroutdir) {
