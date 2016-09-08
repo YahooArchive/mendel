@@ -6,7 +6,7 @@ var exec = require('child_process').exec;
 
 var MendelTrees = require('../packages/mendel-core/trees');
 
-var appPath = path.resolve(__dirname, 'app-samples/1/')
+var appPath = path.resolve(__dirname, 'app-samples/1/');
 var appBuild = path.join(appPath, 'build');
 var manifestPath = path.join(appBuild, 'app.manifest.json');
 mkdirp.sync(appBuild);
@@ -124,7 +124,7 @@ test('MendelTrees valid manifest runtime', function (t) {
     process.chdir(appPath);
     mkdirp.sync(appBuild);
     exec('./run.sh', { cwd: appPath }, function(error) {
-        if (error) return t.fail('should create manifest but failed');
+        if (error) return t.bailout('should create manifest but failed', error);
 
         var trees = MendelTrees();
         var variationCount = trees.variations.length;

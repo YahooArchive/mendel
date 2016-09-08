@@ -70,7 +70,7 @@ Swatch.prototype._getBuildPath = function(srcFile) {
         this.buildPathCache[srcFile] = destFile;
     }
     return destFile;
-}
+};
 
 Swatch.prototype.uncacheModule = function(destFile) {
     delete Module._cache[destFile];
@@ -115,7 +115,7 @@ Swatch.prototype._log = function(msg) {
     if (this.config.verbose) {
         console.log(msg);
     }
-}
+};
 
 Swatch.prototype.watch = function() {
     var self = this;
@@ -226,7 +226,7 @@ Swatch.prototype.watch = function() {
                  */
                 self._handleDepsChange(bundleId, variationId, srcFiles);
                 makeBundle(bundler);
-            })
+            });
 
             var bundlerKey = bundleId + ':' + variationId;
             self.bundlers[bundlerKey] = bundler;
@@ -236,7 +236,7 @@ Swatch.prototype.watch = function() {
     });
 
     return self;
-}
+};
 
 Swatch.prototype.stop = function() {
     var self = this;
@@ -252,7 +252,7 @@ Swatch.prototype.stop = function() {
     Object.keys(self.bundlers).forEach(function(bundlerKey) {
         self.bundlers[bundlerKey].close();
     });
-}
+};
 
 module.exports = Swatch;
 

@@ -1,6 +1,6 @@
 {
   "name": "mendel",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",
@@ -47,8 +47,7 @@
     "exclude": [
       "examples/**",
       "coverage/**",
-      "test/**",
-      "packages/*/lib/**"
+      "test/**"
     ]
   },
   "dependencies": {
@@ -56,19 +55,22 @@
     "browserify": "^13.0.0",
     "mkdirp": "^0.5.1",
     "xtend": "^4.0.1",
-    "mendel-config": "^1.0.5",
-    "mendel-browserify": "^1.0.8",
-    "mendel-development": "^1.0.9",
+    "mendel-config": "^1.1.0",
+    "mendel-browserify": "^1.1.0",
+    "mendel-development": "^1.1.0",
     "mendel-requirify": "^1.0.7"
   },
   "devDependencies": {
     "eslint": "^2.3.0",
     "eslint-cli": "^1.1.0",
-    "eslint-plugin-react": "^5.0.1",
+    "eslint-plugin-react": "^5.2.2",
+    "express": "^4.14.0",
     "module": "^1.2.5",
+    "request": "^2.74.0",
     "rimraf": "^2.5.2",
     "tap": "^5.7.0",
     "temp": "^0.8.3",
-    "through2": "^2.0.1"
+    "through2": "^2.0.1",
+    "tmp": "0.0.28"
   }
 }

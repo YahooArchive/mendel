@@ -4,13 +4,16 @@ import Button from './button';
 class Toolbar extends React.Component {
     render() {
         return (
-            <nav className="toolbar feature_B">
-                <Button />
-                <span className="spacer" />
-                <Button />
-                <span className="spacer" />
-                <Button />
-            </nav>
+            <div>
+                <p>Toolbar B</p>
+                <nav className="toolbar feature_B">
+                    <Button>B</Button>
+                    <span className="spacer" />
+                    <Button>B</Button>
+                    <span className="spacer" />
+                    <Button>B</Button>
+                </nav>
+            </div>
         );
     }
 }

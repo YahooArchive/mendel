@@ -30,7 +30,7 @@ MendelLoader.prototype.resolver = function(variations) {
     var variationMap = this._trees.findServerVariationMap(variations);
 
     return new MendelResolver(this._parentModule, variationMap, this._serveroutdir);
-}
+};
 
 MendelLoader.prototype.isSsrReady = function() {
     return this._ssrReady;

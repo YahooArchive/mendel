@@ -32,7 +32,7 @@ function deserialize(treeHash) {
                     return end();
                 }
                 branches.push(this.vars.data);
-            })
+            });
         })
         .tap(function() {
             this.vars.branches = branches;

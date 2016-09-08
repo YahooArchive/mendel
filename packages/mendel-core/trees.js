@@ -40,7 +40,7 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
     this._walkTree(bundle, finder);
 
     return finder.found();
-}
+};
 
 MendelTrees.prototype.findServerVariationMap = function(variations) {
     if (typeof variations ==='string') {
@@ -59,7 +59,7 @@ MendelTrees.prototype.findServerVariationMap = function(variations) {
     });
 
     return variationMap;
-}
+};
 
 MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
     var finder = new MendelHashWalker(hash);
@@ -67,7 +67,7 @@ MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
     this._walkTree(bundle, finder);
 
     return finder.found();
-}
+};
 
 MendelTrees.prototype._loadBundles = function() {
     var self = this;
@@ -89,7 +89,7 @@ MendelTrees.prototype._loadBundles = function() {
             throw newError;
         }
     });
-}
+};
 
 MendelTrees.prototype._walkTree = function(bundle, finder) {
     var tree = this.bundles[bundle];
@@ -99,7 +99,7 @@ MendelTrees.prototype._walkTree = function(bundle, finder) {
             walk(tree, module, finder);
         }
     }
-}
+};
 
 MendelTrees.prototype._buildLookupChains = function(lookFor) {
     var lookupChains = []; // perf: for loop instead of forEach
@@ -118,7 +118,7 @@ MendelTrees.prototype._buildLookupChains = function(lookFor) {
     }
     lookupChains.push([this.config.basetree]);
     return lookupChains;
-}
+};
 
 function walk(tree, module, pathFinder) {
     var dep = pathFinder.find(module);

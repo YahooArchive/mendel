@@ -16,12 +16,11 @@ test('mendel-browserify', function (t) {
     function Bro(opts) {
         calls.push(opts);
         this._options = opts;
+        this._transforms = [];
         this.transform = function(){};
         this.pipeline = {
             get: function(){
-                return {
-                    push: function(){}
-                };
+                return [];
             }
         };
         this.on = function(){};

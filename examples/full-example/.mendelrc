@@ -7,15 +7,32 @@ base: base
 basetree: isomorphic/base
 bundles:
   vendor:
-    require: &vendor_list
+    require:
       - react
       - react-dom
   main:
     entries:
-      - main.js
-    external: *vendor_list
+      - ./isomorphic/base/main.js
+    external:
+      - react
+      - react-dom
+      - ./isomorphic/base/components/lazy.js
     transform:
       - babelify
+  lazy:
+    require:
+      - ./isomorphic/base/components/lazy.js
+    external:
+      - react
+      - react-dom
+    transform:
+      - babelify
+
+manifestProcessors:
+  -
+    - mendel-manifest-extract-bundles
+    - external: lazy
+      from: main
 
 variationsdir: isomorphic/variations
 variations:

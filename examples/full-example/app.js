@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
@@ -30,6 +34,11 @@ app.get('/', function(req, res) {
             '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
+            // WARNING: This temporary "lazy" bundle is not part of the example
+            // The dev team needs this here for a while in order to
+            // do some work in parallel branches
+            entryMap(req, 'lazy', variations),
+            // END WARNING
         '</body></html>'
     ].join('\n');
 
@@ -40,6 +49,29 @@ app.get('/', function(req, res) {
 function bundle(req, bundle, variations) {
     var url = req.mendel.getURL(bundle, variations);
     return '<script src="'+url+'"></script>';
+}
+
+function entryMap(req, bundle, variations) {
+    // req.mendel.getBundleEntries contains all bundles as keys and array of
+    // entries that were used and normalized by variations, this allows apps
+    // to do their specific logic with their bundles
+    var bundles = req.mendel.getBundleEntries();
+
+    // In this particular case, we used "temporary" on the .mendelrc
+    // go expose our lazy bundle entries from extractify
+    var lazy =  [
+        '<script>',
+        '   (function(){',
+        '       var nameSpace = "_extractedModuleBundleMap";',
+        '       var url = "'+req.mendel.getURL(bundle, variations)+'";',
+        '       window[nameSpace] = window[nameSpace] || {};',
+        '       ' + bundles[bundle].map(function(entry) {
+                    return 'window[nameSpace]["'+entry+'"] = ' + ' url;';
+                }).join('\n       '),
+        '   })()',
+        '</script>'
+    ];
+    return lazy.join('\n');
 }
 
 module.exports = app;

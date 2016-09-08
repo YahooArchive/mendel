@@ -1,0 +1,24 @@
+
+
+
+basetree: src/base
+variationsdir: src/variations
+variations:
+  another_easy:
+  prefix_complicator:
+  even_later:
+
+bundles:
+  app:
+    entries:
+      - ./src/base/main.js
+    require:
+      - ./src/base/complicator.js
+    ignore:
+      - prentent-this-is-an-ajax-lib
+  late:
+    require:
+      - ./src/base/late.js
+    external:
+      - ./src/base/complicator.js
+

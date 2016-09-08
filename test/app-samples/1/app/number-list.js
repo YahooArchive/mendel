@@ -1,4 +1,4 @@
-var oneNumber = require('./some-number')
+var oneNumber = require('./some-number');
 
 module.exports = function() {
     var a = [oneNumber()];

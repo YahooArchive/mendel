@@ -2,6 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
+var fs = require('fs');
 var path = require('path');
 var xtend = require('xtend');
 var Module = require('module');
@@ -39,10 +40,51 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
 
+    var allDirs = existingVariations.reduce(function(allDirs, variation) {
+        variation.chain.forEach(function(path) {
+            if (-1 === allDirs.indexOf(path)) allDirs.push(path);
+        });
+        return allDirs;
+    }, []);
+
     var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
         req.mendel = req.mendel || {};
+
+        req.mendel.getBundleEntries = function() {
+            return Object.keys(bundles).reduce(
+
+                function(outputBundles, id) {
+                    var bundle = bundles[id];
+                    var outputEntries = [];
+
+                    [].concat(bundle.entries, bundle.require)
+                    .filter(Boolean)
+                    .forEach(
+                        function(entry) {
+                            var match = variationMatches(existingVariations, entry);
+                            if (match) entry = match.file;
+                            allDirs.forEach(function(dirPath) {
+                                var absolutePath = path.resolve(
+                                    config.basedir, dirPath, entry
+                                );
+                                if (-1 === outputEntries
+                                    .indexOf(absolutePath)
+                                ){
+                                    outputEntries.push(absolutePath);
+                                }
+                            });
+                        }
+                    );
+
+                    outputBundles[id] = outputEntries;
+                    return outputBundles;
+                },
+
+                {} // outputBundles
+            );
+        };
 
         req.mendel.getURL = function(bundle, variations) {
             var vars = variations.join(',') || config.base;
@@ -109,7 +151,7 @@ function cachedStreamBundle(bundleConfig, dirs, cb) {
     getCachedWatchfy(id, bundleConfig, dirs, function(err, watchBundle) {
         // multiple kinds of error handling start
         function boundError(e) {
-            streamCache.sendError(id, e)
+            streamCache.sendError(id, e);
         }
         if (err) return cb(boundError(err));
 
@@ -144,9 +186,7 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     }
 
     // TODO: async lookup of entries
-    bundleConfig.entries = (bundleConfig.entries||[]).map(function(entry) {
-        return path.join(bundleConfig.basetree, entry);
-    });
+    bundleConfig.entries = normalizeEntries(bundleConfig.entries||[], bundleConfig);
 
     var bundler = browserify(bundleConfig);
     applyExtraOptions(bundler, bundleConfig);
@@ -162,6 +202,25 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
 
     watchfyCache[id] = bundler;
     cb(null, watchfyCache[id]);
+}
+
+function normalizeEntries(entries, config) {
+    return [].concat(entries).filter(Boolean)
+    .map(function(entry) {
+        if (typeof entry === 'string') {
+            if(!fs.existsSync(path.join(config.basedir, entry))) {
+                var messages = [
+                    '[warn] paths relative to variation are deprecated',
+                    'you can fix this by changing',
+                    entry,
+                    'in your configuration'
+                ];
+                console.log(messages.join(' '));
+                entry = path.join(config.basedir, config.basetree, entry);
+            }
+        }
+        return entry;
+    });
 }
 
 function invalidateNodeCache(dirs, files, serveroutdir) {

@@ -16,7 +16,7 @@ function MendelServerVariationWalker(_lookupChains, _base) {
     MendelVariationWalker.call(this, _lookupChains, _base);
 
     this._resolveCache = {};
-    this._variationMap = {}
+    this._variationMap = {};
 }
 
 MendelServerVariationWalker.prototype.find = function(module) {
@@ -39,11 +39,11 @@ MendelServerVariationWalker.prototype.find = function(module) {
     }
 
     return resolved;
-}
+};
 
 MendelServerVariationWalker.prototype.found = function() {
     // This walker doesn't care about deps index nor hashes
     return this._variationMap;
-}
+};
 
 module.exports = MendelServerVariationWalker;

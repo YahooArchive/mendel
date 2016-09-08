@@ -33,19 +33,19 @@ var methods = CachedStreamCollection.prototype;
 methods.createItem = function(id) {
     this.cache[id] = new StreamCache();
     this.cache[id][_outlets] = [];
-}
+};
 
 methods.hasItem = function(id) {
     return !!this.cache[id];
-}
+};
 
 methods.invalidateItem = function(id) {
     delete this.cache[id];
-}
+};
 
 methods.inputPipe = function(id, piper) {
     piper.pipe(this.cache[id]);
-}
+};
 
 methods.outputPipe = function(id) {
     var cachedStream = this.cache[id];
@@ -57,11 +57,11 @@ methods.outputPipe = function(id) {
     });
     cachedStream.pipe(outStream);
     return outStream;
-}
+};
 
 methods.sendError = function(id, error) {
     this.cache[id][_outlets].forEach(function(stream) {
         stream.emit('error', error);
     });
     this.invalidateItem(id);
-}
+};

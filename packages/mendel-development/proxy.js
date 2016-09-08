@@ -8,7 +8,7 @@ function proxyMethod(method, source, destination) {
         var args = Array.prototype.slice.call(arguments);
         destination[method].apply(destination, args);
         return oldMethod.apply(source, args);
-    }
+    };
 }
 
 function onlyPublicMethods(method) {

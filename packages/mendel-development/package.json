@@ -1,6 +1,6 @@
 {
   "name": "mendel-development",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Mendel shared dependencies for build and development",
   "main": "index.js",
   "scripts": {
@@ -17,8 +17,9 @@
   },
   "dependencies": {
     "falafel": "^1.2.0",
+    "glob": "^7.0.3",
     "shasum": "^1.0.2",
     "through2": "^2.0.1",
-    "glob": "^7.0.3"
+    "tmp": "0.0.28"
   }
 }

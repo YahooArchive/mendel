@@ -6,7 +6,7 @@ basedir: src_root
 dest: output_root
 
 # defaults to "base"
-base: name_for_base_bundle
+base: name_for_base_variation
 # relative to basedir, defaults to "base"
 basetree: base_root
 
@@ -18,15 +18,14 @@ bundles:
     require: &vendor_list
       - react
       - react-dom
-      - xml-beautifier
   main:
     entries:
       - main.js
     # defaults to bundle_id
     dest: path_relative_to_dest/main.js
-    external: *vendor_list
-    transform:
-      - reactify
+    external:
+      - *vendor_list
+      - './foo.js'
 
 # relative to basedir/mendelrc if present
 variationsdir: variations_root
@@ -59,6 +58,7 @@ variations:
 # configurations can be overriden per environment
 env:
   test:
+    bundlesoutdir: client-test
     bundles:
       main:
         transform:

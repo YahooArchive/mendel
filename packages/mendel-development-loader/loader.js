@@ -56,7 +56,7 @@ MendelLoaderDev.prototype._checkSsrReady = function() {
     }
 
     return that._ssrReady;
-}
+};
 
 module.exports = MendelLoaderDev;
 

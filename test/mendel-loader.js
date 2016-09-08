@@ -22,11 +22,12 @@ test('mendel-loader-server', function(t){
             path.join(srcDir, 'app/throws.js'),
         ],
         outfile: path.join(buildDir, 'app.js'),
-        basedir: srcDir,
-        outdir: buildDir
+        basedir: srcDir
     });
 
-    b.plugin(mendelify);
+    b.plugin(mendelify, {
+        outdir: buildDir
+    });
     b.plugin(requirify, {
         outdir: mountDir
     });

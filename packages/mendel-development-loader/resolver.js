@@ -44,6 +44,6 @@ MendelResolverDev.prototype.resolve = function(name) {
         this._resolveCache[name] = Module._resolveFilename(mod, parent);
     }
     return this._resolveCache[name];
-}
+};
 
 module.exports = MendelResolverDev;

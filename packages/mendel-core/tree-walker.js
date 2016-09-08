@@ -29,17 +29,17 @@ MendelWalker.prototype.find = function(module) {
     this.serialiser.pushFileHash(new Buffer(resolved.sha, 'hex'));
 
     return resolved;
-}
+};
 
 MendelWalker.prototype._resolveBranch = function() {
     throw new Error('You should extend and implement _resolveBranch');
-}
+};
 
 MendelWalker.prototype.found = function() {
     return {
         deps: this.deps,
         hash: this.serialiser.result()
     };
-}
+};
 
 module.exports = MendelWalker;

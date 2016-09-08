@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var app = require('./app');
 
 var port = process.env.PORT ? process.env.PORT : 3000;

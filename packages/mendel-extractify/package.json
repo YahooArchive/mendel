@@ -1,0 +1,26 @@
+{
+  "name": "mendel-extractify",
+  "version": "0.0.2",
+  "private": true,
+  "description": "Browserify plugin for Mendel, with the same behavior as extractify",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel",
+    "browserify-plugin",
+    "build"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
+  "dependencies": {
+    "through2": "^2.0.1",
+    "xtend": "^4.0.1",
+    "mendel-development": "^1.0.10"
+  }
+}
