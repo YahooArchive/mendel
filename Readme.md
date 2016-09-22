@@ -14,10 +14,6 @@ Mendel also provides additional tools for:
   * Better development cycle: Fast feedback is essential in development. Once you save a file, Mendel makes use of Watchify internally to efficiently provide instant feedback
   * Isomorphic support: Most A/B test bundling tools are focused on client-side only, while Mendel solves the problem of server and client rendering, such as React and Ember ability to serve HTML for fast first paint while booting up into a Single Page Application quickly.
 
-## Beta stages
-
-Mendel is a new name for an experimentation design we have run at Yahoo for a long time in production. It was developed initially for mobile web experimentation and this new project is the Open Source implementation of a successful design we have run for years. But this repository is not complete yet. We will get to a 1.0 release soon, but these last steps will be done in the open. If you want to start using or trying out Mendel, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.mdown) to get you started there.
-
 ## How to use Mendel
 
 Mendel uses files to create differences for each experiment you want to run for your users. With Mendel you don't create conditionals such as `if(myExperimentRunning) { /* do something different */ }`. You just copy the file you need to be slightly different and change your code.
@@ -83,6 +79,13 @@ the "experiments/new_ad_format/" tree, all other files are used
 from "src/" tree.
 
 ```
+
+## Stability and Roadmap
+
+The way mendel experiments are built is quite stable since mid 2014, and Mendel implementation just improves how it is compiled and add some features, like multi-layer. Mendel 1.x can be considered stable and is also used in production applications by Yahoo. We are also [building Mendel 2.x](docs/Roadmap.mdown), which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will be breaking changes in 2.0.
+
+
+Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.mdown) to get you started there.
 
 ## Why is is Mendel so different?
 
