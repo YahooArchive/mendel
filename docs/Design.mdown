@@ -581,6 +581,118 @@ Mendel does not choose for you. If you decide to use Mendel only at build time, 
 
 If you want to support multi-layering (or an array of variations enabled in production for a single user), you can use mendel-middleware and the exported manifests and server generated files to achieve all the combinations in an isomorphic fashion, while keeping all performance traits discussed above.
 
-## Build & Tools: Implementation Details
 
-> Note: This section was redacted from the open source project due to be heavily outdated and will be re-written to explain the manifest generation and how it resolves in production.
+## Implementation: Build tools and runtime libraries
+
+Mendel is implemented using Browserify. Regardless of recent popularity of WebPack as a front-end build tool, Browserify is still state of the art and provided a stable foundation that is way more modular than WebPack and allowed the team to develop Mendel with high quality standards and in a timely manner.
+
+
+### Mendel Manifest: Building Front-End assets with thousands of possible permutations in each deployment
+
+In previous iterations of this bucket system design, used in the Mobile Search  codebase, for each experiment a single client-side bundle was generated. This practice becomes prohibitive for multi-layer scenarios where thousands of permutations are created per deployment (i.e. 40 experiments evenly distributed in 5 layers generate 6.700 permutations).
+
+During the **Browserify pipeline**, there is an internal package format that contains source-code and extra metadata. When creating the Mendel manifest, we decided to reuse this representation, wrapped in a Mendel specific object. Here is a simplified manifest:
+
+```json
+{
+  "indexes": {
+    "components/button.js": 0,
+    ...
+  },
+  "bundles": [
+    {
+      "variations": [
+        "src/base",
+        "src/variations/new_add_button",
+        "sec/variations/new_add_button_red"
+      ],
+      "data": [
+        { /* browserify payload for base */ },
+        { /* browserify payload for new_add_button */ },
+        { /* browserify payload for new_add_button_red */ }
+      ],
+      "id": "components/button.js",
+      "index": 0
+    },
+    ...
+  ]
+}
+```
+
+The manifest is generated at build time, and based on entry points for an application, will traverse the dependency graph based on Javascript `import` or `require` statements. All javascript payload is already transformed, and minified at this point.
+
+At runtime, the manifest is loaded in memory once, and we are now able to dynamically serve all possible permutations in request time, which we explain in the following sections.
+
+### Resolving bundles at runtime
+
+Once the manifest is loaded by a production server, Mendel runtime libraries will be able to serve all permutations required for a particular deployment.
+
+Our hash algorithm takes caching into consideration.  If a small deployment changes only one file in one variation, only affected users will receive a new bundle, guaranteeing all other users to use their cached versions across deployments and different versions of the manifest.
+
+#### Mendel Hashing algorithm
+
+The Mendel hash is a binary format encoded in URLSafeBase64 (RFC4648 section 5). The binary has the format below, where each number in parenthesis is the number of bites used for a particular information:
+
+```
+      1           2           3           4          5          6
++------------+---------+--------------+---------+----------+---------+
+| ascii(6*8) | uint(8) | loop uint(8) | uint(8) | uint(16) | bin(20) |
+| === mendel |         | !== 255      | == 255  |          |         |
++------------+---------+--------------+---------+----------+---------+
+```
+
+The 6 pieces stand for:
+
+1. ID: The string “mendel” (lowercase) in ascii encoding
+2. VERSION: The version of this binary, right now it is version 1, we reserved this for future compatibility
+3. BRANCHES_ARRAY: 0+ segments of 8 bit unsigned integers, that are different than 255
+4. BRANCHES_LIMITER: Integer with value 255 that marks end of the branches
+5. FILE_COUNT: The number of total files that were hashed during tree walking
+6. CONTENT_HASH: 20 byte sha1 binary
+
+Mendel starts with ID and VERSION and will walk the manifest, starting in the entry points of the package. Each browserify payload has a sha1 of the source code, and also the dependencies of this file. Mendel will collect sha1 of all files and count how many files were walked.
+
+Every time Mendel finds a file with variations, it uses a one of two desired method for choosing a variation (discussed below), and it will then push **the index of the chosen variation** to the **branch index array**. The numbers are also appended to BRANCHES_ARRAY of the binary.
+
+Once walking is done, Mendel adds BRANCHES_LIMITER, to the binary, adds FILE_COUNT with the number of files walked, and computes CONTENT_HASH, the sha1 of all walked sha1 of the bundle. The final binary is than encoded with URLSafeBase64.
+
+The variations can be resolved in two ways: By an array of desired **variation names**. This is useful for generating the hash for the first time. The second way, is when we decode a hash binary, and walk the manifest to collect and bundle source code, using the **branch index array**.
+
+Because we need to make sure the contents are the same requested by user, the hash is calculated both when generating it for the first time (when generating HTML request) and when collecting the source code payload (when dynamically serving the bundle). If it is a match, the source code can be concatenated using `browser_pack`.
+
+Source code for Mendel hashing is available at:
+https://github.com/yahoo/mendel/tree/master/packages/mendel-core
+
+
+#### **A) Resolving bundle URL on HTML request:**
+
+1. Request comes in for regular routes (Inbox, Compose, etc) with a bucket-cookie
+    1. bucket-cookie is an opaque blob, further represented as `[bucket-cookie-hash]`
+2. Resolve bucket-cookie to a list of experiments
+    1. `parse([bucket-cookie-hash]) → ['experimentA', 'experimentB']`
+3. Mendel gets an array of experiments, walks the manifest and outputs a hash to be used to generate a URL
+    1. `mendel(manifest, ['experimentA', 'experimentB']) → [Mendel-hash]`
+    2. Example mendel hash: `bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw`
+4. Application will havea route to serve this asset (using mendel-middleware):
+    1. `/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
+    2. On-demand bundles will have similar URLs and a list of potential bundles is served to the user
+5. We get a CDN URL to cache this resource and serve in the HTML
+    1. `cdnFunction(/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/mail_app.js) → https://your.cdn/some_route/some_hash.js`
+    2. `<head><script src="https://your.cdn/some_route/some_hash.js” />`
+    3. `<script>/* on-demand bundles */ var lazyBundles = {…}`
+    4. `lazyBundles` object contains an map for entry points on the app and URLs like 4.1. above.
+
+#### **B) Serving the bundle:**
+
+1. User browser requests CDN url
+    1. `https://your.cdn/some_route/some_hash.js`
+2. CDN fetch contents from Application URL
+    1. `https://yourapp.com/d/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
+3. Mendel uses manifest and hash to generate a list of dependencies for this user
+    1. `[Mendel-hash] + [Manifest] → [dep1, dep2, dep3, …]`
+    2. Current implementation gives a `404` if the hash is not a Mendel hash and `404` if the hash don’t match and validates against the current manifest.
+4. Mendel packages a bundle for this user
+    1. `[dep1, dep2, dep3, ...] → [javascript payload]` (with `browser_pack`)
+5. CDN gets the response, caches the URL for a period of time (based on headers and how frequently the asset is requested). and serves to any user requesting the same combination of experiments
+
+
