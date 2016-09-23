@@ -67,7 +67,11 @@ function MendelMiddleware(opts) {
         }
 
         // Serve bundle
-        res.header('content-type', 'application/javascript');
+        res.set({
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'public, max-age=31536000'
+        });
+
         var pack = bpack({raw: true, hasExports: true});
         var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
         if (!decodedResults || decodedResults.error) {
