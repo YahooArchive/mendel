@@ -3,11 +3,11 @@ Mendel Design
 
 # Principles
 
-Mendel has some opinionated design principles that we stick to. This will serve as strict guidelines on the remainder of this document and on implementation. Some of those principles are what makes Mendel different from other experimentation or A/B testing frameworks.
+Mendel has some opinionated design principles that serve as strict guidelines on the remainder of this document and on its implementation. Some of those principles are what makes Mendel different from other experimentation or A/B testing frameworks.
 
 * **Variation Performance**
     * **No payload overhead**: no client-side code for any non-active or alternative variation should be transfered to the client
-    * **No server response overhead**: All variation resolution should happen either by CPU processing or in-memory information. All asynchronous data/configuration fetching and caching should be done at server startup and/or polling
+    * **Synchronous and fast variation resolution**: no http or file-system access during runtime in order to resolve bundle URLs or bundle payload.
 * **Variation Maintainability**
     * **Immediately disposable**: disposing of variations should be simple, straightforward - specially for bulk disposal
     * **No maintenance overhead: **keep variations updated with minimal developer effort
@@ -629,38 +629,8 @@ Once the manifest is loaded by a production server, Mendel runtime libraries wil
 
 Our hash algorithm takes caching into consideration.  If a small deployment changes only one file in one variation, only affected users will receive a new bundle, guaranteeing all other users to use their cached versions across deployments and different versions of the manifest.
 
-#### Mendel Hashing algorithm
 
-The Mendel hash is a binary format encoded in URLSafeBase64 (RFC4648 section 5). The binary has the format below, where each number in parenthesis is the number of bites used for a particular information:
-
-```
-      1           2           3           4          5          6
-+------------+---------+--------------+---------+----------+---------+
-| ascii(6*8) | uint(8) | loop uint(8) | uint(8) | uint(16) | bin(20) |
-| === mendel |         | !== 255      | == 255  |          |         |
-+------------+---------+--------------+---------+----------+---------+
-```
-
-The 6 pieces stand for:
-
-1. ID: The string “mendel” (lowercase) in ascii encoding
-2. VERSION: The version of this binary, right now it is version 1, we reserved this for future compatibility
-3. BRANCHES_ARRAY: 0+ segments of 8 bit unsigned integers, that are different than 255
-4. BRANCHES_LIMITER: Integer with value 255 that marks end of the branches
-5. FILE_COUNT: The number of total files that were hashed during tree walking
-6. CONTENT_HASH: 20 byte sha1 binary
-
-Mendel starts with ID and VERSION and will walk the manifest, starting in the entry points of the package. Each browserify payload has a sha1 of the source code, and also the dependencies of this file. Mendel will collect sha1 of all files and count how many files were walked.
-
-Every time Mendel finds a file with variations, it uses a one of two desired method for choosing a variation (discussed below), and it will then push **the index of the chosen variation** to the **branch index array**. The numbers are also appended to BRANCHES_ARRAY of the binary.
-
-Once walking is done, Mendel adds BRANCHES_LIMITER, to the binary, adds FILE_COUNT with the number of files walked, and computes CONTENT_HASH, the sha1 of all walked sha1 of the bundle. The final binary is than encoded with URLSafeBase64.
-
-The variations can be resolved in two ways: By an array of desired **variation names**. This is useful for generating the hash for the first time. The second way, is when we decode a hash binary, and walk the manifest to collect and bundle source code, using the **branch index array**.
-
-Because we need to make sure the contents are the same requested by user, the hash is calculated both when generating it for the first time (when generating HTML request) and when collecting the source code payload (when dynamically serving the bundle). If it is a match, the source code can be concatenated using `browser_pack`.
-
-Source code for Mendel hashing is available at:
+Source code and details on Mendel hashing is available at:
 https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 
 
