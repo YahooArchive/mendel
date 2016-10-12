@@ -1,17 +1,16 @@
 # Mendel Core - Production resolution of file system based experiments
 
-Mendel Core is the brains behind `mendel-middleware`. It is used to resolve hundreds or even thousands of potential permutations of "application trees". It uses deterministic hashing to provide a two step resolving:
+Mendel Core is the brain behind `mendel-middleware`. It is used to resolve hundreds or even thousands of potential permutations of "application trees". It uses deterministic hashing to provide a two step resolving:
 
   1. Given a variation array, it resolves which files should be used for a given user session. It outputs an "application tree" and a deterministic hash.
   2. Given a hash generated in step 1, it can recover all file dependencies for the same user session, resulting in the same exact "application tree" as step 1.
 
-Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a per-process basis, and resolving each files should be used on a per request (or per user session) basis.
+Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a per-process basis, and resolves "application trees" on a per request (or per user session) basis.
 
 ```
 +-----------------------------------------------+
 |                                               |
-|  MendelTrees long running                     |
-|  instance                                     |
+|  MendelTrees long running  instance           |
 |                                               |
 |          (contains all variations of          |
 |            all pre-compiled files)            |
@@ -29,9 +28,9 @@ Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a pe
 
 Each tree representation can be used to server-side render, to hash generation or to resolve a bundle for a particular set of variations.
 
-## Request Cycle: Variation resolution
+### Request Cycle: Variation resolution
 
-When the user first visits the application, you use a variation array to resolve the application code:
+When the user first visits the application, MendelTrees use a variation array to resolve the application code:
 
 ```
                          +--------------------+
@@ -41,18 +40,17 @@ When the user first visits the application, you use a variation array to resolve
                          +---------+----------+
                                    |
                                    v
-
                       +---------------------------+
                       |                           |
                       |  MendelTrees per process  |
                       |          instance         |
                       |                           |
                       +------------------+--------+
-                                         |
                             ^            |
 NodeJS Process              |            |
 +------------------------------------------------------------------+
 HTTP Request                |            |
+                            |            |
    +------------+           |            |              +--------------+
    |            |           |            |              |              |
    | variations +-----------+            +------------> | dependencies |
@@ -66,12 +64,12 @@ HTTP Request                |            |
                                                         +--------------+
 ```
 
-Dependencies can than be used to server-side render, and hash can be used to generate bundle URLs that are safe for CDN caching.
+Dependencies are a list of filenames and their content. Dependencies can than be used to server-side render and the hash can be used to generate bundle URLs that are safe for CDN caching.
 
 
-## Request Cycle: Hash resolution
+### Request Cycle: Hash resolution
 
-When a request comes in with a hash, Mendel is able to safely recover all the dependencies:
+When a request comes in with a hash, MendelTrees is able to safely recover all the dependencies from the manifest:
 
 ```
                          +--------------------+
@@ -81,18 +79,17 @@ When a request comes in with a hash, Mendel is able to safely recover all the de
                          +---------+----------+
                                    |
                                    v
-NodeJS Process
                       +---------------------------+
                       |                           |
                       |  MendelTrees per process  |
                       |          instance         |
                       |                           |
-                      +---------------------------+
-
-                            ^            +
+                      +------------------+--------+
+                            ^            |
 NodeJS Process              |            |
 +------------------------------------------------------------------+
 HTTP Request                |            |
+                            |            |
    +------------+           |            |              +--------------+
    |            |           |            |              |              |
    | hash       +-----------+            +------------> | dependencies |
@@ -100,7 +97,7 @@ HTTP Request                |            |
    +------------+                                       +--------------+
 ```
 
-This request will usually be used to serve a bundle. The request can come from a user or from a CDN or any other proxy/caching layers. It does not need cookies and won't need a "Vary" header to prevent it to be corrupted by proxies. The hash is sufficient to consistently resolve the dependencies.
+This request will usually be used to serve a bundle. The request can come from a user or from a CDN or any other proxy/caching layers. It does not need cookies and won't need a "Vary" header to prevent it to be cached incorrectly by proxies. The hash is sufficient to consistently resolve the dependencies.
 
 
 #### Mendel Hashing algorithm

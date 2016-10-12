@@ -666,7 +666,7 @@ https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 3. Mendel gets an array of experiments, walks the manifest and outputs a hash to be used to generate a URL
     1. `mendel(manifest, ['experimentA', 'experimentB']) → [Mendel-hash]`
     2. Example mendel hash: `bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw`
-4. Application will havea route to serve this asset (using mendel-middleware):
+4. Application will have a route to serve this asset (using mendel-middleware):
     1. `/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
     2. On-demand bundles will have similar URLs and a list of potential bundles is served to the user
 5. We get a CDN URL to cache this resource and serve in the HTML
