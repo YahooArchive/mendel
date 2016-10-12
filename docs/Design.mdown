@@ -623,14 +623,37 @@ The manifest is generated at build time, and based on entry points for an applic
 
 At runtime, the manifest is loaded in memory once, and we are now able to dynamically serve all possible permutations in request time, which we explain in the following sections.
 
-### Resolving bundles at runtime
+### Mendel Hash - Resolving bundles at runtime
 
 Once the manifest is loaded by a production server, Mendel runtime libraries will be able to serve all permutations required for a particular deployment.
 
-Our hash algorithm takes caching into consideration.  If a small deployment changes only one file in one variation, only affected users will receive a new bundle, guaranteeing all other users to use their cached versions across deployments and different versions of the manifest.
+Our hash algorithm takes caching into consideration. If a small deployment changes only one particular file inside a variation, only a subset of users users should receive a new bundle. All other users should continue to use their cached versions -- even across multiple deployments.
 
+Since Mendel is based on file system we can understand the potential bundles and how hashing needs to be done, by analyzing the following scenario:
 
-Source code and details on Mendel hashing is available at:
+#### 4 experiments, divided in 2 layers, 2 experiments in each layer
+
+[![4 experiments in 2 layers graph](https://cdn.rawgit.com/yahoo/mendel/master/docs/Mendel-4-buckets-2-layers.svg)](Mendel-4-buckets-2-layers.svg)
+
+The image above can be used to understand a number of Mendel responsibilities. Here are the ones relevant to bundle hashing and caching:
+
+  1. With 4 experiments in those layers Mendel can potentially generate 9 bundles.
+  2. If file `F6` is changed in your application between one version and the other, it should only affects 3 bundles
+
+This scenario is easy to understand, but large applications can yield a huge number of variations, for instance, 40 experiments evenly distributed in 8 layers will yield 6.700 permutations. Those permutations are not static at build time. Enabling and disabling permutations, organizing variations into layers are responsibilities of campaign management tools and external systems, so creating all permutations in build time would not only be slow, but also impossible by the nature of A/B testing best practices.
+
+Also, in order to cache and serve those bundles, we need consistent URLs:
+
+  * URLs must be the same to multiple users
+  * URLs must be cookie-less, so we can use CDN caching
+  * URLs should benefit from enhanced security, by obfuscating experiment names
+  * URLs should be small enough
+
+For that reason, `mendel-core` generates a hash for each bundle. The hash is based in the file list for a bundle (or what we call a tree representation), and the content of each file. This is very similar to how `git` works internally -- each blob has a hash, and each tree has a hash based on file names and blob hashes -- but it is meant to be evaluated dynamically in production.
+
+Using hashes guarantees that we will cache bust only the required bundle on every deployment. It is very common for large applications to split the logic into multiple bundles and also common to do heavy development in variations. This allows developers to use Continuous Integration, Continuous Deployment and Continuous Delivery and rest assured that most users are not getting cache busted constantly.
+
+Source code and details on Mendel Hashing is available at:
 https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 
 

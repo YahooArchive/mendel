@@ -1,6 +1,11 @@
 # Mendel Core - Production resolution of file system based experiments
 
-Mendel Core loads all pre-built Mendel manifests in memory on a per process basis and evaluates the variations in a request time (or on a per user) basis.
+Mendel Core is the brains behind `mendel-middleware`. It is used to resolve hundreds or even thousands of potential permutations of "application trees". It uses deterministic hashing to provide a two step resolving:
+
+  1. Given a variation array, it resolves which files should be used for a given user session. It outputs an "application tree" and a deterministic hash.
+  2. Given a hash generated in step 1, it can recover all file dependencies for the same user session, resulting in the same exact "application tree" as step 1.
+
+Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a per-process basis, and resolving each files should be used on a per request (or per user session) basis.
 
 ```
 +-----------------------------------------------+
@@ -22,28 +27,81 @@ Mendel Core loads all pre-built Mendel manifests in memory on a per process basi
 +-----------+ +-----------+ +-----------+
 ```
 
-Each tree representation can be used to server side render, to hash generation or to resolve a bundle for a particular variation or for a particular set of variations.
+Each tree representation can be used to server-side render, to hash generation or to resolve a bundle for a particular set of variations.
 
-## Mendel hashing - why is it needed and how we do it
+## Request Cycle: Variation resolution
 
-In order to understand the problems we need to solve, be sure to recap the differences between multivariate and multilayer concepts. Assuming you understand that, let's analyze a simple scenario:
+When the user first visits the application, you use a variation array to resolve the application code:
+
+```
+                         +--------------------+
+                         |                    |
+                         |  Mendel Manifests  |
+                         |                    |
+                         +---------+----------+
+                                   |
+                                   v
+
+                      +---------------------------+
+                      |                           |
+                      |  MendelTrees per process  |
+                      |          instance         |
+                      |                           |
+                      +------------------+--------+
+                                         |
+                            ^            |
+NodeJS Process              |            |
++------------------------------------------------------------------+
+HTTP Request                |            |
+   +------------+           |            |              +--------------+
+   |            |           |            |              |              |
+   | variations +-----------+            +------------> | dependencies |
+   |            |                        |              |              |
+   +------------+                        |              +--------------+
+                                         |
+                                         |              +--------------+
+                                         |              |              |
+                                         +------------> | hash         |
+                                                        |              |
+                                                        +--------------+
+```
+
+Dependencies can than be used to server-side render, and hash can be used to generate bundle URLs that are safe for CDN caching.
 
 
-**4 experiments, divided in 2 layers, 2 experiments in each layer**
+## Request Cycle: Hash resolution
 
+When a request comes in with a hash, Mendel is able to safely recover all the dependencies:
 
-Since Mendel is based on file system we can understand the potential bundles for this scenario with the following diagram:
+```
+                         +--------------------+
+                         |                    |
+                         |  Mendel Manifests  |
+                         |                    |
+                         +---------+----------+
+                                   |
+                                   v
+NodeJS Process
+                      +---------------------------+
+                      |                           |
+                      |  MendelTrees per process  |
+                      |          instance         |
+                      |                           |
+                      +---------------------------+
 
-[![4 experiments in 2 layers graph](https://cdn.rawgit.com/yahoo/mendel/master/docs/Mendel-4-buckets-2-layers.svg)](../../docs/Mendel-4-buckets-2-layers.svg)
+                            ^            +
+NodeJS Process              |            |
++------------------------------------------------------------------+
+HTTP Request                |            |
+   +------------+           |            |              +--------------+
+   |            |           |            |              |              |
+   | hash       +-----------+            +------------> | dependencies |
+   |            |                                       |              |
+   +------------+                                       +--------------+
+```
 
-The image above can be used to understand a number of Mendel responsibilities. Here are the ones relevant to `mendel-core`:
+This request will usually be used to serve a bundle. The request can come from a user or from a CDN or any other proxy/caching layers. It does not need cookies and won't need a "Vary" header to prevent it to be corrupted by proxies. The hash is sufficient to consistently resolve the dependencies.
 
-  1. With 4 experiments in those layers Mendel can potentially generate 9 bundles.
-  2. If file `F6` is changed in your application between one version and the other, it only affects 3 bundles
-
-That's why `mendel-core` generates a hash for each bundle. The hash is based in the file list for a bundle (or what we can a tree representation), and the content of each file. This is very similar to how `git` works internally, but it is meant to be evaluated dynamically in production. The reason this is not feasible at build time is simple: We are analyzing 4 buckets in 2 layers, but large applications can yield a huge number of variations, for instance, 40 experiments evenly distributed in 8 layers will yield 6.700 permutations.
-
-Using hashes guarantees that we will cache bust only the required bundle on every deployment. It is very common for large applications to split the logic into multiple bundles and also common to do heavy development in variations. This allows developers to use Continuous Integration, Continuous Deployment and Continuous Delivery and rest assured that most users are not getting cache busted constantly.
 
 #### Mendel Hashing algorithm
 
@@ -61,25 +119,25 @@ The 6 pieces stand for:
 
 1. ID: The string “mendel” (lowercase) in ascii encoding
 2. VERSION: The version of this binary, right now it is version 1, we reserved this for future compatibility
-3. BRANCHES_ARRAY: 0+ segments of 8 bit unsigned integers, that are different than 255
-4. BRANCHES_LIMITER: Integer with value 255 that marks end of the branches
+3. VARIATIONS_ARRAY: 0+ segments of 8 bit unsigned integers, that are different than 255
+4. VARIATIONS_LIMITER: Integer with value 255 that marks end of file variations
 5. FILE_COUNT: The number of total files that were hashed during tree walking
 6. CONTENT_HASH: 20 byte sha1 binary
 
 Mendel starts with ID and VERSION and will walk the manifest, starting in the entry points of the package. Each "dep" is a browserify-like payload and has a sha1 of the source code, and also the dependencies of this file. Mendel will collect sha1 of all files and count how many files were walked.
 
-Every time Mendel finds a file with variations, it uses a one of two desired method for choosing a variation (discussed below), and it will then push **the index of the chosen variation** to the **branch index array**. The numbers are also appended to BRANCHES_ARRAY of the binary.
+Every time Mendel finds a file with variations, it uses a one of two desired method for choosing a variation (discussed below), and it will then push **the index of the chosen variation** to the **variation index array**. The numbers are also appended to VARIATIONS_ARRAY of the binary.
 
-Once walking is done, Mendel adds BRANCHES_LIMITER, to the binary, adds FILE_COUNT with the number of files walked, and computes CONTENT_HASH, the sha1 of all walked sha1 of the bundle. The final binary is than encoded with URLSafeBase64.
+Once walking is done, Mendel adds VARIATIONS_LIMITER, to the binary, adds FILE_COUNT with the number of files walked, and computes CONTENT_HASH, the sha1 of all walked sha1 of the bundle. The final binary is than encoded with URLSafeBase64.
 
-The variations can be resolved in two ways: By an array of desired **variation names**. This is useful for generating the hash for the first time. The second way, is when we decode a hash binary, and walk the manifest to collect and bundle source code, using the **branch index array**.
+The variations can be resolved in two ways: By an array of desired **variation names**. This is useful for generating the hash for the first time. The second way, is when we decode a hash binary, and walk the manifest to collect and bundle source code, using the **variation index array**.
 
 Because we need to make sure the contents are the same requested by user, the hash is calculated both when generating it for the first time (when generating HTML request) and when collecting the source code payload (when dynamically serving the bundle). If it is a match, the source code can be concatenated using `browser_pack`.
 
 
 ## Reference Usage
 
-Usually, you can use the `mendel-middleware` instead of using `mendel-core` directly. In case you need advanced use of Mendel, the minimal server bellow should be enough for you to start your custom implementation.
+Usually, you can use the `mendel-middleware` instead of using `mendel-core` directly. We also provide a [reference implementation](../../examples/full-example/) for the middleware use. In case you need advanced use of Mendel, the minimal server bellow should be enough for you to start your custom implementation.
 
 ```js
 const MendelTrees = require('mendel-core');
