@@ -34,7 +34,7 @@ In order to understand the problems we need to solve, be sure to recap the diffe
 
 Since Mendel is based on file system we can understand the potential bundles for this scenario with the following diagram:
 
-![4 experiments in 2 layers graph](../../docs/Mendel-4-buckets-2-layers.svg)
+[![4 experiments in 2 layers graph](https://cdn.rawgit.com/yahoo/mendel/master/docs/Mendel-4-buckets-2-layers.svg)](../../docs/Mendel-4-buckets-2-layers.svg)
 
 The image above can be used to understand a number of Mendel responsibilities. Here are the ones relevant to `mendel-core`:
 
