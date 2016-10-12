@@ -43,6 +43,8 @@ The image above can be used to understand a number of Mendel responsibilities. H
 
 That's why `mendel-core` generates a hash for each bundle. The hash is based in the file list for a bundle (or what we can a tree representation), and the content of each file. This is very similar to how `git` works internally, but it is meant to be evaluated dynamically in production. The reason this is not feasible at build time is simple: We are analyzing 4 buckets in 2 layers, but large applications can yield a huge number of variations, for instance, 40 experiments evenly distributed in 8 layers will yield 6.700 permutations.
 
+Using hashes guarantees that we will cache bust only the required bundle on every deployment. It is very common for large applications to split the logic into multiple bundles and also common to do heavy development in variations. This allows developers to use Continuous Integration, Continuous Deployment and Continuous Delivery and rest assured that most users are not getting cache busted constantly.
+
 #### Mendel Hashing algorithm
 
 The Mendel hash is a binary format encoded in URLSafeBase64 (RFC4648 section 5). The binary has the format below, where each number in parenthesis is the number of bytes used for a particular information:
