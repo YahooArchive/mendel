@@ -10,7 +10,7 @@ Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a pe
 ```
 +-----------------------------------------------+
 |                                               |
-|  MendelTrees long running  instance           |
+|  Mendel Core long running  instance           |
 |                                               |
 |          (contains all variations of          |
 |            all pre-compiled files)            |
@@ -30,7 +30,7 @@ Each tree representation can be used to server-side render, to hash generation o
 
 ### Request Cycle: Variation resolution
 
-When the user first visits the application, MendelTrees use a variation array to resolve the application code:
+When the user first visits the application, Mendel Core use a variation array to resolve the application code:
 
 ```
                          +--------------------+
@@ -42,7 +42,7 @@ When the user first visits the application, MendelTrees use a variation array to
                                    v
                       +---------------------------+
                       |                           |
-                      |  MendelTrees per process  |
+                      |  Mendel Core per process  |
                       |          instance         |
                       |                           |
                       +------------------+--------+
@@ -69,7 +69,7 @@ Dependencies are a list of filenames and their content. Dependencies can than be
 
 ### Request Cycle: Hash resolution
 
-When a request comes in with a hash, MendelTrees is able to safely recover all the dependencies from the manifest:
+When a request comes in with a hash, Mendel Core is able to safely recover all the dependencies from the manifest:
 
 ```
                          +--------------------+
@@ -81,7 +81,7 @@ When a request comes in with a hash, MendelTrees is able to safely recover all t
                                    v
                       +---------------------------+
                       |                           |
-                      |  MendelTrees per process  |
+                      |  MendelCore per process  |
                       |          instance         |
                       |                           |
                       +------------------+--------+
@@ -137,6 +137,9 @@ Because we need to make sure the contents are the same requested by user, the ha
 Usually, you can use the `mendel-middleware` instead of using `mendel-core` directly. We also provide a [reference implementation](../../examples/full-example/) for the middleware use. In case you need advanced use of Mendel, the minimal server bellow should be enough for you to start your custom implementation.
 
 ```js
+// we call it MendelTrees because it is like a seed that will grow many
+// different trees depending on variations and bundles. It is almost a
+// tree factory, if you must :wink:
 const MendelTrees = require('mendel-core');
 
 const trees = MendelTrees(); // if no options passed, will read .mendelrc
