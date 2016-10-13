@@ -1,11 +1,12 @@
 import React from 'react';
 import Button from './button';
+import LazyContent from './lazy_content';
 
 class Lazy extends React.Component {
     render() {
         return (
             <p>
-                Lazy Content with
+                <LazyContent />
                 <Button>Lazy Button</Button>
             </p>
         );
