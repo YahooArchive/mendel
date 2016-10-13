@@ -22,7 +22,9 @@ app.get('/', function(req, res) {
     var optionalMarkup = "";
 
     if (serverRender) {
-        var resolver = req.mendel.resolver(variations);
+        // To improve ssr performance, you need to pass
+        // array of bundle ids you only need for ssr rendering
+        var resolver = req.mendel.resolver(['main'], variations);
         var Main = resolver.require('main.js');
 
         optionalMarkup = ReactDOMServer.renderToString(Main())

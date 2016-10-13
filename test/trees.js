@@ -119,7 +119,7 @@ test('MendelTrees private methods', function (t) {
 });
 
 test('MendelTrees valid manifest runtime', function (t) {
-    t.plan(8);
+    t.plan(10);
 
     process.chdir(appPath);
     mkdirp.sync(appBuild);
@@ -148,8 +148,10 @@ test('MendelTrees valid manifest runtime', function (t) {
         t.match(result_1, decoded,
             'retrieves same tree from hahs');
 
-        var map_1 = trees.findServerVariationMap('test_A');
-        var map_2 = trees.findServerVariationMap(['test_A', 'test_B']);
+        var map_1 = trees.findServerVariationMap(['app'], 'test_A');
+        var map_2 = trees.findServerVariationMap(['app'], ['test_A', 'test_B']);
+        var map_3 = trees.findServerVariationMap(['foo'], 'test_A');
+        var map_4 = trees.findServerVariationMap([], 'test_A');
 
         t.match(map_1, {
             'index.js': 'app',
@@ -163,5 +165,7 @@ test('MendelTrees valid manifest runtime', function (t) {
             'some-number.js': 'test_B',
             'another-number.js': 'app'
         }, 'map_2 variationMap sanity check');
+        t.match(map_3, {}, 'map_3 variationMap sanity check');
+        t.match(map_4, {}, 'map_4 variationMap sanity check');
     });
 });

@@ -42,7 +42,7 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
     return finder.found();
 };
 
-MendelTrees.prototype.findServerVariationMap = function(variations) {
+MendelTrees.prototype.findServerVariationMap = function(bundles, variations) {
     if (typeof variations ==='string') {
         variations = [variations];
     }
@@ -53,7 +53,11 @@ MendelTrees.prototype.findServerVariationMap = function(variations) {
     var lookupChains = self._buildLookupChains(variations);
     var finder = new MendelServerVariationWalker(lookupChains, base);
 
-    Object.keys(self.bundles).forEach(function (bundle) {
+    function selectBundles(key) {
+        return bundles.indexOf(key) !== -1;
+    }
+
+    Object.keys(self.bundles).filter(selectBundles).forEach(function (bundle) {
         self._walkTree(bundle, finder);
         variationMap = xtend(variationMap, finder.found());
     });
