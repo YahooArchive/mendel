@@ -19,7 +19,7 @@ function MendelLoaderDev(existingVariations, config, parentModule) {
     this._checkSsrReady();
 }
 
-MendelLoaderDev.prototype.resolver = function(variations) {
+MendelLoaderDev.prototype.resolver = function(bundles, variations) {
     if (!this.isSsrReady()) {
         console.warn('Warning: Mendel loader could not find server output dir.');
     }
