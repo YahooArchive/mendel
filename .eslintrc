@@ -1,9 +1,11 @@
 ---
-  extends: "eslint:recommended"
-  env:
-    node: true
-    es6: false
-  rules:
-    semi: 2
-    no-console: 0
-    comma-dangle: [1, "only-multiline"]
+extends: "eslint:recommended"
+env:
+  node: true
+  es6: true
+rules:
+  semi: 2
+  no-console: 0
+  comma-dangle:
+    - 1
+    - always-multiline

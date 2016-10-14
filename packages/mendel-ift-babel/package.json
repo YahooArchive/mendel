@@ -1,0 +1,17 @@
+{
+  "name": "mendel-ift-babel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel-ift"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "babel-core": "^6.17.0"
+  }
+}
