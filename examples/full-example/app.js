@@ -36,11 +36,10 @@ app.get('/', function(req, res) {
             '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor', variations),
             bundle(req, 'main', variations),
-            // WARNING: This temporary "lazy" bundle is not part of the example
-            // The dev team needs this here for a while in order to
-            // do some work in parallel branches
+            // The full example supports on-demand loading, lazy bundle
+            // is only loaded client-side when a button is clicked in the
+            // application
             entryMap(req, 'lazy', variations),
-            // END WARNING
         '</body></html>'
     ].join('\n');
 
@@ -56,15 +55,16 @@ function bundle(req, bundle, variations) {
 function entryMap(req, bundle, variations) {
     // req.mendel.getBundleEntries contains all bundles as keys and array of
     // entries that were used and normalized by variations, this allows apps
-    // to do their specific logic with their bundles
+    // to create specific logic with their bundles in runtime
     var bundles = req.mendel.getBundleEntries();
 
-    // In this particular case, we used "temporary" on the .mendelrc
-    // go expose our lazy bundle entries from extractify
-    var lazy =  [
+    // In this particular case, entryMap will be used to expose to the client
+    // the URL for bundles based on modules that are "exposed", meaning, after
+    // loading the bundle, you can `require('entryName.js')` for any entry.
+    var entryMapScript =  [
         '<script>',
         '   (function(){',
-        '       var nameSpace = "_extractedModuleBundleMap";',
+        '       var nameSpace = "_mendelEntryMap";',
         '       var url = "'+req.mendel.getURL(bundle, variations)+'";',
         '       window[nameSpace] = window[nameSpace] || {};',
         '       ' + bundles[bundle].map(function(entry) {
@@ -73,7 +73,7 @@ function entryMap(req, bundle, variations) {
         '   })()',
         '</script>'
     ];
-    return lazy.join('\n');
+    return entryMapScript.join('\n');
 }
 
 module.exports = app;

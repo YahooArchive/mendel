@@ -79,7 +79,7 @@ function asyncRequire(requireModule, callback) {
             if (error.code !== 'MODULE_NOT_FOUND') {
                 return callback(error);
             }
-            loadScript(window._extractedModuleBundleMap[path], function(){
+            loadScript(window._mendelEntryMap[path], function(){
                 var payload = parentRequire.call(self, path);
                 callback(null, payload);
             });
