@@ -24,6 +24,8 @@ function MendelMiddleware(opts) {
         parentModule: module.parent
     });
 
+    var urlCache = {};
+
     return function(req, res, next) {
         req.mendel = req.mendel || {};
 
@@ -45,8 +47,17 @@ function MendelMiddleware(opts) {
         };
 
         req.mendel.getURL = function(bundle, variations) {
-            var tree = trees.findTreeForVariations(bundle, variations);
-            return getPath({ bundle: bundle, hash: tree.hash });
+            var cacheKey = bundle + '+' + trees._buildLookupChains(variations).join('+');
+            var path;
+            if (urlCache[cacheKey]) {
+                path = urlCache[cacheKey];
+            } else {
+                var tree = trees.findTreeForVariations(bundle, variations);
+                //TODO: to prevent memory leak, we could also add a limit to cache
+                urlCache[cacheKey] = path = getPath({ bundle: bundle, hash: tree.hash });
+            }
+
+            return path;
         };
 
         req.mendel.resolver = loader.resolver.bind(loader);
