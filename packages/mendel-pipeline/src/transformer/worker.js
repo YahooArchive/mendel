@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel-ift-slave-' + process.pid);
+const debug = require('debug')('mendel:ift-slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);
 

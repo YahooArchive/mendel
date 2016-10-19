@@ -2,7 +2,7 @@
   "name": "mendel-pipeline",
   "version": "1.0.0",
   "description": "",
-  "main": "src/mendel.js",
+  "main": "src/pipeline.js",
   "bin": "src/cli.js",
   "scripts": {
     "test": "tap test/*.js",
@@ -19,5 +19,8 @@
   "devDependencies": {
     "eslint": "^3.7.1",
     "tap": "^7.1.2"
+  },
+  "engines": {
+    "node": ">=6.0"
   }
 }

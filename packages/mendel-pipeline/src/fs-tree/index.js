@@ -4,10 +4,10 @@ const {resolve: pathResolve} = require('path');
 const {readFile} = require('fs');
 
 class FileTreeWatcher extends EventEmitter {
-    constructor(targetCwd, {ignore}) {
+    constructor(bus, {cwd, ignore}) {
         super();
 
-        this.cwd = targetCwd;
+        this.cwd = cwd;
         // Default ignore .dot files.
         this.ignored = (ignore || []).concat([/[\/\\]\./]);
 
@@ -15,7 +15,7 @@ class FileTreeWatcher extends EventEmitter {
         this.isInitialized = false;
         this.initialProrityQueue = [];
 
-        this.watcher = chokidar.watch('.', {cwd: this.cwd, ignored: this.ignored});
+        this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
         this.setupWatcher();
     }
 
@@ -48,6 +48,14 @@ class FileTreeWatcher extends EventEmitter {
 
             this.emit('ready');
         });
+    }
+
+    subscribe(path) {
+        this.watcher.add(path);
+    }
+
+    unsubscribe(path) {
+        this.watcher.unwatch(path);
     }
 }
 

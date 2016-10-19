@@ -1,7 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
-const debug = require('debug')('mendel-ift-master');
+const debug = require('debug')('mendel:ift-master');
 const EventEmitter = require('events').EventEmitter;
 const {fork} = require('child_process');
 const {extname, resolve: pathResolve} = require('path');
@@ -66,9 +66,9 @@ function singleMode(transforms, {filename, source}) {
 }
 
 /**
- * Responsible for knowing what set of transforms are available
+ * Knows how to do all kinds of trasnforms in parallel way
  */
-class IsolatedFileTrasnformManager extends EventEmitter {
+class TrasnformManager extends EventEmitter {
     constructor(transforms) {
         super();
         this._transforms = new Map();
@@ -99,19 +99,13 @@ class IsolatedFileTrasnformManager extends EventEmitter {
         throw new Error('Could not find Mendel IFT plugin: ' + plugin);
     }
 
-    _getTransformIds(filePath) {
-        // TODO select set of transform Id based on file path.
-        return Array.from(this._transforms.keys());
-    }
-
-    transform(filename, source) {
+    transform(filename, transformIds, source) {
         // TODO make sure plugins can handle certain extensions.
         // For instance, babel dies when you pass non-JS source to it.
         if (['.js', '.jsx'].indexOf(extname(filename)) < 0) {
-            return this.emit('transformed', filename, source);
+            return Promise.resolve({filename, source});
         }
 
-        const transformIds = this._getTransformIds(filename);
         const transforms = transformIds.map(transformId => this._transforms.get(transformId));
 
         let mode;
@@ -122,15 +116,8 @@ class IsolatedFileTrasnformManager extends EventEmitter {
             mode = singleMode;
         }
 
-        return mode(transforms, {filename, source}).then(result => {
-            this.emit('transformed', filename, result);
-        }).catch(error => {
-            console.log('Error', error.stack);
-            debug('Error: ' +  error.message);
-
-            this.emit('done', filename, source);
-        });
+        return mode(transforms, {filename, source});
     }
 }
 
-module.exports = IsolatedFileTrasnformManager;
+module.exports = TrasnformManager;

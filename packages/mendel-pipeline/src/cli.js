@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const mendelPipeline = require('./mendel');
+const mendelPipeline = require('./pipeline');
 const program = require('commander');
 
 function parseIgnores(val='', previousIgnores) {
@@ -21,6 +21,7 @@ program
 // Example usage
 // time node src/cli.js ~/dev/norrin/src/
 mendelPipeline(program.args[0], Object.assign(program, {
+    commonTransformIds: ['babel1'],
     transforms: {
         babel1: {
             plugin: 'mendel-ift-babel',
