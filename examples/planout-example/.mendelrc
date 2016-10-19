@@ -1,0 +1,33 @@
+
+outdir: ./build
+bundlesoutdir: client
+serveroutdir: server
+
+base: base
+basetree: isomorphic/base
+bundles:
+  vendor:
+    require:
+      - react
+      - react-dom
+  main:
+    entries:
+      - ./isomorphic/base/main.js
+    external:
+      - react
+      - react-dom
+    transform:
+      - babelify
+
+manifestProcessors:
+  -
+    - mendel-manifest-extract-bundles
+
+variationsdir: isomorphic/variations
+variations:
+  layer_1_bucket_A:
+  layer_1_bucket_B:
+  layer_1_bucket_C:
+  layer_2_bucket_A:
+  layer_2_bucket_B:
+  layer_2_bucket_C:
