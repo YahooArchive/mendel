@@ -30,7 +30,6 @@
     "karma-spec-reporter": "0.0.26",
     "mendel": "*",
     "mendel-development-middleware": "*",
-    "mendel-extractify": "*",
     "mendel-manifest-extract-bundles": "*",
     "nodemon": "^1.9.2",
     "react-addons-test-utils": "^0.14.8",
