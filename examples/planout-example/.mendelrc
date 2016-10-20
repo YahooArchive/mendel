@@ -1,0 +1,32 @@
+
+outdir: ./build
+bundlesoutdir: client
+serveroutdir: server
+
+base: base
+basetree: isomorphic/base
+bundles:
+  vendor:
+    require:
+      - react
+      - react-dom
+  main:
+    entries:
+      - ./isomorphic/base/main.js
+    external:
+      - react
+      - react-dom
+    transform:
+      - babelify
+
+variationsdir: isomorphic/variations
+variations:
+  # Note that the inclusion of layer_1 and layer_2 in the variation names are to make this
+  # example more clear. They are not a requirement of Mendel nor PlanOut. In fact Mendel
+  # allows variations to be named anything you would like.
+  layer_1_bucket_A:
+  layer_1_bucket_B:
+  layer_1_bucket_C:
+  layer_2_bucket_A:
+  layer_2_bucket_B:
+  layer_2_bucket_C:

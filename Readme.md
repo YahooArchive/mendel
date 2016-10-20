@@ -33,7 +33,7 @@ Mendel does not support:
 * Experiment resolution: Mendel does not provide [random assignment](https://en.wikipedia.org/wiki/Random_assignment) of users into experiments
 * Experiments measurement: Mendel does not provide a way to track performance of experiments based on user actions
 
-Both of the above are covered by existing open source tools, such as [Open Web Analytics](http://www.openwebanalytics.com), [Piwik](https://piwik.org) and [many others](https://www.google.com/#q=open+source+web+analytics).
+Both of the above are covered by existing open source tools, such as [PlanOut](http://facebook.github.io/planout/), [Open Web Analytics](http://www.openwebanalytics.com), [Piwik](https://piwik.org) and [many others](https://www.google.com/#q=open+source+web+analytics).
 
 ## Advantages of using Mendel
 
