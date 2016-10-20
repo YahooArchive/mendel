@@ -1,0 +1,22 @@
+{
+  "name": "mendel-deps",
+  "version": "1.0.0",
+  "description": "Depedency finder",
+  "main": "src/deps.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^4.0.3",
+    "acorn-jsx": "^3.0.1",
+    "ast-types": "^0.9.0",
+    "browser-resolve": "^1.11.2",
+    "resolve": "^1.1.7"
+  },
+  "devDependencies": {
+    "glob": "^7.1.1",
+    "tap": "^7.1.2"
+  }
+}

@@ -1,0 +1,1 @@
+const {hi} = require('./foo');
