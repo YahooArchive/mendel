@@ -25,7 +25,10 @@ function MendelMiddleware(opts) {
     });
 
     return function(req, res, next) {
-        req.mendel = req.mendel || {};
+        req.mendel = req.mendel || {
+            bundleCache: {},
+            variations: false
+        };
 
         req.mendel.getBundleEntries = function() {
             return Object.keys(trees.bundles).reduce(
@@ -44,8 +47,44 @@ function MendelMiddleware(opts) {
             );
         };
 
+        req.mendel.setVariations = function(variations) {
+            if (req.mendel.variations === false) {
+                var varsAndChains = trees.variationsAndChains(variations);
+                req.mendel.variations = varsAndChains.matchingVariations;
+                req.mendel.lookupChains = varsAndChains.lookupChains;
+                if (Object.freeze) {
+                    Object.freeze(req.mendel);
+                    Object.freeze(req.mendel.variations);
+                    Object.freeze(req.mendel.lookupChains);
+                }
+            }
+            return req.mendel.variations;
+        };
+
+        req.mendel.getBundle = function(bundle) {
+            if (!req.mendel.variations) {
+                throw new Error('Please, call req.mendel.setVariations first');
+            }
+
+            if(!req.mendel.bundleCache[bundle]) {
+                var tree = trees.findTreeForVariations(
+                                            bundle, req.mendel.variations);
+                req.mendel.bundleCache[bundle] = tree;
+            }
+
+            return req.mendel.bundleCache[bundle];
+        };
+
         req.mendel.getURL = function(bundle, variations) {
-            var tree = trees.findTreeForVariations(bundle, variations);
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    'mendel.getURL(bundle, variations) is deprecated. '+
+                    'Please use mendel.setVariations(variations), followed by'+
+                    ' mendel.getURL(bundle).'
+                );
+                req.mendel.setVariations(variations);
+            }
+            var tree = req.mendel.getBundle(bundle);
             return getPath({ bundle: bundle, hash: tree.hash });
         };
 

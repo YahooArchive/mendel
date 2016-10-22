@@ -5,13 +5,18 @@
 
 var TreeSerialiser = require('./tree-serialiser');
 
-function MendelWalker() {
+function MendelWalker(opts) {
     if (!(this instanceof MendelWalker)) {
-        return new MendelWalker();
+        return new MendelWalker(opts);
+    }
+    if (!opts) {
+        opts = {};
     }
 
     this.deps = [];
-    this.serialiser = new TreeSerialiser();
+    if (opts.hash !== false) {
+        this.serialiser = new TreeSerialiser();
+    }
 }
 
 MendelWalker.prototype.find = function(module) {
@@ -23,7 +28,9 @@ MendelWalker.prototype.find = function(module) {
     } else {
         var branch = this._resolveBranch(module);
         resolved = branch.resolved;
-        this.serialiser.pushBranch(branch.index);
+        if (this.serialiser) {
+            this.serialiser.pushBranch(branch.index);
+        }
     }
     this.deps[module.index] = resolved;
     this.serialiser.pushFileHash(new Buffer(resolved.sha, 'hex'));
@@ -36,10 +43,13 @@ MendelWalker.prototype._resolveBranch = function() {
 };
 
 MendelWalker.prototype.found = function() {
-    return {
-        deps: this.deps,
-        hash: this.serialiser.result()
+    var found = {
+        deps: this.deps
     };
+    if (this.serialiser) {
+        found.hash = this.serialiser.result();
+    }
+    return found;
 };
 
 module.exports = MendelWalker;

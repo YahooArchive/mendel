@@ -57,37 +57,37 @@ test('MendelTrees private methods', function (t) {
     }];
 
     t.equal(
-        trees._buildLookupChains([]).length,
+        trees._variationsAndChains([]).lookupChains.length,
         1,
         'returns base if empty input'
     );
     t.equal(
-        trees._buildLookupChains(['a']).length,
+        trees._variationsAndChains(['a']).lookupChains.length,
         2,
         'returns variation and base'
     );
     t.match(
-        trees._buildLookupChains(['c'])[0],
+        trees._variationsAndChains(['c']).lookupChains[0],
         ['c-chain', 'b-chain'],
         "valid chains don't contain base"
     );
     t.equal(
-        trees._buildLookupChains(['a-chain']).length,
+        trees._variationsAndChains(['a-chain']).lookupChains.length,
         1,
         'find variations, not chains'
     );
     t.equal(
-        trees._buildLookupChains(['a', 'b']).length,
+        trees._variationsAndChains(['a', 'b']).lookupChains.length,
         3,
         'returns multiple variations'
     );
     t.matches(
-        JSON.stringify(trees._buildLookupChains(['a', 'b'])),
-        JSON.stringify(trees._buildLookupChains(['b', 'a'])),
+        JSON.stringify(trees._variationsAndChains(['a', 'b']).lookupChains),
+        JSON.stringify(trees._variationsAndChains(['b', 'a']).lookupChains),
         'order is based on configuration, not input'
     );
     t.matches(
-        JSON.stringify(trees._buildLookupChains(['c', 'b'])),
+        JSON.stringify(trees._variationsAndChains(['c', 'b']).lookupChains),
         JSON.stringify([['b-chain'], ['c-chain', 'b-chain'], ['base-chain']]),
         'correct full output, with only chains'
     );

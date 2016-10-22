@@ -34,12 +34,16 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
         variations = [variations];
     }
 
-    var lookupChains = this._buildLookupChains(variations);
-    var finder = new MendelVariationWalker(lookupChains, this.config.base);
+    var variationsAndChains = this.variationsAndChains(variations);
+    var lookupChains = variationsAndChains.lookupChains;
+    var finder = new MendelVariationWalker({
+        lookupChains: lookupChains,
+        base: this.config.base
+    });
 
     this._walkTree(bundle, finder);
 
-    return finder.found();
+    return xtend(variationsAndChains, finder.found());
 };
 
 MendelTrees.prototype.findServerVariationMap = function(bundles, variations) {
@@ -50,8 +54,12 @@ MendelTrees.prototype.findServerVariationMap = function(bundles, variations) {
     var self = this;
     var variationMap = {};
     var base = self.config.base;
-    var lookupChains = self._buildLookupChains(variations);
-    var finder = new MendelServerVariationWalker(lookupChains, base);
+    var variationsAndChains = this.variationsAndChains(variations);
+    var lookupChains = variationsAndChains.lookupChains;
+    var finder = new MendelServerVariationWalker({
+        lookupChains: lookupChains,
+        base: base
+    });
 
     function selectBundles(key) {
         return bundles.indexOf(key) !== -1;
@@ -93,6 +101,9 @@ MendelTrees.prototype._loadBundles = function() {
             throw newError;
         }
     });
+    if (Object.freeze) {
+        deepFreeze(this.bundles);
+    }
 };
 
 MendelTrees.prototype._walkTree = function(bundle, finder) {
@@ -105,11 +116,14 @@ MendelTrees.prototype._walkTree = function(bundle, finder) {
     }
 };
 
-MendelTrees.prototype._buildLookupChains = function(lookFor) {
-    var lookupChains = []; // perf: for loop instead of forEach
+MendelTrees.prototype.variationsAndChains = function(lookFor) {
+    var lookupChains = [];
+    var matchingVariations = [];
+    // perf: for loop instead of forEach
     for (var i = 0; i < this.variations.length; i++) {
         var variation = this.variations[i];
         if (-1 !== lookFor.indexOf(variation.id)) {
+            matchingVariations.push(variation.id);
             var lookupChain = [];
             for (var j = 0; j < variation.chain.length; j++) {
                 var lookupVar = variation.chain[j];
@@ -120,8 +134,12 @@ MendelTrees.prototype._buildLookupChains = function(lookFor) {
             lookupChains.push(lookupChain);
         }
     }
+    matchingVariations.push(this.config.base);
     lookupChains.push([this.config.basetree]);
-    return lookupChains;
+    return {
+        lookupChains: lookupChains,
+        matchingVariations: matchingVariations
+    };
 };
 
 function walk(tree, module, pathFinder) {
@@ -132,6 +150,17 @@ function walk(tree, module, pathFinder) {
         var subdep = tree.bundles[index];
         if (subdep) walk(tree, subdep, pathFinder);
     }
+}
+
+function deepFreeze(obj) {
+  var propNames = Object.getOwnPropertyNames(obj);
+  propNames.forEach(function(name) {
+    var prop = obj[name];
+    if (typeof prop == 'object' && prop !== null)
+      deepFreeze(prop);
+  });
+
+  return Object.freeze(obj);
 }
 
 

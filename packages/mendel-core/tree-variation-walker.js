@@ -11,14 +11,18 @@ var MendelWalker = require('./tree-walker');
 util.inherits(MendelVariationWalker, MendelWalker);
 module.exports = MendelVariationWalker;
 
-function MendelVariationWalker(_lookupChains, _base) {
+function MendelVariationWalker(opts) {
     if (!(this instanceof MendelVariationWalker)) {
-        return new MendelVariationWalker(_lookupChains, _base);
+        return new MendelVariationWalker(opts);
     }
-    MendelWalker.call(this);
+    MendelWalker.call(this, opts);
 
-    this._lookupChains = _lookupChains;
-    this._base = _base;
+    if (!opts) {
+        opts = {};
+    }
+
+    this._lookupChains = opts.lookupChains;
+    this._base = opts.base;
     this.conflicts = 0;
     this.conflictList = {};
 }
