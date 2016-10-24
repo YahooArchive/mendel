@@ -1,41 +1,35 @@
 const acorn = require('acorn-jsx/inject')(require('acorn'));
-const {dirname} = require('path');
+const {dirname, join: pathJoin} = require('path');
 const {visit} = require('ast-types');
-const browserResolve = require('browser-resolve');
-const serverResolve = require('resolve');
-
-function deps(fileName, sourceString) {
-    const ast = acorn.parse(sourceString, {
-        plugins: {jsx: true},
-        ecmaVersion: 6,
-        sourceType: 'module',
-    });
-    const unresolvedModules = depFinder(ast);
-    const fileDirname = dirname(fileName);
-
-    return Promise.all(unresolvedModules.map(modulename => resolveBoth(fileDirname, modulename)));
-}
+// const browserResolve = require('browser-resolve');
+// const serverResolve = require('resolve');
+const VariationalResolver = require('./resolver/variational-resolver');
 
 function resolveBoth(basePath, modulePath) {
-    const dependencies = {};
-
-    return new Promise(function(resolve, reject) {
-        serverResolve(modulePath, {basedir: basePath}, function(err, res) {
-            if (err) reject(err);
-            // console.log(basePath, modulePath, res);
-            dependencies.server = res;
-            if (dependencies.browser && dependencies.server) resolve(dependencies);
-        });
-        browserResolve(modulePath, {basedir: basePath}, function(err, res) {
-            if (err) reject(err);
-            // console.log(basePath, modulePath, res);
-            dependencies.browser = res;
-            if (dependencies.browser && dependencies.server) resolve(dependencies);
-        });
-    });
+    return new VariationalResolver({
+        basedir: basePath,
+        envNames: ['main', 'browser'],
+        extensions: ['.js', '.jsx'],
+        variationsDir: 'variations',
+        baseVariationDir: 'base',
+    }).resolve(modulePath);
+    // return new Promise(function(resolve, reject) {
+    //     serverResolve(modulePath, {basedir: basePath}, function(err, res) {
+    //         if (err) reject(err);
+    //         // console.log(basePath, modulePath, res);
+    //         dependencies.node = res;
+    //         if (dependencies.browser && dependencies.node) resolve(dependencies);
+    //     });
+    //     browserResolve(modulePath, {basedir: basePath}, function(err, res) {
+    //         if (err) reject(err);
+    //         // console.log(basePath, modulePath, res);
+    //         dependencies.browser = res;
+    //         if (dependencies.browser && dependencies.node) resolve(dependencies);
+    //     });
+    // });
 }
 
-function depFinder(ast) {
+function _depFinder(ast) {
     const unresolved = {};
 
     visit(ast, {
@@ -68,4 +62,21 @@ function depFinder(ast) {
     return Object.keys(unresolved);
 }
 
-module.exports = deps;
+module.exports = function deps(baseDir, fileName, sourceString) {
+    try {
+        const ast = acorn.parse(sourceString, {
+            plugins: {jsx: true},
+            ecmaVersion: 6,
+            sourceType: 'module',
+        });
+
+        const unresolvedModules = _depFinder(ast);
+        const fileDirname = pathJoin(baseDir, dirname(fileName));
+
+        return Promise.all(unresolvedModules.map(modulename => resolveBoth(fileDirname, modulename)));
+    } catch (error) {
+        console.log(fileName);
+
+        return Promise.reject(error);
+    }
+};

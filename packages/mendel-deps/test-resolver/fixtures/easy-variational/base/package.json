@@ -1,0 +1,5 @@
+{
+  "browser": "non-existing.js",
+  "main": "index.js",
+  "extra": "extra.js"
+}

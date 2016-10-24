@@ -25,7 +25,9 @@
     "mendel-manifest-extract-bundles": "*",
     "mendel-development-middleware": "*",
     "mendel-extractify": "*",
-    "nodemon": "^1.9.2"
+    "nodemon": "^1.9.2",
+    "mendel-pipeline": "*",
+    "mendel-ift-babel": "*"
   },
   "babel": {
     "presets": [

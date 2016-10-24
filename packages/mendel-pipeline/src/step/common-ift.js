@@ -3,15 +3,18 @@ const debug = require('debug')('mendel:common-ift');
 
 class CommonIFT extends EventEmitter {
     /**
+     * @param {MendelRegistry} registry
+     * @param {Transformer} transformer
      * @param {Array<String>} config.commonTransformIds
-     * @param {Transformer} toolset.transformer
      */
-    constructor(bus, transformer, {commonTransformIds}) {
+    constructor(registry, transformer, {commonTransformIds}) {
         super();
 
-        this._bus = bus;
+        this._registry = registry;
         this._transformIds = commonTransformIds;
         this._transformer = transformer;
+
+        this._registry.on('sourceAdded', (filePath, rawSource) => this.transform(filePath, rawSource));
     }
 
     transform(filePath, source) {
@@ -20,7 +23,7 @@ class CommonIFT extends EventEmitter {
             this.emit('done', filePath, this._transformIds, source);
         })
         .catch((error) => {
-            debug(`Errored while transforming ${filePath}: ${error.message}`);
+            debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`);
         });
     }
 }

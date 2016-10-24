@@ -28,12 +28,19 @@ mendelPipeline(program.args[0], Object.assign(program, {
             options:  {
                 presets: [
                     'es2015',
+                    'react',
                 ],
                 plugins: [
-                    'add-module-exports',
-                    'transform-react-jsx',
+                    // 'add-module-exports',
+                    // 'transform-react-jsx',
                 ],
             },
+        },
+    },
+    bundles: {
+        main: {
+            transform: ['babel1'],
+            entries: ['src/apps/mail/index.js'],
         },
     },
 }));

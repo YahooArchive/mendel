@@ -4,7 +4,7 @@ const {resolve: pathResolve} = require('path');
 const {readFile} = require('fs');
 
 class FileTreeWatcher extends EventEmitter {
-    constructor(bus, {cwd, ignore}) {
+    constructor(registry, {cwd, ignore}) {
         super();
 
         this.cwd = cwd;

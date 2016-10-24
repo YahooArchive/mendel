@@ -1,15 +1,14 @@
 /**
  * Independent/Isolated file transform
  */
-const debug = require('debug')('mendel:ift-master');
-const EventEmitter = require('events').EventEmitter;
+const debug = require('debug')('mendel:ift:master');
 const {fork} = require('child_process');
 const {extname, resolve: pathResolve} = require('path');
 const {existsSync} = require('fs');
 const {sync: moduleResolveSync} = require('resolve');
 
 const parallelMode = (function() {
-    const numCPUs = require('os').cpus().length / 2;
+    const numCPUs = require('os').cpus().length;
     const workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
     const _idleWorkerQueue = workerProcesses.map(({pid}) => pid);
     const _queue = [];
@@ -17,7 +16,7 @@ const parallelMode = (function() {
     function next() {
         if (!_queue.length || !_idleWorkerQueue.length) return;
 
-        const {filename, source, transforms, resolve, reject} = _queue.shift();
+        const {filename, source, transforms, resolves, rejects} = _queue.shift();
         const idlePid = _idleWorkerQueue.shift();
         const workerProcess = workerProcesses.find(({pid}) => idlePid === pid);
 
@@ -25,10 +24,10 @@ const parallelMode = (function() {
             debug(`[Master] <- [Slave ${workerProcess.pid}]: ${type}`);
 
             if (type === 'error') {
-                reject(new Error(error));
+                rejects.forEach(reject => reject(new Error(error)));
             } else if (type === 'done') {
                 _idleWorkerQueue.push(workerProcess.pid);
-                resolve({source, map});
+                resolves.forEach(resolve => resolve({source, map}));
             }
 
             next();
@@ -37,15 +36,26 @@ const parallelMode = (function() {
         next();
     }
 
+    process.on('exit', () => {
+        workerProcesses.forEach(workerProcess => workerProcess.kill());
+    });
+
     return function queue(transforms, {source, filename}) {
         return new Promise((resolve, reject) => {
-            _queue.push({
-                resolve,
-                reject,
-                transforms,
-                source,
-                filename,
-            });
+            const existingJob = _queue.find(queued => queued.filename === filename && queued.transforms === transforms);
+
+            if (existingJob) {
+                existingJob.resolves.push(resolve);
+                existingJob.rejects.push(reject);
+            } else {
+                _queue.push({
+                    resolves: [resolve],
+                    rejects: [reject],
+                    transforms,
+                    source,
+                    filename,
+                });
+            }
 
             next();
         });
@@ -68,13 +78,13 @@ function singleMode(transforms, {filename, source}) {
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
-class TrasnformManager extends EventEmitter {
+class TrasnformManager {
     constructor(transforms) {
-        super();
         this._transforms = new Map();
 
         Object.keys(transforms).forEach(transformId => {
             this._transforms.set(transformId, Object.assign({}, transforms[transformId], {
+                id: transformId,
                 plugin: this._resolvePlugin(transforms[transformId].plugin),
             }));
         });

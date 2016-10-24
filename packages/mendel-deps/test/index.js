@@ -17,7 +17,7 @@ glob(__dirname + '/fixtures/**/*.js', null, function(err, files) {
                 const fooDep = deps[0];
 
                 t.match(fooDep.browser, /foo\/browser.js$/);
-                t.match(fooDep.server, /foo\/server.js$/);
+                t.match(fooDep.node, /foo\/server.js$/);
             });
         });
     });

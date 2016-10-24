@@ -4,11 +4,33 @@ class Entry {
         // Common IFT, Common IFT + additional
         this.sourceVersions = new Map();
         this.dependents = [];
-        this.dependencies = [];
+        this.dependencies = {browser: [], node: []};
+        this.dependenciesUpToDate = false;
     }
 
     setSource(transformIds, source) {
         this.sourceVersions.set(transformIds.join('_'), source);
+    }
+
+    getSource(transformIds) {
+        return this.sourceVersions.get(transformIds.join('_'));
+    }
+
+    getClosestSource(transformIds) {
+        for (let i = transformIds.length; i >= 0; i--) {
+            const key = transformIds.slice(0, i).join('_');
+            if (this.sourceVersions.has(key)) {
+                return {
+                    transformIds: key,
+                    source: this.sourceVersions.get(key),
+                };
+            }
+        }
+
+        return {
+            transformIds: null,
+            source: null,
+        };
     }
 
     addDependent(dependent) {
@@ -17,13 +39,23 @@ class Entry {
         this.dependents.push(dependent);
     }
 
+    setDependencies(dependencies) {
+        this.dependenciesUpToDate = true;
+        dependencies.forEach(({browser, node}) => {
+            this.dependencies.browser.push(browser);
+            this.dependencies.node.push(node);
+        });
+    }
+
     reset() {
+        this.dependenciesUpToDate = false;
         this.sourceVersions.clear();
         this.dependents = [];
         this.dependencies = [];
     }
 }
 
+// We can have different adaptors for this layer. Distrubted cache?
 class MendelCache {
     constructor() {
         this._cache = new Map();
@@ -41,9 +73,8 @@ class MendelCache {
         this._cache.delete(filePath);
     }
 
-    get(filePath) {
-        // NOTE this function can be async when using memcached or whatever
-        return Promise.resolve(this._cache.get(filePath));
+    getEntry(filePath) {
+        return this._cache.get(filePath);
     }
 }
 

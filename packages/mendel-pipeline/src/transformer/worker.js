@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel:ift-slave-' + process.pid);
+const debug = require('debug')('mendel:ift:slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);
 
@@ -13,7 +13,7 @@ process.on('message', ({type, transforms, source, filename}) => {
                 const xform = require(transform.plugin);
                 return xform({filename, source}, transform.options);
             }).then(result => {
-                debug(`[Slave ${process.pid}] transform (${transform.plugin}) done`);
+                debug(`[Slave ${process.pid}][${transform.id}] "${filename}" transformed`);
                 return result;
             });
         });
