@@ -251,9 +251,13 @@ MendelBrowserify.prototype.pushBundleManifest = function(dep) {
             fs.writeFileSync(path.join(tempDir, 'B.'+filename),
                 dep.source);
 
-            throw new Error('Files with same variation ('+
+            throw new Error('\n\nFiles with same variation ('+
                 variation+') and id ('+id+') should have the same SHA' +
-                '\nsee ' + path.resolve(tempDir) + ' for details.');
+                '\n This is most likelly not a Mendel error.'+
+                '\n See https://github.com/yahoo/mendel/'+
+                        'blob/master/docs/ManifestValidation.md for details.'+
+                '\n Additional debug information saved to: ' +
+                        path.resolve(tempDir) + ' for your convinience.\n\n');
         }
     }
 };
