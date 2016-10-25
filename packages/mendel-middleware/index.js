@@ -58,7 +58,7 @@ function MendelMiddleware(opts) {
 
         req.mendel.getBundle = function(bundle) {
             if (!req.mendel.variations) {
-                throw new Error('Please, call req.mendel.setVariations first');
+                throw new Error('Please call req.mendel.setVariations first');
             }
 
             if(!req.mendel.bundleCache[bundle]) {
@@ -73,9 +73,10 @@ function MendelMiddleware(opts) {
         req.mendel.getURL = function(bundle, variations) {
             if (!req.mendel.variations && variations) {
                 console.warn(
-                    'mendel.getURL(bundle, variations) is deprecated. '+
-                    'Please use mendel.setVariations(variations), followed by'+
-                    ' mendel.getURL(bundle).'
+                    '[DEPRECATED] Please replace use of '+
+                    'mendel.getURL(bundle, variations).'+
+                    '\nUse mendel.setVariations(variations) followed by'+
+                    ' mendel.getURL(bundle) instead.'
                 );
                 req.mendel.setVariations(variations);
             }
@@ -86,9 +87,10 @@ function MendelMiddleware(opts) {
         req.mendel.resolver = function(bundles, variations) {
             if (!req.mendel.variations && variations) {
                 console.warn(
-                    'mendel.resolver([bundles], variations) is deprecated. '+
-                    'Please use mendel.setVariations(variations), followed by'+
-                    ' mendel.resolver([bundles]).'
+                    '[DEPRECATED] Please replace use of '+
+                    'mendel.resolver(bundle, variations).'+
+                    '\nUse mendel.setVariations(variations) followed by'+
+                    ' mendel.resolver(bundle) instead.'
                 );
                 req.mendel.setVariations(variations);
             }

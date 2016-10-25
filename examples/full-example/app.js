@@ -13,7 +13,7 @@ if (process.env.NODE_ENV !== 'production') {
     cache = false;
 }
 
-if (String(process.env.CACHE) === 'false') {
+if (String(process.env.MENDEL_CACHE) === 'false') {
     cache = false;
 }
 
@@ -81,9 +81,10 @@ function entryMap(req, bundle) {
     var key = bundle + ':' + req.mendel.variations.join(':');
     if (!cache || !entryMapCache[key]) {
 
-        // req.mendel.getBundleEntries contains all bundles as keys and array of
-        // entries that were used and normalized by variations, this allows apps
-        // to create specific logic with their bundles in runtime
+        // `req.mendel.getBundleEntries` contains all bundles as keys and arrays
+        // of entries that were used (normalized by variations) as values. This
+        // allows apps to create a specific logic with their bundles in the
+        // runtime.
         var bundles = req.mendel.getBundleEntries();
 
         // In this particular case, entryMap will be used to expose to the client

@@ -88,7 +88,7 @@ tap.test('getURL still works with variations', function(t){
         t.match(json, {
             appBundle: appBundle
         });
-        t.contains(msg, 'is deprecated', 'getURL show deprecated msg');
+        t.contains(msg, '[DEPRECATED]', 'getURL show deprecated msg');
     });
 });
 
@@ -135,7 +135,7 @@ tap.test('resolver still works with variations', function(t){
 
         t.match(response, { statusCode: 200 }, 'serves javascript');
         t.match(json.result, -2, 'resolver with correct content');
-        t.contains(msg, 'is deprecated', 'resolver show deprecated message');
+        t.contains(msg, '[DEPRECATED]', 'resolver show deprecated message');
     });
 });
 
@@ -166,7 +166,7 @@ tap.test('throws on incorrect use', function(t){
             statusCode: 500
         }, 'serves javascript');
         t.match(json, {
-            error: 'Please, call req.mendel.setVariations first'
+            error: 'Please call req.mendel.setVariations first'
         }, 'throws error when called in wrong order');
     });
 });
