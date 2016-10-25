@@ -101,9 +101,6 @@ MendelTrees.prototype._loadBundles = function() {
             throw newError;
         }
     });
-    if (Object.freeze) {
-        deepFreeze(this.bundles);
-    }
 };
 
 MendelTrees.prototype._walkTree = function(bundle, finder) {
@@ -150,17 +147,6 @@ function walk(tree, module, pathFinder) {
         var subdep = tree.bundles[index];
         if (subdep) walk(tree, subdep, pathFinder);
     }
-}
-
-function deepFreeze(obj) {
-  var propNames = Object.getOwnPropertyNames(obj);
-  propNames.forEach(function(name) {
-    var prop = obj[name];
-    if (typeof prop == 'object' && prop !== null)
-      deepFreeze(prop);
-  });
-
-  return Object.freeze(obj);
 }
 
 

@@ -52,11 +52,6 @@ function MendelMiddleware(opts) {
                 var varsAndChains = trees.variationsAndChains(variations);
                 req.mendel.variations = varsAndChains.matchingVariations;
                 req.mendel.lookupChains = varsAndChains.lookupChains;
-                if (Object.freeze) {
-                    Object.freeze(req.mendel);
-                    Object.freeze(req.mendel.variations);
-                    Object.freeze(req.mendel.lookupChains);
-                }
             }
             return req.mendel.variations;
         };
@@ -88,7 +83,10 @@ function MendelMiddleware(opts) {
             return getPath({ bundle: bundle, hash: tree.hash });
         };
 
-        req.mendel.resolver = loader.resolver.bind(loader);
+        req.mendel.resolver = function(bundles) {
+            return loader.resolver(bundles, req.mendel.variations);
+        };
+
         req.mendel.isSsrReady = loader.isSsrReady.bind(loader);
 
         // Match bundle route
