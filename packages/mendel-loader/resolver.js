@@ -67,6 +67,7 @@ MendelResolver.prototype.require = function (name) {
     if (modExports.__mendel_module__) {
         var mendelFn = modExports;
         var mendelMod = {
+            parent: parent,
             exports: {},
             require: that.require.bind(that)
         };

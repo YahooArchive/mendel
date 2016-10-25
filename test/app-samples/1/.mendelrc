@@ -1,6 +1,7 @@
 
 # relative to basedir, defaults to "build"
 outdir: build
+serveroutdir: ../build-requirify
 
 base: app
 basetree: app

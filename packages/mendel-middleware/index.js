@@ -83,7 +83,15 @@ function MendelMiddleware(opts) {
             return getPath({ bundle: bundle, hash: tree.hash });
         };
 
-        req.mendel.resolver = function(bundles) {
+        req.mendel.resolver = function(bundles, variations) {
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    'mendel.resolver([bundles], variations) is deprecated. '+
+                    'Please use mendel.setVariations(variations), followed by'+
+                    ' mendel.resolver([bundles]).'
+                );
+                req.mendel.setVariations(variations);
+            }
             return loader.resolver(bundles, req.mendel.lookupChains);
         };
 

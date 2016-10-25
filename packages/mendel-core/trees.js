@@ -20,8 +20,8 @@ function MendelTrees(opts) {
     var config = parseConfig(opts);
     var variations = parseVariations(config);
     variations.push({
-        'id': config.base || 'base',
-        chain: [config.basetree || 'base']
+        'id': config.base,
+        chain: [config.basetree]
     });
 
     this.config = config;
@@ -66,7 +66,7 @@ MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
 MendelTrees.prototype._loadBundles = function() {
     var self = this;
     this.bundles = {};
-    var confBundles = self.config.bundles || [];
+    var confBundles = self.config.bundles;
     confBundles.forEach(function(bundle) {
         var bundlePath = path.join(self.config.outdir, bundle.manifest);
         try {
