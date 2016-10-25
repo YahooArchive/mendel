@@ -1,3 +1,8 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   Contributed by Shalom Volchok <shalom@digitaloptgroup.com>
+   See the accompanying LICENSE file for terms. */
+
 var Planout = require("planout");
 
 class PlanoutAssignment extends Planout.Experiment {
@@ -6,7 +11,7 @@ class PlanoutAssignment extends Planout.Experiment {
         return;
     }
 
-    log(event) {
+    log(/* event */) {
         /*
         The event contains the details of the assignment, as shown in the
         below example. This should be saved for analytics.

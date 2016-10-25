@@ -1,3 +1,8 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   Contributed by Shalom Volchok <shalom@digitaloptgroup.com>
+   See the accompanying LICENSE file for terms. */
+
 import React from 'react'; // eslint-disable-line
 import ReactDOM from 'react-dom';
 import App from './components/app';
