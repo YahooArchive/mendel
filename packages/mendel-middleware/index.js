@@ -63,7 +63,7 @@ function MendelMiddleware(opts) {
 
             if(!req.mendel.bundleCache[bundle]) {
                 var tree = trees.findTreeForVariations(
-                                            bundle, req.mendel.variations);
+                                            bundle, req.mendel.lookupChains);
                 req.mendel.bundleCache[bundle] = tree;
             }
 
@@ -84,7 +84,7 @@ function MendelMiddleware(opts) {
         };
 
         req.mendel.resolver = function(bundles) {
-            return loader.resolver(bundles, req.mendel.variations);
+            return loader.resolver(bundles, req.mendel.lookupChains);
         };
 
         req.mendel.isSsrReady = loader.isSsrReady.bind(loader);

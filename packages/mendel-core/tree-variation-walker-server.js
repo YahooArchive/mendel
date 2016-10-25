@@ -4,19 +4,16 @@
    See the accompanying LICENSE file for terms. */
 
 var util = require("util");
-var xtend = require("xtend");
 var MendelVariationWalker = require('./tree-variation-walker');
 
 util.inherits(MendelServerVariationWalker, MendelVariationWalker);
 
-function MendelServerVariationWalker(opts) {
+function MendelServerVariationWalker(_lookupChains, _base) {
     if (!(this instanceof MendelServerVariationWalker)) {
-        return new MendelServerVariationWalker(opts);
+        return new MendelServerVariationWalker(_lookupChains, _base);
     }
 
-    MendelVariationWalker.call(this, xtend({
-        hash: false // This walker doesn't care about deps index nor hashes
-    }, opts));
+    MendelVariationWalker.call(this, _lookupChains, _base, false);
 
     this._resolveCache = {};
     this._variationMap = {};

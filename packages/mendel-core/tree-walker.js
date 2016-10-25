@@ -5,16 +5,13 @@
 
 var TreeSerialiser = require('./tree-serialiser');
 
-function MendelWalker(opts) {
+function MendelWalker(_lookupChains, _base, _hash) {
     if (!(this instanceof MendelWalker)) {
-        return new MendelWalker(opts);
-    }
-    if (!opts) {
-        opts = {};
+        return new MendelWalker(_lookupChains, _base, _hash);
     }
 
     this.deps = [];
-    if (opts.hash !== false) {
+    if (_hash !== false) {
         this.serialiser = new TreeSerialiser();
     }
 }
@@ -33,7 +30,9 @@ MendelWalker.prototype.find = function(module) {
         }
     }
     this.deps[module.index] = resolved;
-    this.serialiser.pushFileHash(new Buffer(resolved.sha, 'hex'));
+    if (this.serialiser) {
+        this.serialiser.pushFileHash(new Buffer(resolved.sha, 'hex'));
+    }
 
     return resolved;
 };

@@ -15,10 +15,7 @@ var stub1 = {
     data: [{id:'a', sha:'ba'},{id:'b'},{id:'special'}]
 };
 
-var walker = new MendelVariationWalker({
-    lookupChains: [['a'],['special']],
-    base: 'special'
-});
+var walker = new MendelVariationWalker([['a'],['special']], 'special');
 var ret = walker._resolveBranch(stub1);
 
 t.match(ret, {index:0, resolved:{id:'a'}},
@@ -27,10 +24,7 @@ t.match(ret, {index:0, resolved:{id:'a'}},
 t.match(walker.conflicts, 0,
     'no conflicts with base');
 
-walker = new MendelVariationWalker({
-    lookupChains: [['nope'], ['b'],['special']],
-    base: 'special'
-});
+walker = new MendelVariationWalker([['nope'], ['b'],['special']], 'special');
 ret = walker._resolveBranch(stub1);
 
 t.match(ret, {index:1, resolved:{id:'b'}},
@@ -39,19 +33,13 @@ t.match(ret, {index:1, resolved:{id:'b'}},
 t.equals(walker.conflicts, 0,
     'no conflicts with base');
 
-walker = new MendelVariationWalker({
-    lookupChains: [['a', 'b'],['special']],
-    base: 'special'
-});
+walker = new MendelVariationWalker([['a', 'b'],['special']], 'special');
 ret = walker._resolveBranch(stub1);
 
 t.equals(walker.conflicts, 0,
     "Two variations on the same level don't conflict");
 
-walker = new MendelVariationWalker({
-    lookupChains: [['a'], ['b'],['special']],
-    base: 'special'
-});
+walker = new MendelVariationWalker([['a'], ['b'],['special']], 'special');
 ret = walker.find(stub1);
 
 t.equals(walker.conflicts, 1,

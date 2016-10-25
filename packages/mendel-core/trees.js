@@ -29,37 +29,19 @@ function MendelTrees(opts) {
     this._loadBundles();
 }
 
-MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
-    if (typeof variations ==='string') {
-        variations = [variations];
-    }
-
-    var variationsAndChains = this.variationsAndChains(variations);
-    var lookupChains = variationsAndChains.lookupChains;
-    var finder = new MendelVariationWalker({
-        lookupChains: lookupChains,
-        base: this.config.base
-    });
+MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
+    var finder = new MendelVariationWalker(lookupChains, this.config.base);
 
     this._walkTree(bundle, finder);
 
-    return xtend(variationsAndChains, finder.found());
+    return finder.found();
 };
 
-MendelTrees.prototype.findServerVariationMap = function(bundles, variations) {
-    if (typeof variations ==='string') {
-        variations = [variations];
-    }
-
+MendelTrees.prototype.findServerVariationMap = function(bundles, lookupChains) {
     var self = this;
     var variationMap = {};
     var base = self.config.base;
-    var variationsAndChains = this.variationsAndChains(variations);
-    var lookupChains = variationsAndChains.lookupChains;
-    var finder = new MendelServerVariationWalker({
-        lookupChains: lookupChains,
-        base: base
-    });
+    var finder = new MendelServerVariationWalker(lookupChains, base);
 
     function selectBundles(key) {
         return bundles.indexOf(key) !== -1;

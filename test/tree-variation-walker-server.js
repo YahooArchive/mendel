@@ -19,19 +19,13 @@ var stub1 = {
     ]
 };
 
-var walker = new MendelServerVariationWalker({
-    lookupChains: [['a'],['special']],
-    base: 'special'
-});
+var walker = new MendelServerVariationWalker([['a'],['special']], 'special');
 walker.find(stub1);
 t.same(walker.found(),
     { first: 'a' },
     'variation map');
 
-walker = new MendelServerVariationWalker({
-    lookupChains: [['special']],
-    base: 'special'
-});
+walker = new MendelServerVariationWalker([['special']], 'special');
 walker.find(stub1);
 
 t.same(walker.found(), {
