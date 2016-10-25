@@ -50,7 +50,9 @@ function MendelMiddleware(opts) {
     var loader = new MendelLoader(existingVariations, config, module.parent);
 
     return function(req, res, next) {
-        req.mendel = req.mendel || {};
+        req.mendel = req.mendel || {
+            variations: false
+        };
 
         req.mendel.getBundleEntries = function() {
             return Object.keys(bundles).reduce(
@@ -86,12 +88,38 @@ function MendelMiddleware(opts) {
             );
         };
 
+        req.mendel.setVariations = function(variations) {
+            if (req.mendel.variations === false) {
+                req.mendel.variations = variations;
+            }
+            return req.mendel.variations;
+        };
+
         req.mendel.getURL = function(bundle, variations) {
-            var vars = variations.join(',') || config.base;
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    'mendel.getURL(bundle, variations) is deprecated. '+
+                    'Please use mendel.setVariations(variations), followed by'+
+                    ' mendel.getURL(bundle).'
+                );
+                req.mendel.setVariations(variations);
+            }
+            var vars = req.mendel.variations.join(',') || config.base;
             return getPath({bundle: bundle, variations: vars});
         };
 
-        req.mendel.resolver = loader.resolver.bind(loader);
+        req.mendel.resolver = function(bundles, variations) {
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    'mendel.resolver([bundles], variations) is deprecated. '+
+                    'Please use mendel.setVariations(variations), followed by'+
+                    ' mendel.resolver([bundles]).'
+                );
+                req.mendel.setVariations(variations);
+            }
+            return loader.resolver(bundles, req.mendel.variations);
+        };
+
         req.mendel.isSsrReady = loader.isSsrReady.bind(loader);
 
         // Match bundle route
