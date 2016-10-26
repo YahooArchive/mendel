@@ -9,7 +9,7 @@ var mendelRequireTransform = require('mendel-development/require-transform');
 var variationMatches = require('mendel-development/variation-matches');
 
 function requirify(b, opts) {
-    var outdir = opts.outdir || path.join(process.cwd(), 'mendel-requirify');
+    var outdir = opts.outdir || path.join(process.cwd(), 'build-requirify');
     var dirs = opts.dirs || (b.variation && b.variation.chain) || [];
 
     function addHooks() {

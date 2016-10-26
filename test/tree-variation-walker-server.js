@@ -19,7 +19,7 @@ var stub1 = {
     ]
 };
 
-var walker = new MendelServerVariationWalker([['a'],['special']], 'special');
+var walker = MendelServerVariationWalker([['a'],['special']], 'special');
 walker.find(stub1);
 t.same(walker.found(),
     { first: 'a' },

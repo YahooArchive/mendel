@@ -11,9 +11,9 @@ var MendelWalker = require('./tree-walker');
 util.inherits(MendelVariationWalker, MendelWalker);
 module.exports = MendelVariationWalker;
 
-function MendelVariationWalker(_lookupChains, _base) {
+function MendelVariationWalker(_lookupChains, _base, _hash) {
     if (!(this instanceof MendelVariationWalker)) {
-        return new MendelVariationWalker(_lookupChains, _base);
+        return new MendelVariationWalker(_lookupChains, _base, _hash);
     }
     MendelWalker.call(this);
 

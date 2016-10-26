@@ -25,7 +25,10 @@ function MendelMiddleware(opts) {
     });
 
     return function(req, res, next) {
-        req.mendel = req.mendel || {};
+        req.mendel = req.mendel || {
+            bundleCache: {},
+            variations: false
+        };
 
         req.mendel.getBundleEntries = function() {
             return Object.keys(trees.bundles).reduce(
@@ -44,12 +47,56 @@ function MendelMiddleware(opts) {
             );
         };
 
+        req.mendel.setVariations = function(variations) {
+            if (req.mendel.variations === false) {
+                var varsAndChains = trees.variationsAndChains(variations);
+                req.mendel.variations = varsAndChains.matchingVariations;
+                req.mendel.lookupChains = varsAndChains.lookupChains;
+            }
+            return req.mendel.variations;
+        };
+
+        req.mendel.getBundle = function(bundle) {
+            if (!req.mendel.variations) {
+                throw new Error('Please call req.mendel.setVariations first');
+            }
+
+            if(!req.mendel.bundleCache[bundle]) {
+                var tree = trees.findTreeForVariations(
+                                            bundle, req.mendel.lookupChains);
+                req.mendel.bundleCache[bundle] = tree;
+            }
+
+            return req.mendel.bundleCache[bundle];
+        };
+
         req.mendel.getURL = function(bundle, variations) {
-            var tree = trees.findTreeForVariations(bundle, variations);
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    '[DEPRECATED] Please replace use of '+
+                    'mendel.getURL(bundle, variations).'+
+                    '\nUse mendel.setVariations(variations) followed by'+
+                    ' mendel.getURL(bundle) instead.'
+                );
+                req.mendel.setVariations(variations);
+            }
+            var tree = req.mendel.getBundle(bundle);
             return getPath({ bundle: bundle, hash: tree.hash });
         };
 
-        req.mendel.resolver = loader.resolver.bind(loader);
+        req.mendel.resolver = function(bundles, variations) {
+            if (!req.mendel.variations && variations) {
+                console.warn(
+                    '[DEPRECATED] Please replace use of '+
+                    'mendel.resolver(bundle, variations).'+
+                    '\nUse mendel.setVariations(variations) followed by'+
+                    ' mendel.resolver(bundle) instead.'
+                );
+                req.mendel.setVariations(variations);
+            }
+            return loader.resolver(bundles, req.mendel.lookupChains);
+        };
+
         req.mendel.isSsrReady = loader.isSsrReady.bind(loader);
 
         // Match bundle route

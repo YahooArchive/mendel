@@ -13,7 +13,7 @@ function MendelServerVariationWalker(_lookupChains, _base) {
         return new MendelServerVariationWalker(_lookupChains, _base);
     }
 
-    MendelVariationWalker.call(this, _lookupChains, _base);
+    MendelVariationWalker.call(this, _lookupChains, _base, false);
 
     this._resolveCache = {};
     this._variationMap = {};

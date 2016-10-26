@@ -15,7 +15,7 @@ var stub1 = {
     data: [{id:'a', sha:'ba'},{id:'b'},{id:'special'}]
 };
 
-var walker = new MendelVariationWalker([['a'],['special']], 'special');
+var walker = MendelVariationWalker([['a'],['special']], 'special');
 var ret = walker._resolveBranch(stub1);
 
 t.match(ret, {index:0, resolved:{id:'a'}},
