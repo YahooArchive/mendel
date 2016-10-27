@@ -16,7 +16,6 @@ bundles:
     external:
       - react
       - react-dom
-      - ./isomorphic/base/components/lazy.js
     transform:
       - babelify
   lazy:
