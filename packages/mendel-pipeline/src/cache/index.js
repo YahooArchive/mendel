@@ -22,7 +22,7 @@ class Entry {
             const key = transformIds.slice(0, i).join('_');
             if (this.sourceVersions.has(key)) {
                 return {
-                    transformIds: key,
+                    transformIds: key.split('_'),
                     source: this.sourceVersions.get(key),
                 };
             }
@@ -39,16 +39,16 @@ class Entry {
 
     setDependencies(nodeDeps, browserDeps) {
         this.dependenciesUpToDate = true;
-        nodeDeps.forEach(dep => this.nodeDependencies.set(dep));
-        browserDeps.forEach(dep => this.browserDependencies.set(dep));
+        nodeDeps.forEach(dep => this.nodeDependencies.add(dep));
+        browserDeps.forEach(dep => this.browserDependencies.add(dep));
     }
 
     reset() {
         this.dependenciesUpToDate = false;
         this.sourceVersions.clear();
         this.dependents = [];
-        this.nodeDependencies.reset();
-        this.browserDependencies.reset();
+        this.nodeDependencies.clear();
+        this.browserDependencies.clear();
     }
 }
 
@@ -80,7 +80,9 @@ class MendelCache {
         const nodeDeps = [];
 
         dependencies.forEach(({browser, main}) => {
+            if (!this.hasEntry(browser)) this.addEntry(browser);
             browserDeps.push(this.getEntry(browser));
+            if (!this.hasEntry(main)) this.addEntry(main);
             nodeDeps.push(this.getEntry(main));
         });
 

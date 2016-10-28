@@ -3,6 +3,7 @@ const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
 const Initialize = require('./step/initialize');
 const CommonIFT = require('./step/common-ift');
+const BundleIFT = require('./step/bundle-ift');
 const debug = require('debug')('mendel');
 const DepResolver = require('./step/deps');
 
@@ -12,6 +13,7 @@ function MendelPipeline(cwd, {
     transforms,
     commonTransformIds,
     watch=false,
+    bundles,
     basetree,
     variationsdir,
     ignore=['_ignore_'],
@@ -27,17 +29,16 @@ function MendelPipeline(cwd, {
     // Pipeline steps
     const initializer = new Initialize(registry, cwd);
     const watcher = new FsTree(registry, {cwd, ignore});
-    const commonIFT = new CommonIFT(registry, transformer, {commonTransformIds});
+    const commonIFT = new CommonIFT({registry, transformer}, {commonTransformIds});
     const depsResolver = new DepResolver({registry}, {cwd, basetree, variationsdir});
+    const bundleIft = new BundleIFT({registry, transformer}, {bundles})
 
     // Hook Store
     registry.on('dirAdded', (path) => watcher.subscribe(path));
     registry.on('sourceRemoved', (path) => watcher.unsubscribe(path));
     // When raw source is added, we need to do commmon indepdent file transforms first
 
-    registry.on('dependenciesAdded', () => {
-
-    });
+    registry.on('dependenciesAdded', () => {});
     registry.on('dependenciesInvalidated', () => {});
 
     // Hook FsTrees

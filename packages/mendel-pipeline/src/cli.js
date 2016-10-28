@@ -34,11 +34,21 @@ mendelPipeline(program.args[0], Object.assign(program, {
                 ],
             },
         },
+        babel2: {
+            plugin: 'mendel-ift-babel',
+            options:  {
+                presets: [
+                ],
+                plugins: [
+                    'transform-react-remove-prop-types',
+                ],
+            },
+        },
     },
     bundles: {
         main: {
-            transform: ['babel1'],
-            entries: ['src/apps/mail/index.js'],
+            transform: ['babel1', 'babel2'],
+            entries: ['base/components/app.js'],
         },
     },
     basetree: 'base',

@@ -3,11 +3,11 @@ const debug = require('debug')('mendel:common-ift');
 
 class CommonIFT extends EventEmitter {
     /**
-     * @param {MendelRegistry} registry
-     * @param {Transformer} transformer
+     * @param {MendelRegistry} tool.registry
+     * @param {Transformer} tool.transformer
      * @param {Array<String>} config.commonTransformIds
      */
-    constructor(registry, transformer, {commonTransformIds}) {
+    constructor({registry, transformer}, {commonTransformIds}) {
         super();
 
         this._registry = registry;

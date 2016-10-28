@@ -1,5 +1,6 @@
 {
   "envNames": ["main", "browser", "extra"],
   "variationsDir": "fixtures/easy-variational/variations",
-  "baseVariationDir": "fixtures/easy-variational/base"
+  "baseVariationDir": "fixtures/easy-variational/base",
+  "variations": ["var1", "base"]
 }

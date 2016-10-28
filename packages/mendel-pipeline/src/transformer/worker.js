@@ -1,10 +1,14 @@
-const debug = require('debug')('mendel:ift:slave-' + process.pid);
+const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);
 
 process.on('message', ({type, transforms, source, filename}) => {
     if (type === 'start') {
         debug(`[Slave ${process.pid}] Starting transform.`);
+
+        if (transforms.length === 0) {
+            return Promise.reject(`${filename} was transformed with nothing.`);
+        }
 
         let promise = Promise.resolve();
 

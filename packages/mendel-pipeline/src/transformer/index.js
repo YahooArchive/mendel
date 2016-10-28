@@ -1,7 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
-const debug = require('debug')('mendel:ift:master');
+const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
 const {extname, resolve: pathResolve} = require('path');
 const {existsSync} = require('fs');
@@ -21,8 +21,7 @@ const parallelMode = (function() {
         const workerProcess = workerProcesses.find(({pid}) => idlePid === pid);
 
         workerProcess.once('message', ({error, type, source, map}) => {
-            debug(`[Master] <- [Slave ${workerProcess.pid}]: ${type}`);
-
+            // debug(`[Master] <- [Slave ${workerProcess.pid}]: ${type}`);
             if (type === 'error') {
                 rejects.forEach(reject => reject(new Error(error)));
             } else if (type === 'done') {
@@ -116,6 +115,7 @@ class TrasnformManager {
             return Promise.resolve({filename, source});
         }
 
+        debug(`Transforming "${filename}" with [${transformIds}]`);
         const transforms = transformIds.map(transformId => this._transforms.get(transformId));
 
         let mode;
