@@ -1,10 +1,11 @@
 class Entry {
-    constructor(filePath) {
-        this.filePath = filePath;
+    constructor(id) {
+        this.id = id;
         // Common IFT, Common IFT + additional
         this.sourceVersions = new Map();
         this.dependents = [];
-        this.dependencies = {browser: [], node: []};
+        this.browserDependencies = new Set();
+        this.nodeDependencies = new Set();
         this.dependenciesUpToDate = false;
     }
 
@@ -27,10 +28,7 @@ class Entry {
             }
         }
 
-        return {
-            transformIds: null,
-            source: null,
-        };
+        return {transformIds: null, source: null};
     }
 
     addDependent(dependent) {
@@ -39,19 +37,18 @@ class Entry {
         this.dependents.push(dependent);
     }
 
-    setDependencies(dependencies) {
+    setDependencies(nodeDeps, browserDeps) {
         this.dependenciesUpToDate = true;
-        dependencies.forEach(({browser, node}) => {
-            this.dependencies.browser.push(browser);
-            this.dependencies.node.push(node);
-        });
+        nodeDeps.forEach(dep => this.nodeDependencies.set(dep));
+        browserDeps.forEach(dep => this.browserDependencies.set(dep));
     }
 
     reset() {
         this.dependenciesUpToDate = false;
         this.sourceVersions.clear();
         this.dependents = [];
-        this.dependencies = [];
+        this.nodeDependencies.reset();
+        this.browserDependencies.reset();
     }
 }
 
@@ -61,20 +58,33 @@ class MendelCache {
         this._cache = new Map();
     }
 
-    addEntry(filePath) {
-        this._cache.set(filePath, new Entry(filePath));
+    addEntry(id) {
+        this._cache.set(id, new Entry(id));
     }
 
-    hasEntry(filePath) {
-        return this._cache.has(filePath);
+    hasEntry(id) {
+        return this._cache.has(id);
     }
 
-    deleteEntry(filePath) {
-        this._cache.delete(filePath);
+    deleteEntry(id) {
+        this._cache.delete(id);
     }
 
-    getEntry(filePath) {
-        return this._cache.get(filePath);
+    getEntry(id) {
+        return this._cache.get(id);
+    }
+
+    setDependencies(id, dependencies) {
+        const entry = this.getEntry(id);
+        const browserDeps = [];
+        const nodeDeps = [];
+
+        dependencies.forEach(({browser, main}) => {
+            browserDeps.push(this.getEntry(browser));
+            nodeDeps.push(this.getEntry(main));
+        });
+
+        entry.setDependencies(nodeDeps, browserDeps);
     }
 }
 

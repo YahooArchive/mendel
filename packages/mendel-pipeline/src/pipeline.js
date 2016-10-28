@@ -12,6 +12,8 @@ function MendelPipeline(cwd, {
     transforms,
     commonTransformIds,
     watch=false,
+    basetree,
+    variationsdir,
     ignore=['_ignore_'],
 }) {
     if (!transforms) {
@@ -26,7 +28,7 @@ function MendelPipeline(cwd, {
     const initializer = new Initialize(registry, cwd);
     const watcher = new FsTree(registry, {cwd, ignore});
     const commonIFT = new CommonIFT(registry, transformer, {commonTransformIds});
-    const depsResolver = new DepResolver({registry}, {cwd});
+    const depsResolver = new DepResolver({registry}, {cwd, basetree, variationsdir});
 
     // Hook Store
     registry.on('dirAdded', (path) => watcher.subscribe(path));

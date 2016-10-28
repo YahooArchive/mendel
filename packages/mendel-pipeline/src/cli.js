@@ -31,8 +31,6 @@ mendelPipeline(program.args[0], Object.assign(program, {
                     'react',
                 ],
                 plugins: [
-                    // 'add-module-exports',
-                    // 'transform-react-jsx',
                 ],
             },
         },
@@ -43,4 +41,6 @@ mendelPipeline(program.args[0], Object.assign(program, {
             entries: ['src/apps/mail/index.js'],
         },
     },
+    basetree: 'base',
+    variationsdir: 'variations',
 }));

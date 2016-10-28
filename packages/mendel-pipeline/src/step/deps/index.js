@@ -15,11 +15,13 @@ class DepsManager extends EventEmitter {
      * @param {MendelRegistry} registry
      * @param {String} config.cwd
      */
-    constructor({registry}, {cwd}) {
+    constructor({registry}, {cwd, basetree, variationsdir}) {
         super();
         this._registry = registry;
 
         this._cwd = cwd;
+        this._basetree = basetree;
+        this._variationsdir = variationsdir;
         this._queue = [];
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
@@ -62,7 +64,14 @@ class DepsManager extends EventEmitter {
         const {filePath, source} = this._queue.shift();
         const workerId = this._idleWorkerQueue.shift();
         const workerProcess = this._workerProcesses.find(({pid}) => workerId === pid);
-        workerProcess.send({type: 'start', filePath, source, cwd: this._cwd});
+        workerProcess.send({
+            type: 'start',
+            filePath,
+            source,
+            cwd: this._cwd,
+            baseDir: this._basetree,
+            varsDir: this._variationsdir,
+        });
         this.next();
     }
 }

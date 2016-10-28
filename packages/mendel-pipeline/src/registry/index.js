@@ -40,11 +40,7 @@ class MendelRegistry extends EventEmitter {
     setDependencies(filePath, deps) {
         if (!this._mendelCache.hasEntry(filePath)) return;
 
-        const entry = this._mendelCache.getEntry(filePath);
-
-        entry.setDependencies(deps);
-
-        console.log(deps);
+        this._mendelCache.setDependencies(filePath, deps);
         this.emit('dependenciesAdded', filePath);
     }
 

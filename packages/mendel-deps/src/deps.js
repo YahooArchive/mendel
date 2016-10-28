@@ -1,33 +1,6 @@
 const acorn = require('acorn-jsx/inject')(require('acorn'));
-const {dirname, join: pathJoin} = require('path');
 const {visit} = require('ast-types');
-// const browserResolve = require('browser-resolve');
-// const serverResolve = require('resolve');
-const VariationalResolver = require('./resolver/variational-resolver');
-
-function resolveBoth(basePath, modulePath) {
-    return new VariationalResolver({
-        basedir: basePath,
-        envNames: ['main', 'browser'],
-        extensions: ['.js', '.jsx'],
-        variationsDir: 'variations',
-        baseVariationDir: 'base',
-    }).resolve(modulePath);
-    // return new Promise(function(resolve, reject) {
-    //     serverResolve(modulePath, {basedir: basePath}, function(err, res) {
-    //         if (err) reject(err);
-    //         // console.log(basePath, modulePath, res);
-    //         dependencies.node = res;
-    //         if (dependencies.browser && dependencies.node) resolve(dependencies);
-    //     });
-    //     browserResolve(modulePath, {basedir: basePath}, function(err, res) {
-    //         if (err) reject(err);
-    //         // console.log(basePath, modulePath, res);
-    //         dependencies.browser = res;
-    //         if (dependencies.browser && dependencies.node) resolve(dependencies);
-    //     });
-    // });
-}
+const Resolver = require('./resolver');
 
 function _depFinder(ast) {
     const unresolved = {};
@@ -62,21 +35,18 @@ function _depFinder(ast) {
     return Object.keys(unresolved);
 }
 
-module.exports = function deps(baseDir, fileName, sourceString) {
+module.exports = function deps({resolver, source}) {
     try {
-        const ast = acorn.parse(sourceString, {
+        const ast = acorn.parse(source, {
             plugins: {jsx: true},
             ecmaVersion: 6,
             sourceType: 'module',
         });
-
         const unresolvedModules = _depFinder(ast);
-        const fileDirname = pathJoin(baseDir, dirname(fileName));
 
-        return Promise.all(unresolvedModules.map(modulename => resolveBoth(fileDirname, modulename)));
+        if (!(resolver instanceof Resolver)) return Promise.reject('Resolver must be an instance of mendel-resolver.');
+        return Promise.all(unresolvedModules.map(modulename => resolver.resolve(modulename)));
     } catch (error) {
-        console.log(fileName);
-
         return Promise.reject(error);
     }
 };

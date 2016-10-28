@@ -12,12 +12,14 @@ class ModuleResolver {
         basedir=process.cwd(),
         extensions=['.js'],
         envNames=['main'],
+        recordPackageJson=false,
     } = {}) {
         this.extensions = extensions;
         this.cwd = cwd;
         // in case basedir is relative, we want to make it relative to the cwd.
         this.basedir = path.resolve(this.cwd, basedir);
         this.envNames = envNames;
+        this.recordPackageJson = recordPackageJson;
     }
 
     static pStat(filePath) {
@@ -98,11 +100,15 @@ class ModuleResolver {
         .then((pkg) => {
             // Nested package.json is not supported.
             // e.g., ./package.json#main -> ./foo/package.json#main -> ./foo/bar/index.js
-            // fallback to `main` in case package.json misses the name required.
-            return this.envNames.reduce((reduced, name) => {
+            // Fallback to `main` in case package.json misses the name required.
+            const resolved = this.envNames.reduce((reduced, name) => {
                 reduced[name] = path.join(moduleName, (pkg[name] || pkg.main));
                 return reduced;
             }, {});
+
+            if (this.recordPackageJson) resolved.packageJson = packagePath;
+
+            return resolved;
         })
         .catch(() => this.resolveFile(path.join(moduleName, 'index')));
     }
@@ -124,7 +130,6 @@ class ModuleResolver {
 
     resolveNodeModules(moduleName) {
         const nodeModulePaths = this.getPotentialNodeModulePaths(this.basedir);
-        console.log(moduleName);
 
         let promise = Promise.reject();
 
