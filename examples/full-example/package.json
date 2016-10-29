@@ -20,6 +20,7 @@
     "babel-preset-es2015": "^6.6.0",
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.3.0",
+    "envify": "^3.4.1",
     "eslint-plugin-react": "^5.2.2",
     "jasmine-core": "^2.5.2",
     "karma": "^1.3.0",
@@ -31,6 +32,7 @@
     "mendel": "*",
     "mendel-development-middleware": "*",
     "mendel-manifest-extract-bundles": "*",
+    "mendel-manifest-uglify": "*",
     "nodemon": "^1.9.2",
     "react-addons-test-utils": "^0.14.8",
     "watchify": "^3.7.0"

@@ -44,3 +44,30 @@ variations:
   bucket_D:
     - partner_C
 
+
+env:
+  production:
+    manifestProcessors:
+      -
+        - mendel-manifest-extract-bundles
+        - external: lazy
+          from: main
+      -
+        - mendel-manifest-uglify
+    bundles:
+      vendor:
+        transform:
+          -  &envify
+            - envify
+            - global: true
+              NODE_ENV: production
+      main:
+        transform:
+          - babelify
+          - *envify
+      lazy:
+        transform:
+          - babelify
+          - *envify
+
+
