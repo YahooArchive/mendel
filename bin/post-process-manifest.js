@@ -36,9 +36,9 @@ function postProcessManifests(config, finish) {
             // istanbul ignore if
             if(config.verbose) {
                 opts.verbose = config.verbose;
-                opts.mendelConfig = config;
                 console.log('Running manifest processor', inspect(processor));
             }
+            opts.mendelConfig = config;
             try {
                 processor(input, opts, function(output) {
                     input = output;
