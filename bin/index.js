@@ -43,17 +43,15 @@ if(debug) {
     logObj(config);
 }
 
-var subsetBundles = false;
 if (rawConfig.bundles.some(function(b) {
     return !!b.only;
 })) {
-    subsetBundles = true;
+    rawConfig.bundles = rawConfig.bundles.filter(function(b) {
+        return !!b.only;
+    });
 }
 
 async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
-    if (subsetBundles && !rawBundle.only) {
-        return doneBundle();
-    }
     var bundle = JSON.parse(JSON.stringify(rawBundle));
     var conf = {
         basedir: config.basedir,
