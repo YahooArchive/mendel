@@ -9,6 +9,8 @@ module.exports = manifestUglify;
 
 function manifestUglify(manifests, options, next) {
     var optBundles = [].concat(options.bundles).filter(Boolean);
+    // `compress` and `mangle` are set to `true` on uglifyify
+    // just making sure we have the same defaults
     var uglifyOptions = Object.assign({
         compress: true,
         mangle: true,
@@ -16,7 +18,7 @@ function manifestUglify(manifests, options, next) {
         fromString: true
     });
 
-    function wichManifests(manifest) {
+    function whichManifests(manifest) {
         // default to all bundles
         if (optBundles.length === 0) {
             return true;
@@ -24,7 +26,7 @@ function manifestUglify(manifests, options, next) {
         return optBundles.indexOf(manifest) >= 0;
     }
 
-    Object.keys(manifests).filter(wichManifests).forEach(function(name) {
+    Object.keys(manifests).filter(whichManifests).forEach(function(name) {
         var manifest = manifests[name];
         manifest.bundles.forEach(function(module) {
             module.data.forEach(function(variation) {
@@ -33,7 +35,7 @@ function manifestUglify(manifests, options, next) {
                     Object.assign({}, uglifyOptions, {
                         file: variation.file,
                         root: options.mendelConfig.basedir,
-                        sourceMaps: false,
+                        sourceMaps: false, // TODO: sourcemaps support
                     })
                 );
 
