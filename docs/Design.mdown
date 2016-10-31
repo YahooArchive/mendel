@@ -3,11 +3,11 @@ Mendel Design
 
 # Principles
 
-Mendel has some opinionated design principles that we stick to. This will serve as strict guidelines on the remainder of this document and on implementation. Some of those principles are what makes Mendel different from other experimentation or A/B testing frameworks.
+Mendel has some opinionated design principles that serve as strict guidelines on the remainder of this document and on its implementation. Some of those principles are what makes Mendel different from other experimentation or A/B testing frameworks.
 
 * **Variation Performance**
     * **No payload overhead**: no client-side code for any non-active or alternative variation should be transfered to the client
-    * **No server response overhead**: All variation resolution should happen either by CPU processing or in-memory information. All asynchronous data/configuration fetching and caching should be done at server startup and/or polling
+    * **Synchronous and fast variation resolution**: no http or file-system access during runtime in order to resolve bundle URLs or bundle payload.
 * **Variation Maintainability**
     * **Immediately disposable**: disposing of variations should be simple, straightforward - specially for bulk disposal
     * **No maintenance overhead: **keep variations updated with minimal developer effort
@@ -623,44 +623,37 @@ The manifest is generated at build time, and based on entry points for an applic
 
 At runtime, the manifest is loaded in memory once, and we are now able to dynamically serve all possible permutations in request time, which we explain in the following sections.
 
-### Resolving bundles at runtime
+### Mendel Hash - Resolving bundles at runtime
 
 Once the manifest is loaded by a production server, Mendel runtime libraries will be able to serve all permutations required for a particular deployment.
 
-Our hash algorithm takes caching into consideration.  If a small deployment changes only one file in one variation, only affected users will receive a new bundle, guaranteeing all other users to use their cached versions across deployments and different versions of the manifest.
+Our hash algorithm takes caching into consideration. If a small deployment changes only one particular file inside a variation, only a subset of users users should receive a new bundle. All other users should continue to use their cached versions -- even across multiple deployments.
 
-#### Mendel Hashing algorithm
+Since Mendel is based on file system we can understand the potential bundles and how hashing needs to be done, by analyzing the following scenario:
 
-The Mendel hash is a binary format encoded in URLSafeBase64 (RFC4648 section 5). The binary has the format below, where each number in parenthesis is the number of bites used for a particular information:
+#### 4 experiments, divided in 2 layers, 2 experiments in each layer
 
-```
-      1           2           3           4          5          6
-+------------+---------+--------------+---------+----------+---------+
-| ascii(6*8) | uint(8) | loop uint(8) | uint(8) | uint(16) | bin(20) |
-| === mendel |         | !== 255      | == 255  |          |         |
-+------------+---------+--------------+---------+----------+---------+
-```
+[![4 experiments in 2 layers graph](https://cdn.rawgit.com/yahoo/mendel/master/docs/Mendel-4-buckets-2-layers.svg)](Mendel-4-buckets-2-layers.svg)
 
-The 6 pieces stand for:
+The image above can be used to understand a number of Mendel responsibilities. Here are the ones relevant to bundle hashing and caching:
 
-1. ID: The string “mendel” (lowercase) in ascii encoding
-2. VERSION: The version of this binary, right now it is version 1, we reserved this for future compatibility
-3. BRANCHES_ARRAY: 0+ segments of 8 bit unsigned integers, that are different than 255
-4. BRANCHES_LIMITER: Integer with value 255 that marks end of the branches
-5. FILE_COUNT: The number of total files that were hashed during tree walking
-6. CONTENT_HASH: 20 byte sha1 binary
+  1. With 4 experiments in those layers Mendel can potentially generate 9 bundles.
+  2. If file `F6` is changed in your application between one version and the other, it should only affects 3 bundles
 
-Mendel starts with ID and VERSION and will walk the manifest, starting in the entry points of the package. Each browserify payload has a sha1 of the source code, and also the dependencies of this file. Mendel will collect sha1 of all files and count how many files were walked.
+This scenario is easy to understand, but large applications can yield a huge number of variations, for instance, 40 experiments evenly distributed in 8 layers will yield 6.700 permutations. Those permutations are not static at build time. Enabling and disabling permutations, organizing variations into layers are responsibilities of campaign management tools and external systems, so creating all permutations in build time would not only be slow, but also impossible by the nature of A/B testing best practices.
 
-Every time Mendel finds a file with variations, it uses a one of two desired method for choosing a variation (discussed below), and it will then push **the index of the chosen variation** to the **branch index array**. The numbers are also appended to BRANCHES_ARRAY of the binary.
+Also, in order to cache and serve those bundles, we need consistent URLs:
 
-Once walking is done, Mendel adds BRANCHES_LIMITER, to the binary, adds FILE_COUNT with the number of files walked, and computes CONTENT_HASH, the sha1 of all walked sha1 of the bundle. The final binary is than encoded with URLSafeBase64.
+  * URLs must be the same to multiple users
+  * URLs must be cookie-less, so we can use CDN caching
+  * URLs should benefit from enhanced security, by obfuscating experiment names
+  * URLs should be small enough
 
-The variations can be resolved in two ways: By an array of desired **variation names**. This is useful for generating the hash for the first time. The second way, is when we decode a hash binary, and walk the manifest to collect and bundle source code, using the **branch index array**.
+For that reason, `mendel-core` generates a hash for each bundle. The hash is based in the file list for a bundle (or what we call a tree representation), and the content of each file. This is very similar to how `git` works internally -- each blob has a hash, and each tree has a hash based on file names and blob hashes -- but it is meant to be evaluated dynamically in production.
 
-Because we need to make sure the contents are the same requested by user, the hash is calculated both when generating it for the first time (when generating HTML request) and when collecting the source code payload (when dynamically serving the bundle). If it is a match, the source code can be concatenated using `browser_pack`.
+Using hashes guarantees that we will cache bust only the required bundle on every deployment. It is very common for large applications to split the logic into multiple bundles and also common to do heavy development in variations. This allows developers to use Continuous Integration, Continuous Deployment and Continuous Delivery and rest assured that most users are not getting cache busted constantly.
 
-Source code for Mendel hashing is available at:
+Source code and details on Mendel Hashing is available at:
 https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 
 
@@ -673,7 +666,7 @@ https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 3. Mendel gets an array of experiments, walks the manifest and outputs a hash to be used to generate a URL
     1. `mendel(manifest, ['experimentA', 'experimentB']) → [Mendel-hash]`
     2. Example mendel hash: `bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw`
-4. Application will havea route to serve this asset (using mendel-middleware):
+4. Application will have a route to serve this asset (using mendel-middleware):
     1. `/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
     2. On-demand bundles will have similar URLs and a list of potential bundles is served to the user
 5. We get a CDN URL to cache this resource and serve in the HTML

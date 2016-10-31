@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var t = require('tap');
 var path = require('path');
 var mkdirp = require('mkdirp');
@@ -73,7 +77,7 @@ where = './config-samples';
 t.match(config(where), {
     bundles: [
         {id: 'vendor'},
-        {id: 'main', transform: ['reactify']},
+        {id: 'main'},
     ]
 }, 'default environment');
 
@@ -114,7 +118,7 @@ process.env.NODE_ENV = 'staging';
 t.match(config(where), {
     bundles: [
         {id: 'vendor'},
-        {id: 'main', transform: ['reactify']},
+        {id: 'main'},
         {id: 'test', entries: ['bar.js']}
     ]
 }, 'staging environment');

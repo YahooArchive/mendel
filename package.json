@@ -1,6 +1,6 @@
 {
   "name": "mendel",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",

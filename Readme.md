@@ -1,18 +1,49 @@
 # Mendel
 
-Build tool chain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.
+Mendel is a framework for building and serving client side JavaScript bundles for A/B testing experiments in web applications.
 
-## What does it mean? 🌈
+It is meant to be simple and easy to use on a daily basis. It works very well for small applications and small teams, but also scale for complex use cases that large applications or larger teams might need.
 
-Mendel is a small set of tools which enable "A/B testing" experiments within a web application, while not sacrificing front-end performance. The experiments can range from simple, one-line changes to large, complex variances across the application.
+##### Example scenario of application A/B testing
 
-The main component of Mendel is a Browserify plugin that generates multiple JavaScript bundles, each bundle with variations that you want to test. You can use Mendel by itself, or with favorite build tools, such as NPM run scripts, Grunt, Gulp, etc.
+```
++-------------------------------------------------------------------------+
+| Shopping cart application                                               |
++------------------------------+--------------------+---------------------+
+| 90% of users                 | 5% of users        | 5% of users         |
++-------------------------------------------------------------------------+
+| Base experience              | Experiment A       | Experiment B        |
++-------------------------------------------------------------------------+
+| By default cart is a link    | Live shopping cart | Live shopping cart  |
+| in the horizontal navigation | as a sidebar       | floating and docked |
+| menu with counter for number |                    | to the bottom of    |
+| of items                     |                    | the page            |
++------------------------------+--------------------+---------------------+
+```
 
-Mendel also provides additional tools for:
+Mendel supports:
 
-  * Ability to combine multiple experiments: Often known as multilayer or multivariate testing, this enables large applications to perform simultaneous experiments that overlap (i.e. a given user can participate with multiple experiments and the same time, or a given experiment can contain interchangeable combinations).
-  * Better development cycle: Fast feedback is essential in development. Once you save a file, Mendel makes use of Watchify internally to efficiently provide instant feedback
-  * Isomorphic support: Most A/B test bundling tools are focused on client-side only, while Mendel solves the problem of server and client rendering, such as React and Ember ability to serve HTML for fast first paint while booting up into a Single Page Application quickly.
+* JavaScript bundle generation (similar to Webpack/Browserify) for each variation/experiment/bucket
+* Isomorphic applications (a.k.a. server side rendering, such as ReactDOMServer or Ember Fastboot)
+* Multivariate testing and/or Multilayer experimentation
+* Variation/experiment/bucket inheritance that enables code-reuse across different experiments.
+
+Mendel does not support:
+
+* Experiment resolution: Mendel does not provide [random assignment](https://en.wikipedia.org/wiki/Random_assignment) of users into experiments
+* Experiments measurement: Mendel does not provide a way to track performance of experiments based on user actions
+
+Both of the above are covered by existing open source tools, such as [PlanOut](http://facebook.github.io/planout/), [Open Web Analytics](http://www.openwebanalytics.com), [Piwik](https://piwik.org) and [many others](https://www.google.com/#q=open+source+web+analytics).
+
+## Advantages of using Mendel
+
+Mendel is built on top of solid [design principles](docs/Design.mdown) and is hardened by years of using the same strategy inside Yahoo, from teams ranging from 3 to 30+ developers contributing daily to large applications. Here are a few of the advantages of using Mendel:
+
+  * **Maintainability**: All variation/experimentation code is organized and compiled in a way to be immediately disposable, impose no maintenance overhead, and be very easy to debug and analyze.
+  * **Performance**: Server side resolution is synchronous and fast, and client side code will have no payload overhead.
+  * **Security**: Bundle URL and client-side compiled code does not contain variation/experiment information.
+
+Mendel also have a clear development flow. All other experimentation we could find lack built in support for a smooth development workflow. In Mendel fast development cycle is a first-class citizen.
 
 ## How to use Mendel
 
@@ -42,7 +73,7 @@ variations:
     - new_ad_format  ## directory name (if not same as id)
 ```
 
-If you have everything setup correctly, you now have two variations. The default code is usually called `base` and does not need to be declared. Mendel will then generate bundles for each of your variations.
+That's it, with two simple steps, you now have have an experiment ready to run. The default code is usually called `base` and does not need to be declared. Mendel will then generate bundles for each of your variations.
 
 ### File system resolution
 

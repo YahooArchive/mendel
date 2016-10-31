@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var test = require('tap').test;
 var path = require('path');
 var fs = require('fs');
@@ -53,37 +57,37 @@ test('MendelTrees private methods', function (t) {
     }];
 
     t.equal(
-        trees._buildLookupChains([]).length,
+        trees.variationsAndChains([]).lookupChains.length,
         1,
         'returns base if empty input'
     );
     t.equal(
-        trees._buildLookupChains(['a']).length,
+        trees.variationsAndChains(['a']).lookupChains.length,
         2,
         'returns variation and base'
     );
     t.match(
-        trees._buildLookupChains(['c'])[0],
+        trees.variationsAndChains(['c']).lookupChains[0],
         ['c-chain', 'b-chain'],
         "valid chains don't contain base"
     );
     t.equal(
-        trees._buildLookupChains(['a-chain']).length,
+        trees.variationsAndChains(['a-chain']).lookupChains.length,
         1,
         'find variations, not chains'
     );
     t.equal(
-        trees._buildLookupChains(['a', 'b']).length,
+        trees.variationsAndChains(['a', 'b']).lookupChains.length,
         3,
         'returns multiple variations'
     );
     t.matches(
-        JSON.stringify(trees._buildLookupChains(['a', 'b'])),
-        JSON.stringify(trees._buildLookupChains(['b', 'a'])),
+        JSON.stringify(trees.variationsAndChains(['a', 'b']).lookupChains),
+        JSON.stringify(trees.variationsAndChains(['b', 'a']).lookupChains),
         'order is based on configuration, not input'
     );
     t.matches(
-        JSON.stringify(trees._buildLookupChains(['c', 'b'])),
+        JSON.stringify(trees.variationsAndChains(['c', 'b']).lookupChains),
         JSON.stringify([['b-chain'], ['c-chain', 'b-chain'], ['base-chain']]),
         'correct full output, with only chains'
     );
@@ -119,7 +123,7 @@ test('MendelTrees private methods', function (t) {
 });
 
 test('MendelTrees valid manifest runtime', function (t) {
-    t.plan(8);
+    t.plan(10);
 
     process.chdir(appPath);
     mkdirp.sync(appBuild);
@@ -133,8 +137,8 @@ test('MendelTrees valid manifest runtime', function (t) {
         t.equal(variationCount, 4, 'loads manifest');
         t.equal(trees.variations[variationCount-1].id, 'app', 'includes base');
 
-        var result_1 = trees.findTreeForVariations('app', 'test_A');
-        var result_2 = trees.findTreeForVariations('app', ['test_A', 'test_B']);
+        var result_1 = trees.findTreeForVariations('app', trees.variationsAndChains(['test_A']).lookupChains);
+        var result_2 = trees.findTreeForVariations('app', trees.variationsAndChains(['test_A', 'test_B']).lookupChains);
 
         t.match(result_1, {deps:[]},
             'Finds one variation with string input');
@@ -148,8 +152,10 @@ test('MendelTrees valid manifest runtime', function (t) {
         t.match(result_1, decoded,
             'retrieves same tree from hahs');
 
-        var map_1 = trees.findServerVariationMap('test_A');
-        var map_2 = trees.findServerVariationMap(['test_A', 'test_B']);
+        var map_1 = trees.findServerVariationMap(['app'], trees.variationsAndChains(['test_A']).lookupChains);
+        var map_2 = trees.findServerVariationMap(['app'], trees.variationsAndChains(['test_A', 'test_B']).lookupChains);
+        var map_3 = trees.findServerVariationMap(['foo'], trees.variationsAndChains(['test_A']).lookupChains);
+        var map_4 = trees.findServerVariationMap([], trees.variationsAndChains(['test_A']).lookupChains);
 
         t.match(map_1, {
             'index.js': 'app',
@@ -163,5 +169,7 @@ test('MendelTrees valid manifest runtime', function (t) {
             'some-number.js': 'test_B',
             'another-number.js': 'app'
         }, 'map_2 variationMap sanity check');
+        t.match(map_3, {}, 'map_3 variationMap sanity check');
+        t.match(map_4, {}, 'map_4 variationMap sanity check');
     });
 });

@@ -32,12 +32,13 @@ function postProcessManifests(config, finish) {
         async.eachSeries(processors,
         function(processorPair, doneStep) {
             var processor = processorPair[0];
-            var opts = processorPair[1];
+            var opts = processorPair[1] || {};
             // istanbul ignore if
             if(config.verbose) {
                 opts.verbose = config.verbose;
                 console.log('Running manifest processor', inspect(processor));
             }
+            opts.mendelConfig = config;
             try {
                 processor(input, opts, function(output) {
                     input = output;

@@ -20,8 +20,8 @@ function MendelTrees(opts) {
     var config = parseConfig(opts);
     var variations = parseVariations(config);
     variations.push({
-        'id': config.base || 'base',
-        chain: [config.basetree || 'base']
+        'id': config.base,
+        chain: [config.basetree]
     });
 
     this.config = config;
@@ -29,12 +29,7 @@ function MendelTrees(opts) {
     this._loadBundles();
 }
 
-MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
-    if (typeof variations ==='string') {
-        variations = [variations];
-    }
-
-    var lookupChains = this._buildLookupChains(variations);
+MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
     var finder = new MendelVariationWalker(lookupChains, this.config.base);
 
     this._walkTree(bundle, finder);
@@ -42,18 +37,17 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, variations) {
     return finder.found();
 };
 
-MendelTrees.prototype.findServerVariationMap = function(variations) {
-    if (typeof variations ==='string') {
-        variations = [variations];
-    }
-
+MendelTrees.prototype.findServerVariationMap = function(bundles, lookupChains) {
     var self = this;
     var variationMap = {};
     var base = self.config.base;
-    var lookupChains = self._buildLookupChains(variations);
     var finder = new MendelServerVariationWalker(lookupChains, base);
 
-    Object.keys(self.bundles).forEach(function (bundle) {
+    function selectBundles(key) {
+        return bundles.indexOf(key) !== -1;
+    }
+
+    Object.keys(self.bundles).filter(selectBundles).forEach(function (bundle) {
         self._walkTree(bundle, finder);
         variationMap = xtend(variationMap, finder.found());
     });
@@ -72,7 +66,7 @@ MendelTrees.prototype.findTreeForHash = function(bundle, hash) {
 MendelTrees.prototype._loadBundles = function() {
     var self = this;
     this.bundles = {};
-    var confBundles = self.config.bundles || [];
+    var confBundles = self.config.bundles;
     confBundles.forEach(function(bundle) {
         var bundlePath = path.join(self.config.outdir, bundle.manifest);
         try {
@@ -101,11 +95,14 @@ MendelTrees.prototype._walkTree = function(bundle, finder) {
     }
 };
 
-MendelTrees.prototype._buildLookupChains = function(lookFor) {
-    var lookupChains = []; // perf: for loop instead of forEach
+MendelTrees.prototype.variationsAndChains = function(lookFor) {
+    var lookupChains = [];
+    var matchingVariations = [];
+    // perf: for loop instead of forEach
     for (var i = 0; i < this.variations.length; i++) {
         var variation = this.variations[i];
         if (-1 !== lookFor.indexOf(variation.id)) {
+            matchingVariations.push(variation.id);
             var lookupChain = [];
             for (var j = 0; j < variation.chain.length; j++) {
                 var lookupVar = variation.chain[j];
@@ -116,8 +113,12 @@ MendelTrees.prototype._buildLookupChains = function(lookFor) {
             lookupChains.push(lookupChain);
         }
     }
+    matchingVariations.push(this.config.base);
     lookupChains.push([this.config.basetree]);
-    return lookupChains;
+    return {
+        lookupChains: lookupChains,
+        matchingVariations: matchingVariations
+    };
 };
 
 function walk(tree, module, pathFinder) {

@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var t = require('tap');
 
 var MendelServerVariationWalker = require('../packages/mendel-core/tree-variation-walker-server');
@@ -15,7 +19,7 @@ var stub1 = {
     ]
 };
 
-var walker = new MendelServerVariationWalker([['a'],['special']], 'special');
+var walker = MendelServerVariationWalker([['a'],['special']], 'special');
 walker.find(stub1);
 t.same(walker.found(),
     { first: 'a' },

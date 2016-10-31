@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 import React from 'react';
 import Toolbar from './toolbar';
 import Board from './message_board';
@@ -79,7 +83,7 @@ function asyncRequire(requireModule, callback) {
             if (error.code !== 'MODULE_NOT_FOUND') {
                 return callback(error);
             }
-            loadScript(window._extractedModuleBundleMap[path], function(){
+            loadScript(window._mendelEntryMap[path], function(){
                 var payload = parentRequire.call(self, path);
                 callback(null, payload);
             });

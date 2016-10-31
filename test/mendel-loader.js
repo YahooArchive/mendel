@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var path = require('path');
 var temp = require('temp');
 var test = require('tap').test;
@@ -62,7 +66,7 @@ test('mendel-loader-server', function(t){
             }];
 
             inputs.forEach(function (i) {
-                var resolver = loader.resolver(i.variations);
+                var resolver = loader.resolver(['app'], tree.variationsAndChains(i.variations).lookupChains);
                 var variation = i.variations.join(',');
 
                 var someNumber = resolver.require('some-number.js');
@@ -101,7 +105,7 @@ test('mendel-loader-server-syntax-error', function(t){
         });
         // test without 'new'
         var loader = Loader(tree);
-        var resolver = loader.resolver(['test_B']);
+        var resolver = loader.resolver(['app'], tree.variationsAndChains(['test_B']).lookupChains);
 
         var invalidFile = path.join(srcDir, 'app/syntax-error.js');
         t.throws(function() {

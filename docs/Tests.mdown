@@ -33,8 +33,6 @@ To run tests against a single file you can:
 
     npm run unit-file test/testname.js
 
-If you do this too often, you might want to install tap globally to avoid typing `./node_modules/.bin/` all the time.
-
 #### Single file coverage
 
 We avoid mocking too much, so coverage might be biased when running the full suite. To make sure coverage is 100% on each file, you can run coverage on a single test file, but listing all files that were covered:

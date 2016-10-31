@@ -28,7 +28,8 @@ mkdirp.sync(outdir);
 
 var config = ['basedir','outdir','bundlesoutdir','serveroutdir',
     'base','basetree','variationsroute','hashroute',
-    'variationsdir','variations'].reduce(function(cfg, key) {
+    'variationsdir','variations', 'manifestProcessors']
+    .reduce(function(cfg, key) {
         cfg[key] = rawConfig[key];
         return cfg;
     }, {
@@ -40,6 +41,14 @@ if(debug) {
     config.verbose = true;
     console.log('mendel parsed config');
     logObj(config);
+}
+
+if (rawConfig.bundles.some(function(b) {
+    return !!b.only;
+})) {
+    rawConfig.bundles = rawConfig.bundles.filter(function(b) {
+        return !!b.only;
+    });
 }
 
 async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
@@ -68,11 +77,21 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
     }
 
     // those need to be called after mendelBrowserify was added
-    [].concat(entries).filter(Boolean).forEach(function (file) {
+    entries = [].concat(entries).filter(Boolean);
+    if (debug && entries.length) {
+        console.log(bundle.bundleName + ' entries');
+        logObj(entries);
+    }
+    entries.forEach(function (file) {
         b.add(file, { basedir: conf.basedir });
     });
 
-    [].concat(requires).filter(Boolean).forEach(function (file) {
+    requires = [].concat(requires).filter(Boolean);
+    if (debug && requires.length) {
+        console.log(bundle.bundleName + ' requires');
+        logObj(requires);
+    }
+    requires.forEach(function (file) {
         b.require(file, { basedir: conf.basedir });
     });
 
@@ -88,7 +107,12 @@ async.each(rawConfig.bundles, function(rawBundle, doneBundle) {
     }
 }, function() {
     if (Array.isArray(rawConfig.manifestProcessors)) {
-        postProcessManifests(rawConfig);
+        postProcessManifests(rawConfig, function(err) {
+            if (err) {
+                console.error(err);
+                process.exit(1);
+            }
+        });
     }
 });
 

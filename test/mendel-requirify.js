@@ -1,3 +1,7 @@
+/* Copyright 2015, Yahoo Inc.
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+
 var fs = require('fs');
 var path = require('path');
 var temp = require('temp');
@@ -11,7 +15,7 @@ var requireTransform = require('../packages/mendel-development/require-transform
 var srcDir = path.resolve(__dirname, './app-samples/1');
 
 temp.track();
-var buildDir = temp.mkdirSync('mendel-requirify');
+var buildDir = temp.mkdirSync('build-requirify');
 
 var entry = 'app/number-list.js';
 var variationDirs = ['test_A', 'app'];
@@ -70,7 +74,7 @@ test('mendel-requirify', function (t) {
 });
 
 test('mendel-requirify-defaults', function (t) {
-    var outDir = path.join(process.cwd(), 'mendel-requirify');
+    var outDir = path.join(process.cwd(), 'build-requirify');
     var outFile = path.join(outDir, entry);
 
     run(t, null, outFile, function (t) {
