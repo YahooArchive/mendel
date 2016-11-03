@@ -20,6 +20,7 @@ class CommonIFT extends EventEmitter {
     transform(filePath, source) {
         this._transformer.transform(filePath, this._transformIds, source)
         .then(({source}) => {
+            this._registry.addSource(filePath, this._transformIds, source);
             this.emit('done', filePath, this._transformIds, source);
         })
         .catch((error) => {

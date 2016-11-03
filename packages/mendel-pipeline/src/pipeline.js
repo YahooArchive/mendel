@@ -19,23 +19,6 @@ function MendelPipeline(options) {
     const commonIFT = new CommonIFT({registry, transformer}, options);
     const depsResolver = new DepResolver({registry, transformer}, options);
 
-    // Hook Store
-    registry.on('dirAdded', (path) => watcher.subscribe(path));
-    registry.on('sourceRemoved', (path) => watcher.unsubscribe(path));
-    // When raw source is added, we need to do commmon indepdent file transforms first
-    registry.on('sourceAdded', (filePath) => {
-        // console.log('-', filePath);
-    });
-    registry.on('dependenciesAdded', (filePath) => {
-        if (registry.hasEntry(filePath)) {
-            // console.log(registry.getEntry(filePath).debug());
-        }
-    });
-    registry.on('dependenciesInvalidated', () => {});
-
-    // Hook Transformer
-    commonIFT.on('done', (path, transformIds, source) => registry.addSource(path, transformIds, source));
-
     // COMMENCE!
     initializer.start();
 
