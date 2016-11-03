@@ -20,7 +20,8 @@ program
 
 // Example usage
 // time node src/cli.js ~/dev/norrin/src/
-mendelPipeline(program.args[0], Object.assign(program, {
+mendelPipeline(Object.assign(program, {
+    cwd: program.args[0],
     commonTransformIds: ['babel1'],
     transforms: {
         babel1: {
@@ -51,6 +52,7 @@ mendelPipeline(program.args[0], Object.assign(program, {
             entries: ['base/components/app.js'],
         },
     },
-    basetree: 'base',
+    basetree: './base',
+    base: 'base',
     variationsdir: 'variations',
 }));

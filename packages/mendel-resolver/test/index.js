@@ -1,5 +1,5 @@
 const test = require('tap').test;
-const Resolver = require('../src/resolver');
+const Resolver = require('../');
 const VariationalResolver = require('../src/resolver/variational-resolver');
 const fs = require('fs');
 const path = require('path');

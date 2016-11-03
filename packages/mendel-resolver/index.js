@@ -40,13 +40,17 @@ class ModuleResolver {
         });
     }
 
+    static isNodeModule(name) {
+        return !/^(?:\.\.?(?:\/|$)|\/|([A-Za-z]:)?[\\\/])/.test(name);
+    }
+
     /**
      * @param {String} moduleName name of the module to resolve its path
      */
     resolve(moduleName) {
         let promise;
 
-        if (/^(?:\.\.?(?:\/|$)|\/|([A-Za-z]:)?[\\\/])/.test(moduleName)) {
+        if (!ModuleResolver.isNodeModule(moduleName)) {
             const moduleAbsPath = path.resolve(this.basedir, moduleName);
             promise = this.resolveFile(moduleAbsPath).catch(() => this.resolveDir(moduleAbsPath));
         } else {
@@ -130,9 +134,7 @@ class ModuleResolver {
 
     resolveNodeModules(moduleName) {
         const nodeModulePaths = this.getPotentialNodeModulePaths(this.basedir);
-
         let promise = Promise.reject();
-
         nodeModulePaths.forEach((nodeModulePath) => {
             promise = promise.catch(() => {
                 return ModuleResolver.pStat(nodeModulePath).then(stat => {
@@ -140,7 +142,9 @@ class ModuleResolver {
                         message: `${nodeModulePath} is not a directory.`,
                         code: 'ENOENT',
                     });
-                    return this.resolveDir(path.join(nodeModulePath, moduleName));
+
+                    const moduleFullPath = path.join(nodeModulePath, moduleName);
+                    return this.resolveFile(moduleFullPath).catch(() => this.resolveDir(moduleFullPath));
                 });
             });
         });

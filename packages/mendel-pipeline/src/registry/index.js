@@ -3,14 +3,14 @@ const MendelCache = require('../cache');
 const error = require('debug')('mendel:registry:error');
 
 class MendelRegistry extends EventEmitter {
-    constructor() {
+    constructor(config) {
         super();
 
-        this._mendelCache = new MendelCache();
+        this._mendelCache = new MendelCache(config);
     }
 
     addToPipeline(dirPath) {
-        this.emit('dirAdded', dirPath);
+        this.emit('dependenciesAdded', dirPath);
     }
 
     addEntry(filePath, rawSource) {
@@ -28,13 +28,6 @@ class MendelRegistry extends EventEmitter {
         const entry = this._mendelCache.getEntry(filePath);
         entry.setSource(transformIds, source);
         this.emit('sourceTransformed', filePath, transformIds, source);
-    }
-
-    invalidateSource(filePath, source) {
-        const entry = this._mendelCache.getEntry(filePath);
-        entry.reset();
-        // Because we invalidated this source, this source has effectively been added
-        this.emit('sourceAdded', filePath, source);
     }
 
     setDependencies(filePath, deps) {

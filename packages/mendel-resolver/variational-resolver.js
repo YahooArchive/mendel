@@ -61,7 +61,7 @@ class VariationalModuleResolver extends ModuleResolver {
     }
 
     resolveDir(moduleName) {
-        if (this.isBasePath(moduleName)) return super.resolveDir(moduleName);
+        if (this.isBasePath(moduleName) || moduleName.indexOf('node_modules') >= 0) return super.resolveDir(moduleName);
 
         const moduleId = this.getModuleId(moduleName);
         let promise = Promise.reject();

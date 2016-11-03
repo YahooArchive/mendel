@@ -27,6 +27,7 @@ process.on('message', ({type, transforms, source, filename}) => {
             process.send({type: 'done', filename, source, map});
         })
         .catch(error => {
+            console.log(error.stack);
             debug(`[Slave ${process.pid}] Transform errored.`);
             process.send({type: 'error', filename, error: error.message});
         });

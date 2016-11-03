@@ -1,11 +1,13 @@
+const path = require('path');
+
 class Entry {
     constructor(id) {
         this.id = id;
-        // Common IFT, Common IFT + additional
+        this.normalizedId;
+        this.type;
         this.sourceVersions = new Map();
         this.dependents = [];
-        this.browserDependencies = new Set();
-        this.nodeDependencies = new Set();
+        this.dependencies = new Map();
         this.dependenciesUpToDate = false;
     }
 
@@ -37,56 +39,91 @@ class Entry {
         this.dependents.push(dependent);
     }
 
-    setDependencies(nodeDeps, browserDeps) {
+    setDependencies(deps) {
         this.dependenciesUpToDate = true;
-        nodeDeps.forEach(dep => this.nodeDependencies.add(dep));
-        browserDeps.forEach(dep => this.browserDependencies.add(dep));
+        if (deps instanceof Map) this.dependencies = deps;
+        Object.keys(deps).forEach(dependencyLiteral => this.dependencies.set(dependencyLiteral, deps[dependencyLiteral]));
     }
 
     reset() {
-        this.dependenciesUpToDate = false;
         this.sourceVersions.clear();
+        this.dependenciesUpToDate = false;
+        this.dependencies.clear();
         this.dependents = [];
-        this.nodeDependencies.clear();
-        this.browserDependencies.clear();
+    }
+
+    // For debugging purposes
+    debug() {
+        return {
+            id: this.id,
+            normalizedId: this.normalizedId,
+            variation: this.variation,
+            type: this.type,
+            dependents: this.dependents,
+            dependencies: this.dependencies,
+        };
     }
 }
 
-// We can have different adaptors for this layer. Distrubted cache?
+
+function isNodeModule(id) {
+    return id.indexOf('node_modules') >= 0;
+}
+
 class MendelCache {
-    constructor() {
-        this._cache = new Map();
+    constructor(config) {
+        this._store = new Map();
+        this._config = config;
+    }
+
+    get variationalRegex() {
+        return new RegExp(`(${this._config.variationsdir}${path.sep}(\\w+)|${this._config.basetree})${path.sep}?`);
+    }
+
+    getNormalizedId(id) {
+        if (isNodeModule(id)) return id;
+
+        return id.replace(this.variationalRegex, '');
+    }
+
+    getType(id) {
+        if (isNodeModule(id)) return 'node_modules';
+
+        const extname = path.extname(id);
+        if (['.js', '.jsx', '.json'].indexOf(extname) >= 0) return 'source';
+        return 'binary';
     }
 
     addEntry(id) {
-        this._cache.set(id, new Entry(id));
+        this._store.set(id, new Entry(id));
+        const entry = this._store.get(id);
+        entry.variation = (id.match(this.variationalRegex)|| [0,0,this._config.base])[2];
+        entry.normalizedId = this.getNormalizedId(id);
+        entry.type = this.getType(id);
     }
 
     hasEntry(id) {
-        return this._cache.has(id);
+        return this._store.has(id);
     }
 
     deleteEntry(id) {
-        this._cache.delete(id);
+        this._store.delete(id);
     }
 
     getEntry(id) {
-        return this._cache.get(id);
+        return this._store.get(id);
     }
 
-    setDependencies(id, dependencies) {
+    setDependencies(id, dependencyMap) {
         const entry = this.getEntry(id);
-        const browserDeps = [];
-        const nodeDeps = [];
 
-        dependencies.forEach(({browser, main}) => {
-            if (!this.hasEntry(browser)) this.addEntry(browser);
-            browserDeps.push(this.getEntry(browser));
-            if (!this.hasEntry(main)) this.addEntry(main);
-            nodeDeps.push(this.getEntry(main));
+        Object.keys(dependencyMap).forEach(dependencyKey => {
+            const dep = dependencyMap[dependencyKey];
+            dep.browser = this.getNormalizedId(dep.browser);
+            dep.main = this.getNormalizedId(dep.main);
         });
 
-        entry.setDependencies(nodeDeps, browserDeps);
+        entry.setDependencies(dependencyMap);
     }
 }
 

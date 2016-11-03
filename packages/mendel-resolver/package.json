@@ -1,0 +1,16 @@
+{
+  "name": "mendel-resolver",
+  "version": "1.0.0",
+  "description": "Mendel resolver that is promise based",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test"
+  },
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "tap": "^7.1.2"
+  }
+}
