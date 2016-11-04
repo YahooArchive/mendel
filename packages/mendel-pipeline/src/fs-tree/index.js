@@ -48,9 +48,9 @@ class FileTreeWatcher extends EventEmitter {
             this.emit('ready');
         });
 
-        this._registry.on('dependenciesAdded', (path) => {
+        this._registry.on('dependenciesAdded', (entry, path) => {
             // No need to watch the file that is already being tracked
-            if (this._registry.hasEntry(path)) return;
+            if (entry) return;
             this.subscribe(path);
         });
         this._registry.on('sourceRemoved', (path) => this.watcher.unsubscribe(path));

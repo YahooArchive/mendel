@@ -14,7 +14,7 @@ class CommonIFT extends EventEmitter {
         this._transformIds = commonTransformIds;
         this._transformer = transformer;
 
-        this._registry.on('sourceAdded', (filePath, rawSource) => this.transform(filePath, rawSource));
+        this._registry.on('sourceAdded', (entry) => this.transform(entry.id, entry.getSource(['raw'])));
     }
 
     transform(filePath, source) {

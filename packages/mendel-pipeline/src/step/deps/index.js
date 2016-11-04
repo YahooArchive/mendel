@@ -27,13 +27,15 @@ class DepsManager extends EventEmitter {
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
 
-        this._registry.on('sourceTransformed', (filePath, transformIds, source) => {
+        this._registry.on('sourceTransformed', (entry, transformIds) => {
             // TODO make this configurable. Non-JS is yet parsible
-            if (['.js', '.jsx'].indexOf(extname(filePath)) < 0) return;
-
-            const entry = this._registry.getEntry(filePath);
+            if (['.js', '.jsx'].indexOf(extname(entry.id)) < 0) return;
             if (!entry.dependenciesUpToDate) {
-                this._queue.push({source, filePath, variation: entry.variation});
+                this._queue.push({
+                    filePath: entry.id,
+                    source: entry.getSource(transformIds),
+                    variation: entry.variation,
+                });
             }
 
             this.next();

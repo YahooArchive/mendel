@@ -10,38 +10,37 @@ class MendelRegistry extends EventEmitter {
     }
 
     addToPipeline(dirPath) {
-        this.emit('dependenciesAdded', dirPath);
+        this.emit('dependenciesAdded', null, dirPath);
     }
 
     addEntry(filePath, rawSource) {
-        this._mendelCache.addEntry(filePath);
-
-        this.emit('sourceAdded', filePath, rawSource);
+        this._mendelCache.addEntry(filePath, rawSource);
+        this.emit('sourceAdded', this._mendelCache.getEntry(filePath));
     }
 
     addSource(filePath, transformIds, source) {
         if (!this._mendelCache.hasEntry(filePath)) {
-            error('Adding a source to a file that is unknown. This should be not possible: ' + filePath);
-            this._mendelCache.addEntry(filePath);
+            error(`Adding a source to a file that is unknown. This should be not possible: ${filePath}`);
+            this._mendelCache.addEntry(filePath, source);
         }
 
         const entry = this._mendelCache.getEntry(filePath);
         entry.setSource(transformIds, source);
-        this.emit('sourceTransformed', filePath, transformIds, source);
+        this.emit('sourceTransformed', entry, transformIds);
     }
 
     setDependencies(filePath, deps) {
         if (!this._mendelCache.hasEntry(filePath)) return;
 
         this._mendelCache.setDependencies(filePath, deps);
-        this.emit('dependenciesAdded', filePath);
+        this.emit('dependenciesAdded', this._mendelCache.getEntry(filePath), filePath);
     }
 
     invalidateDepedencies(filePath) {
         if (!this._mendelCache.hasEntry(filePath)) return;
 
         // TODO modify entries and its deps recursively
-        this.emit('dependenciesInvalidated', filePath);
+        this.emit('dependenciesInvalidated', this._mendelCache.getEntry(filePath));
     }
 
     remove(filePath) {
@@ -49,6 +48,7 @@ class MendelRegistry extends EventEmitter {
 
         this._mendelCache.deleteEntry(filePath);
 
+        // Because Entry is deleted, we don't really dispatch with the Entry
         this.emit('sourceRemoved', filePath);
     }
 

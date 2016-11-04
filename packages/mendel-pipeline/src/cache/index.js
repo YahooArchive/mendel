@@ -1,11 +1,12 @@
 const path = require('path');
 
 class Entry {
-    constructor(id) {
+    constructor(id, rawSource) {
         this.id = id;
         this.normalizedId;
         this.type;
         this.sourceVersions = new Map();
+        this.sourceVersions.set('raw', rawSource);
         this.dependents = [];
         this.dependencies = new Map();
         this.dependenciesUpToDate = false;
@@ -16,6 +17,7 @@ class Entry {
     }
 
     getSource(transformIds) {
+        if (!Array.isArray(transformIds)) throw new Error(`Expected "${transformIds}" to be an array.`);
         return this.sourceVersions.get(transformIds.join('_'));
     }
 
@@ -30,7 +32,7 @@ class Entry {
             }
         }
 
-        return {transformIds: null, source: null};
+        return {transformIds: null, source: this.sourceVersions.get('raw')};
     }
 
     addDependent(dependent) {
@@ -65,7 +67,6 @@ class Entry {
     }
 }
 
-
 function isNodeModule(id) {
     return id.indexOf('node_modules') >= 0;
 }
@@ -74,10 +75,7 @@ class MendelCache {
     constructor(config) {
         this._store = new Map();
         this._config = config;
-    }
-
-    get variationalRegex() {
-        return new RegExp(`(${this._config.variationsdir}${path.sep}(\\w+)|${this._config.basetree})${path.sep}?`);
+        this.variationalRegex = new RegExp(`(${this._config.variationsdir}${path.sep}(\\w+)|${this._config.basetree})${path.sep}?`);
     }
 
     getNormalizedId(id) {
@@ -94,8 +92,8 @@ class MendelCache {
         return 'binary';
     }
 
-    addEntry(id) {
-        this._store.set(id, new Entry(id));
+    addEntry(id, rawSource) {
+        this._store.set(id, new Entry(id, rawSource));
         const entry = this._store.get(id);
         entry.variation = (id.match(this.variationalRegex)|| [0,0,this._config.base])[2];
         entry.normalizedId = this.getNormalizedId(id);
