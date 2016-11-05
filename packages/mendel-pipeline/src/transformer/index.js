@@ -1,6 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
+ const analyticsCollector = require('../helpers/analytics-collector');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
 const {extname, resolve: pathResolve} = require('path');
@@ -10,6 +11,7 @@ const {sync: moduleResolveSync} = require('resolve');
 const parallelMode = (function() {
     const numCPUs = require('os').cpus().length;
     const workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
+    workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
     const _idleWorkerQueue = workerProcesses.map(({pid}) => pid);
     const _queue = [];
 
@@ -20,8 +22,9 @@ const parallelMode = (function() {
         const idlePid = _idleWorkerQueue.shift();
         const workerProcess = workerProcesses.find(({pid}) => idlePid === pid);
 
-        workerProcess.once('message', ({error, type, source, map}) => {
+        workerProcess.on('message', function onMessage({error, type, source, map}) {
             // debug(`[Master] <- [Slave ${workerProcess.pid}]: ${type}`);
+            if (type !== 'error' && type !== 'done') return;
             if (type === 'error') {
                 rejects.forEach(reject => reject(new Error(error)));
             } else if (type === 'done') {
@@ -29,6 +32,7 @@ const parallelMode = (function() {
                 resolves.forEach(resolve => resolve({source, map}));
             }
 
+            workerProcess.removeListener('message', onMessage);
             next();
         });
         workerProcess.send({type: 'start', transforms, filename, source});

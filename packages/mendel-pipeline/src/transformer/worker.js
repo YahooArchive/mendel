@@ -1,3 +1,4 @@
+const analytics = require('../helpers/analytics-worker')('transform');
 const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);
@@ -13,12 +14,18 @@ process.on('message', ({type, transforms, source, filename}) => {
         let promise = Promise.resolve();
 
         transforms.forEach(transform => {
-            promise = promise.then(() => {
+            promise = promise
+            .then(analytics.tic.bind(analytics, transform.id))
+            .then(() => {
                 const xform = require(transform.plugin);
                 return xform({filename, source}, transform.options);
-            }).then(result => {
+            })
+            .then(analytics.toc.bind(analytics, transform.id))
+            .then(result => {
                 debug(`[Slave ${process.pid}][${transform.id}] "${filename}" transformed`);
                 return result;
+            }).catch(err => {
+                throw err;
             });
         });
 

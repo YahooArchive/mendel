@@ -1,6 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
+const analyticsCollector = require('../../helpers/analytics-collector');
 const debug = require('debug')('mendel:deps:manager');
 const EventEmitter = require('events').EventEmitter;
 const {fork} = require('child_process');
@@ -25,6 +26,7 @@ class DepsManager extends EventEmitter {
         this._variationsdir = variationsdir;
         this._queue = [];
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
+        this._workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
 
         this._registry.on('sourceTransformed', (entry, transformIds) => {

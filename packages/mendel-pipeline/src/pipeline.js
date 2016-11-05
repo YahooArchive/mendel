@@ -1,3 +1,4 @@
+const analyticsCollector = require('./helpers/analytics-collector');
 const FsTree = require('./fs-tree');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
@@ -9,6 +10,8 @@ const DepResolver = require('./step/deps');
 module.exports = MendelPipeline;
 
 function MendelPipeline(options) {
+    process.on('exit', () => analyticsCollector.print());
+
     // Common functions
     const registry = new MendelRegistry(options);
     const transformer = new Transformer(options.transforms);
@@ -19,9 +22,6 @@ function MendelPipeline(options) {
     const commonIFT = new CommonIFT({registry, transformer}, options);
     const depsResolver = new DepResolver({registry, transformer}, options);
 
-    // COMMENCE!
-    initializer.start();
-
     if (options.watch !== true) {
         let processingCount = 0;
         registry.on('sourceTransformed', () => processingCount++);
@@ -31,11 +31,16 @@ function MendelPipeline(options) {
             clearTimeout(to);
             to = setTimeout(() => {
                 process.exit(0);
-            }, 500);
+            }, 5000);
+
             processingCount--;
             if (processingCount === 0) {
                 debug(` done!`);
             }
         });
     }
+
+    // COMMENCE!
+    initializer.start();
+
 }
