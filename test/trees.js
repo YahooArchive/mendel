@@ -37,7 +37,7 @@ test('MendelTrees initialization', function (t) {
 });
 
 test('MendelTrees private methods', function (t) {
-    t.plan(9);
+    t.plan(10);
     process.chdir(__dirname);
 
     var trees = MendelTrees();
@@ -95,7 +95,7 @@ test('MendelTrees private methods', function (t) {
     trees.bundles = {
         foo: {
             indexes: {
-                'entry.js':0,
+                'entry.js': 0,
                 'second.js': 1
             },
             bundles: [{
@@ -120,6 +120,38 @@ test('MendelTrees private methods', function (t) {
     });
     t.matches(trees.bundles.foo.bundles[0], walkedModules[0]);
     t.matches(trees.bundles.foo.bundles[1], walkedModules[1]);
+
+
+    trees.bundles = {
+        circular: {
+            indexes: {
+                'a.js': 0,
+                'b.js': 1
+            },
+            bundles: [{
+                entry: true,
+                id: 'a.js',
+                deps: {
+                    './b.js': 'b.js'
+                }
+            }, {
+                id: 'b.js',
+                deps: {
+                    './a.js': 'a.js'
+                }
+            }]
+        }
+    };
+    var circularModules = [];
+    trees._walkTree('circular', {
+        find: function(module) {
+            if (circularModules.indexOf(module) === -1) {
+                circularModules.push(module);
+            }
+            return module;
+        }
+    });
+    t.equal(circularModules.length, 2, 'works with circular deps');
 });
 
 test('MendelTrees valid manifest runtime', function (t) {
