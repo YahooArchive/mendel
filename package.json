@@ -1,6 +1,5 @@
 {
-  "name": "mendel",
-  "version": "1.2.1",
+  "name": "mendel-monorepo",
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",
@@ -28,10 +27,6 @@
     "type": "git",
     "url": "https://github.com/yahoo/mendel"
   },
-  "main": "lib/trees.js",
-  "bin": {
-    "mendel": "bin/index.js"
-  },
   "scripts": {
     "test": "npm run unit && npm run lint",
     "lint": "eslint .",
@@ -50,17 +45,9 @@
       "test/**"
     ]
   },
-  "dependencies": {
-    "async": "^1.5.2",
-    "browserify": "^13.0.0",
-    "mkdirp": "^0.5.1",
-    "xtend": "^4.0.1",
-    "mendel-config": "^1.1.0",
-    "mendel-browserify": "^1.1.0",
-    "mendel-development": "^1.1.0",
-    "mendel-requirify": "^1.0.7"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "async": "^2.1.2",
     "eslint": "^2.3.0",
     "eslint-cli": "^1.1.0",
     "eslint-plugin-react": "^5.2.2",

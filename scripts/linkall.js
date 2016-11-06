@@ -16,7 +16,7 @@ npm('install async', rootdir, function() {
     var linkedModules = [];
     var linkedDeps = {};
 
-    async.reduce([packagesdir, examplesdir], [rootdir],
+    async.reduce([packagesdir, examplesdir], [],
     function(packages, dir, doneDir){
         fs.readdir(dir, function(err, subdirs) {
             subdirs = subdirs.map(function(subdir) {

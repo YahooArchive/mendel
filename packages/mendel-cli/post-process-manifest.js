@@ -7,6 +7,7 @@ var path = require('path');
 var async = require('async');
 var inspect = require('util').inspect;
 var resolve = require('resolve');
+var debug = require('debug')('mendel-manifest-postprocess');
 
 var sortManifest = require('mendel-development/sort-manifest');
 var validateManifest = require('mendel-development/validate-manifest');
@@ -14,6 +15,7 @@ var validateManifest = require('mendel-development/validate-manifest');
 module.exports = postProcessManifests;
 
 function postProcessManifests(config, finish) {
+    debug('start');
     var resolveProcessor = processorResolver.bind(null, config);
 
     var processors = [
@@ -33,11 +35,7 @@ function postProcessManifests(config, finish) {
         function(processorPair, doneStep) {
             var processor = processorPair[0];
             var opts = processorPair[1] || {};
-            // istanbul ignore if
-            if(config.verbose) {
-                opts.verbose = config.verbose;
-                console.log('Running manifest processor', inspect(processor));
-            }
+            debug('running ' + inspect(processor));
             opts.mendelConfig = config;
             try {
                 processor(input, opts, function(output) {

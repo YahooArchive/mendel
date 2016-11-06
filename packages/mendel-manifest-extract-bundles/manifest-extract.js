@@ -4,6 +4,8 @@
 
 module.exports = manifestExtractBundles;
 
+var debug = require('debug')('mendel-manifest-extract-bundles');
+
 function manifestExtractBundles(manifests, options, next) {
     var fromManifest = manifests[options.from];
     var externalManifest = manifests[options.external];
@@ -15,13 +17,10 @@ function manifestExtractBundles(manifests, options, next) {
         return fromFiles.indexOf(file) >= 0;
     });
 
-    // istanbul ignore if
-    if(options.verbose) {
-        console.log([
-            'found', intersection.length, 'files intersecting between',
-            options.from, 'and', options.external
-        ].join(' '));
-    }
+    debug([
+        'found', intersection.length, 'files intersecting between',
+        options.from, 'and', options.external
+    ].join(' '));
 
     // Expose files on the source bundle
     intersection.forEach(function(file) {
@@ -57,14 +56,11 @@ function manifestExtractBundles(manifests, options, next) {
         });
     });
 
-    // istanbul ignore if
-    if (options.verbose) {
-        var remaining = Object.keys(externalManifest.indexes).length;
-        console.log([
-            remaining, 'files remaining in',
-            options.external, 'after extraction'
-        ].join(' '));
-    }
+    var remaining = Object.keys(externalManifest.indexes).length;
+    debug([
+        remaining, 'files remaining in',
+        options.external, 'after extraction'
+    ].join(' '));
 
     next(manifests);
 }
