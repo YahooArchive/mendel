@@ -176,7 +176,7 @@ app.get('/getBundleCacheLoop', function(req, res) {
     var timer = setTimeout(function() {
         fail = true;
         res.sendStatus(500);
-    }, 100);
+    }, 1000);
 
     req.mendel.setVariations(['test_A']);
 
@@ -186,7 +186,7 @@ app.get('/getBundleCacheLoop', function(req, res) {
     }
 
     var calls = [doIt];
-    for (var i = 0; i < 10000; i++) {
+    for (var i = 0; i < 1000; i++) {
         calls.push(doIt);
     }
     async.series(calls, function() {

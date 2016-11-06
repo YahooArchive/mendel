@@ -11,7 +11,7 @@ var tmp = require('tmp');
 var realSamples = path.join(__dirname, './manifest-samples/');
 var copySamples = tmp.dirSync().name;
 
-var postProcessManifests = require('../bin/post-process-manifest');
+var postProcessManifests = require('../packages/mendel-cli/post-process-manifest');
 var uglify = require('../packages/mendel-manifest-uglify');
 
 var simpleCompressionSize;
