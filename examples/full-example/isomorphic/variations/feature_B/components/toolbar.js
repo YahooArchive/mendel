@@ -9,7 +9,7 @@ class Toolbar extends React.Component {
     render() {
         return (
             <div>
-                <p>Toolbar B</p>
+                <div>Toolbar B</div>
                 <nav className="toolbar feature_B">
                     <Button>B</Button>
                     <span className="spacer" />

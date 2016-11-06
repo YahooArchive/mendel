@@ -9,10 +9,10 @@ import LazyContent from './lazy_content';
 class Lazy extends React.Component {
     render() {
         return (
-            <p>
+            <div>
                 <LazyContent />
                 <Button>Lazy Button</Button>
-            </p>
+            </div>
         );
     }
 }

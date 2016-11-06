@@ -8,10 +8,10 @@ import Button from './button';
 class Lazy extends React.Component {
     render() {
         return (
-            <p>
+            <div>
                 Lazy (on bucket_D) Content with
                 <Button>Lazy Button</Button>
-            </p>
+            </div>
         );
     }
 }
