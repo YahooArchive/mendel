@@ -121,13 +121,17 @@ MendelTrees.prototype.variationsAndChains = function(lookFor) {
     };
 };
 
-function walk(tree, module, pathFinder) {
+function walk(tree, module, pathFinder, _visited) {
+    _visited = _visited || [];
     var dep = pathFinder.find(module);
     // perf: no hasOwnProperty, it is a JSON, lets shave miliseconds
     for (var key in dep.deps) {
         var index = tree.indexes[dep.deps[key]];
         var subdep = tree.bundles[index];
-        if (subdep) walk(tree, subdep, pathFinder);
+        if (subdep && !_visited[index]) {
+            _visited[index] = true; // avoids infinite loop in circular deps
+            walk(tree, subdep, pathFinder, _visited);
+        }
     }
 }
 
