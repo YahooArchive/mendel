@@ -5,13 +5,13 @@
 
 var fs = require('fs');
 var path = require('path');
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 var packagesdir = path.join(__dirname, '../packages');
 var examplesdir = path.join(__dirname, '../examples');
 var rootdir = path.join(__dirname, '..');
 
-npm('install async', rootdir, function() {
+npm(['install', 'async'], rootdir, function() {
     var async = require('async');
     var linkedModules = [];
     var linkedDeps = {};
@@ -55,7 +55,7 @@ npm('install async', rootdir, function() {
             } else if(depsToLink.length) {
                 return async.eachSeries(depsToLink, function(dep, depDone) {
                     console.log('local link', dep, 'to', pkg.name, '...');
-                    npm('link ' + dep, file, function() {
+                    npm(['link', dep], file, function() {
                         linkedDeps[file+':'+dep] = true;
                         depDone();
                     });
@@ -64,7 +64,6 @@ npm('install async', rootdir, function() {
                     donePackage();
                 });
             }
-
 
             console.log('local install', pkg.name, '...');
             npm('install', file, function() {
@@ -88,17 +87,8 @@ npm('install async', rootdir, function() {
 
 });
 
-
-
-// inspired by enpeem@2.1.0 MIT licensed
 function npm(cmd, dir, cb) {
-    var npmp = exec('npm '+ cmd, {cwd: dir});
-    var stderr$npmp = npmp.stderr;
-    var stdout$npmp = npmp.stdout;
-
-    stderr$npmp.pipe(process.stderr);
-    stdout$npmp.on('data', function(data) {
-        process.stdout.write(data);
-    });
+    if (!Array.isArray(cmd)) cmd = [cmd];
+    var npmp = spawn('npm', cmd, {cwd: dir, stdio: 'inherit'});
     npmp.on('exit', cb);
 }
