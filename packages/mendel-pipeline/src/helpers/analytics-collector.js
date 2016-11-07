@@ -20,15 +20,23 @@ const printer = (function Printer() {
     function println(text, indentation) {
         const indent = new Array(indentation + 1).join('  ');
 
-        console.log(indent + text.replace('\n', '\n' + indent));
+        console.log(indent + text.split('\n').join('\n' + indent));
     }
 
     function getBarText(percent) {
         // 30 for buffer for other text
-        const maxBarSize = (process.stdout.columns || 80) - 30;
+        const maxBarSize = (process.stdout.columns || 80) - 34;
         // -5 for displaying the number
         const barNumber = Math.max(Math.ceil(percent / 100 * maxBarSize), 1);
         return chalk.blue(new Array(barNumber + 1).join(figure.square)) + chalk.blue.dim(new Array(maxBarSize - barNumber + 1).join(figure.square));
+    }
+
+    function padLeft(str, width) {
+        return (new Array(width - str.length)).join(' ') + str;
+    }
+
+    function padRight(str, width) {
+        return str + (new Array(width - str.length)).join(' ');
     }
 
     return function print(data, dimensions, indentation=0) {
@@ -46,10 +54,10 @@ const printer = (function Printer() {
             const tabledText = table(points.map(({name, aggregate}) => {
                 const percent = aggregate / totalAggregateTime * 100;
                 return [
-                    name,
-                    prettyMs(aggregate),
+                    padRight(name, 15 - indentation * 2),
+                    padLeft(prettyMs(aggregate), 7),
                     getBarText(percent),
-                    `${Math.round(percent)}%`,
+                    padLeft(`${Math.round(percent)}%`, 5),
                 ];
             }), {align: ['l', 'l', 'l', 'r']});
             println(tabledText, indentation);
@@ -92,7 +100,7 @@ class AnalyticsCollector {
     print() {
         // Print by group
         console.log(chalk.bgWhite.black('Sorted by grouping (aggregate of all thread)'));
-        printer(this.data, ['group']);
+        printer(this.data, ['group'], 1);
 
         console.log(chalk.bgWhite.black('Sorted by subgroup'));
         printer(this.data, ['group', 'subgroup']);
