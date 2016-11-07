@@ -1,7 +1,7 @@
 {
   "name": "mendel-ift-babel",
   "version": "1.0.0",
-  "description": "",
+  "description": "Mendel plugin for transforms using babel-core",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,10 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "babel-core": "^6.17.0"
   }
