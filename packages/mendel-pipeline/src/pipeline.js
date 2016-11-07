@@ -1,4 +1,5 @@
-const analyticsCollector = require('./helpers/analytics-collector');
+const analyticsCollector = require('./helpers/analytics/analytics-collector');
+const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const FsTree = require('./fs-tree');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
@@ -10,7 +11,9 @@ const DepResolver = require('./step/deps');
 module.exports = MendelPipeline;
 
 function MendelPipeline(options) {
-    process.on('exit', () => analyticsCollector.print());
+    analyticsCollector.setOptions({
+        printer: new AnalyticsCliPrinter({enableColor: true})
+    });
 
     // Common functions
     const registry = new MendelRegistry(options);
@@ -42,5 +45,4 @@ function MendelPipeline(options) {
 
     // COMMENCE!
     initializer.start();
-
 }

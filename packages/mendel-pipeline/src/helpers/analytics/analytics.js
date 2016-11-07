@@ -1,6 +1,6 @@
 class Analytics {
-    constructor(grouping) {
-        this.grouping = grouping;
+    constructor(groupName) {
+        this.groupName = groupName;
         this.dataMap = new Map();
     }
 
@@ -17,13 +17,12 @@ class Analytics {
 
         const before = this.dataMap.get(name, Date.now());
         const after = Date.now();
-        this.dataMap.get(name, after);
 
-        this.record(name, after - before);
+        this.record(name, before, after);
         return value;
     }
 
-    record(name, time) {
+    record(name, before, after) {
         if (!global.analytics) {
             console.log('Analytics cannot be done without a collector');
             return;
@@ -31,10 +30,9 @@ class Analytics {
 
         global.analytics.record({
             type: 'analytics',
-            grouping: this.grouping,
-            pid: 'main',
-            name,
-            data: time,
+            name: `main:${this.groupName}:${name}`,
+            before,
+            after,
         });
     }
 }

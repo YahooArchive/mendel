@@ -1,4 +1,4 @@
-const analytics = require('../../helpers/analytics-worker')('deps');
+const analytics = require('../../helpers/analytics/analytics-worker')('deps');
 const debug = require('debug')('mendel:deps:slave-' + process.pid);
 const dep = require('mendel-deps');
 const path = require('path');

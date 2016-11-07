@@ -1,4 +1,4 @@
-const analytics = require('../helpers/analytics-worker')('transform');
+const analytics = require('../helpers/analytics/analytics-worker')('transform');
 const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);

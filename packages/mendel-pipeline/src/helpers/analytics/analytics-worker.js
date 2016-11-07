@@ -1,17 +1,12 @@
 const Analytics = require('./analytics').constructor;
 
 class AnalyticsForWorker extends Analytics {
-    constructor(grouping) {
-        super(grouping);
-    }
-
-    record(name, time) {
+    record(name, before, after) {
         process.send({
             type: 'analytics',
-            grouping: this.grouping,
-            pid: process.pid,
-            name,
-            data: time,
+            name: `${process.pid}:${this.groupName}:${name}`,
+            before,
+            after,
         });
     }
 }

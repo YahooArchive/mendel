@@ -1,7 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
-const analyticsCollector = require('../../helpers/analytics-collector');
+const analyticsCollector = require('../../helpers/analytics/analytics-collector');
 const debug = require('debug')('mendel:deps:manager');
 const EventEmitter = require('events').EventEmitter;
 const {fork} = require('child_process');

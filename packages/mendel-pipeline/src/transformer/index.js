@@ -1,7 +1,7 @@
 /**
  * Independent/Isolated file transform
  */
- const analyticsCollector = require('../helpers/analytics-collector');
+ const analyticsCollector = require('../helpers/analytics/analytics-collector');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
 const {extname, resolve: pathResolve} = require('path');
