@@ -16,11 +16,11 @@ function getBarText(percent, maxBarSize) {
 }
 
 function padLeft(str, width) {
-    return (new Array(width - str.length)).join(' ') + str;
+    return (new Array(width - str.length + 1)).join(' ') + str;
 }
 
 function padRight(str, width) {
-    return str + (new Array(width - str.length)).join(' ');
+    return str + (new Array(width - str.length + 1)).join(' ');
 }
 
 class CliPrinter extends BasePrinter {
@@ -71,7 +71,7 @@ class CliPrinter extends BasePrinter {
         const tabledText = table(points.map(({name, aggregate}) => {
             const percent = aggregate / totalAggregateTime * 100;
             // 7 for the time string, 4 for percent string, 3 to compensate for column char of the table
-            const maxBarSize = (process.stdout.columns || 80) - this.nameMaxLen - 7 - 4 - 3;
+            const maxBarSize = (process.stdout.columns || 80) - this.nameMaxLen - 7 - 4 - 6;
 
             return [
                 // maximum of 20
@@ -97,7 +97,7 @@ class CliPrinter extends BasePrinter {
         console.log(chalk.bgWhite.black('Sorted by pid'));
         this._print(data, [1, 0]);
 
-        console.log((new Array(process.stdout.columns || 80)).join(figure.line));
+        console.log((new Array((process.stdout.columns || 80) + 1)).join(figure.line));
         console.log(chalk.white(`Process finished in ${chalk.bold(prettyMs(Date.now() - this.processStart))}.`));
     }
 }
