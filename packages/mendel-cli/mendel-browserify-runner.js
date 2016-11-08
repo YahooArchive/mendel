@@ -49,13 +49,11 @@ module.exports = function(rawConfig, options) {
     }
 
     if (Array.isArray(options.variations)) {
-        console.log(options.variations);
         var old = mendelConfig.variations;
         mendelConfig.variations = {};
         options.variations.forEach(function(id) {
             mendelConfig.variations[id] = old[id];
         });
-        console.log(mendelConfig.variations);
     }
 
     bundles.forEach(function(bundle) {

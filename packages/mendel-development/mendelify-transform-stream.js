@@ -2,6 +2,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
+var nodePath = require('path');
 var shasum = require('shasum');
 var through = require('through2');
 var variationMatches = require('./variation-matches');
@@ -24,8 +25,13 @@ function mendelifyTransformStream(variations, bundle) {
             }
         }
 
+        row.id = relativePath(row.id, bundle);
+
         if (typeof row.expose === 'string') {
-            row.expose = pathOrVariationMatch(row.expose, variations);
+            row.expose = relativePath(
+                pathOrVariationMatch(row.expose, variations),
+                bundle
+            );
         }
 
         Object.keys(row.deps).forEach(function (key) {
@@ -40,7 +46,7 @@ function mendelifyTransformStream(variations, bundle) {
             }
 
             newValue = depsValue(value, newKey, variations, bundle);
-            row.deps[newKey] = newValue;
+            row.deps[newKey] = relativePath(newValue, bundle);
         });
 
         row.rawSource = row.source;
@@ -67,6 +73,25 @@ function pathOrVariationMatch(path, variations) {
         return match.file;
     }
     return path;
+}
+
+function relativePath(filePath, bundle) {
+    var basedir = bundle._options.basedir;
+    var result = filePath;
+    if (typeof filePath === 'string' && filePath.indexOf(basedir) !== -1) {
+        result = nodePath.relative(basedir, filePath);
+    }
+    return relativeToNodeModules(result);
+}
+
+function relativeToNodeModules(filePath) {
+    if (typeof filePath === 'string') {
+        var index = filePath.indexOf('node_modules/');
+        if (index >= 0) {
+            return filePath.slice(index);
+        }
+    }
+    return filePath;
 }
 
 function depsValue(path, matchFile, variations, bundle) {
