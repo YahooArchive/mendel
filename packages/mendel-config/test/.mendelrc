@@ -1,0 +1,190 @@
+build-dir: ./build
+
+base-config:
+  id: base
+  dir: ./src/master
+
+variation-config:
+  variation-dirs:
+    - ./src/environments
+    - ./src/settings
+    - ./src/experiments
+    - ./src/themes
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    # button_color:
+    tryNowCue:
+      - scout_cues_with_try_now_button
+
+route-config:
+  variation: /d/mendel/:variations/:bundle
+  hash: /d/mendel/:hash/:bundle
+
+transforms: # a list of all available transforms for all envs and types
+  babelify-dev:
+    plugin: mendel-babelify
+    options:
+      plugins:
+        -
+          - react-intl
+          - messagesDir: ./tmp/strings/
+            enforceDescriptions: true
+  babelify-prod:
+    plugin: mendel-babelify
+    options:
+      plugins:
+        - react-intl-remove-description
+        - transform-react-remove-prop-types
+        -
+          - react-intl
+          - messagesDir: ./tmp/strings/
+            enforceDescriptions: true
+  atomic-css:
+    plugin: mendel-atomic-css
+  envify-dev:
+    plugin: mendel-envify
+    options:
+      NODE_ENV: development
+  envify-prod:
+    plugin: mendel-envify
+    options:
+      NODE_ENV: production
+  minify:
+    plugin: mendel-uglify-js
+  coverage:
+    plugin: mendel-istanbul
+  post-css:
+    plugin: mendel-post-css
+    options:
+      foo: bar # auto-prefixex, rtl-css
+
+types:
+  css:
+    transforms:
+      - post-css
+    outlet:
+      plugin: mendel-css-pack
+  javascript:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - envify-dev
+      - babelify-dev
+      - atomic-css
+    extensions:
+      - .js
+      - .json
+      - .jsx
+  node_modules:
+    transforms:
+      - envify-dev
+
+env:
+  production:
+    types:
+      javascript:
+        outlet:
+          plugin: mendel-bundle-rollup
+        transforms:
+          - envify-prod
+          - babelify-dev
+          - atomic-css
+          - minify
+        node_modules:
+          - envify-prod
+          - minify
+  unit-test:
+    types:
+      javascript:
+        transforms:
+          - envify-dev
+          - babelify-dev
+          - atomic-css
+          - coverage
+
+# needs to be array because order is relevant
+# if extract-bundles comes first, we can generage lazy bundle specific css
+# if atomic-css comes first, mail-css includes rules from files on lazy bundles
+# if node-modules is last, we can use lazy-bundle as optional input (see below)
+generators: # AKA graph transforms - or graph operations
+  - id: atomic-css-generator
+    plugin: mendel-atomic-css-generator
+  - id: extract-bundles
+    plugin: mendel-extract-bundles
+  - id: node-modules-generator
+    plugin: mendel-extract-node-modules
+
+# "outfile" is optional and only needed for single layer generation
+bundles:
+  mail-app:
+    outfile: mail_app.js
+    entries:
+      - /apps/mail
+  compose-app:
+    outfile: compose_app.js
+    entries:
+      - /apps/compose
+  mail-app-test:
+    outfile: mail_app_test.js
+    entries:
+      - /apps/mail/_ui_test_app.js
+  compose-app-test:
+    outfile: compose_app_test.js
+    entries:
+      - /apps/mail/_ui_test_app.js
+  mail-lazy-group-1:
+    outfile: mail_lazy1.js
+    generator: extract-bundles
+    extract-from: mail-app
+    extract-entries:
+      - /apps/mail/atoms/settings_personalize_cue.jsx
+      - /apps/mail/controller_views/attachment_ui.jsx
+      - /apps/mail/controller_views/document_brief.jsx
+      - /apps/mail/controller_views/framed_compose/index.jsx
+      - /apps/mail/controller_views/heartbeat.jsx
+      - /apps/mail/controller_views/message_brief.jsx
+      - /apps/mail/controller_views/photo_brief.jsx
+      - /apps/mail/controller_views/print.jsx
+      - /apps/mail/controller_views/scout.jsx
+      - /apps/mail/controller_views/settings/settings.jsx
+      - /apps/mail/controller_views/settings_menu/settings_menu.jsx
+      - /molecules/ads/sponsored_message_read.jsx
+      - /molecules/compose/atoms/stationery_cue.jsx
+      - /molecules/document_list/index.jsx
+      - /molecules/mail_onboarding_cue/index.jsx
+      - /molecules/photo_grid/index.jsx
+      - /molecules/photos_cue/index.jsx
+      - /molecules/search_header/atoms/search_cue.jsx
+      - /molecules/starred_cue/index.jsx
+      - /molecules/stationery/stationery.jsx
+      - /molecules/timezone_check/index.jsx
+  vendor:
+    outfile: vendor.js
+    generator: node-modules-generator
+    all-bundles: true # expects only 1 bundle to apply this generator, or throws
+                      # look for node_modules in every other bundle
+    # alternative configuration
+    # if the array don't contain lazy, the node_modules only used on lazy would
+    # be kept on lazy_bundle
+    # bundles:
+    #   - mail_app
+    #   - compose_app
+  playground:
+    outfile: playground.js
+    entries:
+      - /apps/playground
+  mail-app-css:
+    outfile: mail_app.css
+    generator: atomic-css-generator
+    entries:
+      - /apps/mail
+  compose-app-css:
+    outfile: compose_app.css
+    generator: atomic-css-generator
+    entries:
+      - /apps/compose
+  playground-app-css:
+    outfile: playground.css
+    generator: atomic-css-generator
+    entries:
+      - /apps/playground

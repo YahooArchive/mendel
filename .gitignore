@@ -6,3 +6,4 @@ coverage/
 .DS_*
 mendel-build/
 build-requirify/
+*.log

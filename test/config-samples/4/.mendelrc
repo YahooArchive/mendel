@@ -1,0 +1,70 @@
+build-dir: ./output_root
+
+base-config:
+  id: default
+  # dir: ./src/default
+
+variation-config:
+  variation-dirs:
+    - ./src/experiments
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    button_color:
+
+route-config:
+  variation: /d/mendel/:variations/:bundle
+  hash: /d/mendel/:hash/:bundle
+
+transforms: # a list of all available transforms for all envs and types
+  babelify-prod:
+    plugin: mendel-babelify
+    options:
+      plugins:
+        - react-intl-remove-description
+        - transform-react-remove-prop-types
+  envify-dev:
+    plugin: mendel-envify
+    options:
+      NODE_ENV: development
+  envify-prod:
+    plugin: mendel-envify
+    options:
+      NODE_ENV: production
+types:
+  js:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - envify-dev
+    extensions:
+      - .js
+      - .json
+      - .jsx
+env:
+  production:
+    types:
+      js:
+        outlet:
+          plugin: mendel-bundle-rollup
+        transforms:
+          - envify-prod
+          - babelify-dev
+        node_modules:
+          - envify-prod
+
+# needs to be array because order is relevant
+# if extract-bundles comes first, we can generage lazy bundle specific css
+# if atomic-css comes first, mail-css includes rules from files on lazy bundles
+# if node-modules is last, we can use lazy-bundle as optional input (see below)
+generators: # AKA graph transforms - or graph operations
+  - id: extract-bundles
+    plugin: mendel-extract-bundles
+  - id: node-modules-generator
+    plugin: mendel-extract-node-modules
+
+# "outfile" is optional and only needed for single layer generation
+bundles:
+  test:
+    outfile: test.js
+    entries:
+      - index.js
