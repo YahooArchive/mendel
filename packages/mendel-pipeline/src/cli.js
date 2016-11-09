@@ -21,40 +21,5 @@ program
     .parse(process.argv);
 
 // Example usage
-// time node src/cli.js ~/dev/norrin/src/
 const mendelConfig = config(Object.assign(program, {cwd: path.resolve(process.cwd(), program.args[0])}));
 mendelPipeline(mendelConfig);
-// cwd: program.args[0],
-// commonTransformIds: ['babel1'],
-// transforms: {
-//     babel1: {
-//         plugin: 'mendel-ift-babel',
-//         options:  {
-//             presets: [
-//                 'es2015',
-//                 'react',
-//             ],
-//             plugins: [
-//             ],
-//         },
-//     },
-//     babel2: {
-//         plugin: 'mendel-ift-babel',
-//         options:  {
-//             presets: [
-//             ],
-//             plugins: [
-//                 'transform-react-remove-prop-types',
-//             ],
-//         },
-//     },
-// },
-// bundles: {
-//     main: {
-//         transform: ['babel1', 'babel2'],
-//         entries: ['base/components/app.js'],
-//     },
-// },
-// basetree: './base',
-// base: 'base',
-// variationsdir: 'variations',
