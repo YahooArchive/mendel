@@ -5,7 +5,7 @@
 var path = require('path');
 var mkdirp = require('mkdirp');
 var test = require('tap').test;
-var mendelPlugin = require('mendel-browserify');
+var mendelPlugin = require('../packages/mendel-browserify');
 
 var appPath = path.resolve(__dirname, 'app-samples/1/');
 var appBuild = path.join(appPath, 'build');

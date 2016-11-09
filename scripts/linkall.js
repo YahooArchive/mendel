@@ -11,7 +11,7 @@ var packagesdir = path.join(__dirname, '../packages');
 var examplesdir = path.join(__dirname, '../examples');
 var rootdir = path.join(__dirname, '..');
 
-npm(['install', 'async'], rootdir, function() {
+npm(['install'], rootdir, function() {
     var async = require('async');
     var linkedModules = [];
     var linkedDeps = {};
