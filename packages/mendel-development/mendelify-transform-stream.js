@@ -42,7 +42,7 @@ function mendelifyTransformStream(variations, bundle) {
             var newValue = value;
 
             if (!avoidMendelify(value) || shouldExternalize(externals, key)) {
-                newKey = pathOrVariationMatch(key, variations);
+                newKey = keyValue(key, variations, bundle);
             }
 
             newValue = depsValue(value, newKey, variations, bundle);
@@ -51,13 +51,23 @@ function mendelifyTransformStream(variations, bundle) {
 
         row.rawSource = row.source;
         if (!avoidMendelifyRow) {
-            row.source = mendelifyRequireTransform(row.file, row.source, variations);
+            row.source = mendelifyRequireTransform(
+                row.file,
+                row.source,
+                function(requirePath) {
+                    return keyValue(requirePath, variations, bundle);
+                }
+            );
         }
         row.sha = shasum(row.source);
 
         this.push(row);
         next();
     });
+}
+
+function keyValue(key, variations, bundle) {
+    return relativePath(pathOrVariationMatch(key, variations), bundle);
 }
 
 function avoidMendelify(file) {
