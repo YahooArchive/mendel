@@ -2,6 +2,7 @@ const chokidar = require('chokidar');
 const EventEmitter = require('events').EventEmitter;
 const {resolve: pathResolve} = require('path');
 const {readFile} = require('fs');
+const verbose = require('debug')('verbose:mendel:fs');
 
 class FileTreeWatcher extends EventEmitter {
     constructor({registry}, {cwd, ignore}) {
@@ -48,12 +49,17 @@ class FileTreeWatcher extends EventEmitter {
             this.emit('ready');
         });
 
-        this._registry.on('dependenciesAdded', (entry, path) => {
+        this._registry.on('directoryAdded', (entry, path) => {
             // No need to watch the file that is already being tracked
             if (entry) return;
             this.subscribe(path);
         });
         this._registry.on('sourceRemoved', (path) => this.watcher.unsubscribe(path));
+    }
+
+    emit(eventName) {
+        verbose(eventName);
+        EventEmitter.prototype.emit.apply(this, arguments);
     }
 
     subscribe(path) {

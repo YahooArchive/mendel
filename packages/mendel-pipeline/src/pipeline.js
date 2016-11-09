@@ -26,19 +26,24 @@ function MendelPipeline(options) {
     const depsResolver = new DepResolver({registry, transformer}, options);
 
     if (options.watch !== true) {
-        let processingCount = 0;
-        registry.on('sourceTransformed', () => processingCount++);
+        let rawSources = 0;
+        let totalSources = 0;
+        let doneDeps = 0;
 
-        let to;
+        watcher.on('add', () => {
+            rawSources++;
+        });
+
+        registry.on('sourceAdded', () => {
+            totalSources++;
+        });
+
         registry.on('dependenciesAdded', () => {
-            clearTimeout(to);
-            to = setTimeout(() => {
-                process.exit(0);
-            }, 5000);
+            doneDeps++;
 
-            processingCount--;
-            if (processingCount === 0) {
-                debug(` done!`);
+            if (totalSources >= rawSources && doneDeps === totalSources) {
+                debug(`done!`);
+                process.exit(0);
             }
         });
     }

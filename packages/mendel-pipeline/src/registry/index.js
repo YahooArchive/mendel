@@ -1,6 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const MendelCache = require('../cache');
 const error = require('debug')('mendel:registry:error');
+const verbose = require('debug')('verbose:mendel:registry');
 
 class MendelRegistry extends EventEmitter {
     constructor(config) {
@@ -9,8 +10,13 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache = new MendelCache(config);
     }
 
+    emit(eventName) {
+        verbose(eventName);
+        EventEmitter.prototype.emit.apply(this, arguments);
+    }
+
     addToPipeline(dirPath) {
-        this.emit('dependenciesAdded', null, dirPath);
+        this.emit('directoryAdded', null, dirPath);
     }
 
     addEntry(filePath, rawSource) {
