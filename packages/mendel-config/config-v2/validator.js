@@ -11,7 +11,7 @@ module.exports = function createValidator(schema) {
             }
 
             var type = Array.isArray(value) ? 'array' : typeof value;
-            if (criteria.type && type === criteria.type) {
+            if (criteria.type && type !== criteria.type) {
                 return error.push('Requires `' + schemaKey + '` to be of type [' + criteria.type + '] but is [' + type + ']');
             }
 
@@ -29,7 +29,7 @@ module.exports = function createValidator(schema) {
             throw new Error(
                 error.filter(Boolean).reduce(function(reduced, error) {
                     return reduced += 'x ' + error + '\n';
-                }, '[Bad configuration] Variation configuration is not valid because of following:\n') +
+                }, '[Bad configuration] Configuration is not valid because of following:\n') +
                 JSON.stringify(instance, null, 2)
             );
         }

@@ -8,14 +8,16 @@ class VariationalModuleResolver extends ModuleResolver {
         // Must be a path relative to the basedir
         this.cwd = config.cwd;
         this.baseVarDir = path.resolve(this.cwd, config.baseVariationDir);
-        this.varsDir = path.resolve(this.cwd, config.variationsDir);
-        this.variationChain = config.variations.map(variation => path.resolve(this.varsDir, variation)).concat([this.baseVarDir]);
+        this.varDirs = config.variationDirs.map(varDir => path.resolve(this.cwd, varDir));
+        this.variationChain = config.variations.reduce((reduced, variation) => {
+            return reduced.concat(this.varDirs.map(varDir => path.resolve(varDir, variation)));
+        }, []).concat([this.baseVarDir]);
     }
 
     // Module id is a path without the variational information
     getModuleId(variationalPath) {
         const varNameStrippedPath = path.resolve(this.basedir, variationalPath)
-            .replace(new RegExp(`(${this.varsDir}${path.sep}\\w+|${this.baseVarDir})${path.sep}?`), '');
+            .replace(new RegExp(`((${this.varDirs.join('|')})${path.sep}\\w+|${this.baseVarDir})${path.sep}?`), '');
         return varNameStrippedPath || '.';
     }
 

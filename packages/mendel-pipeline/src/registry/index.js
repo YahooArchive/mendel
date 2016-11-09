@@ -24,13 +24,14 @@ class MendelRegistry extends EventEmitter {
         this.emit('sourceAdded', this._mendelCache.getEntry(filePath));
     }
 
-    addSource(filePath, transformIds, source) {
+    addTransformedSource({filePath, transformIds, effectiveExt, source}) {
         if (!this._mendelCache.hasEntry(filePath)) {
             error(`Adding a source to a file that is unknown. This should be not possible: ${filePath}`);
             this._mendelCache.addEntry(filePath, source);
         }
 
         const entry = this._mendelCache.getEntry(filePath);
+        entry.setEffectiveExt(effectiveExt);
         entry.setSource(transformIds, source);
         this.emit('sourceTransformed', entry, transformIds);
     }

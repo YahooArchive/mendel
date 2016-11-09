@@ -4,7 +4,7 @@ const FsTree = require('./fs-tree');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
 const Initialize = require('./step/initialize');
-const CommonIFT = require('./step/common-ift');
+const IST = require('./step/ist');
 const debug = require('debug')('mendel');
 const DepResolver = require('./step/deps');
 
@@ -12,17 +12,17 @@ module.exports = MendelPipeline;
 
 function MendelPipeline(options) {
     analyticsCollector.setOptions({
-        printer: new AnalyticsCliPrinter({enableColor: true})
+        printer: new AnalyticsCliPrinter({enableColor: true}),
     });
 
     // Common functions
     const registry = new MendelRegistry(options);
-    const transformer = new Transformer(options.transforms);
+    const transformer = new Transformer(options.transforms, options);
 
     // Pipeline steps
     const initializer = new Initialize({registry, transformer}, options);
     const watcher = new FsTree({registry, transformer}, options);
-    const commonIFT = new CommonIFT({registry, transformer}, options);
+    const ist = new IST({registry, transformer}, options);
     const depsResolver = new DepResolver({registry, transformer}, options);
 
     if (options.watch !== true) {
@@ -30,14 +30,8 @@ function MendelPipeline(options) {
         let totalSources = 0;
         let doneDeps = 0;
 
-        watcher.on('add', () => {
-            rawSources++;
-        });
-
-        registry.on('sourceAdded', () => {
-            totalSources++;
-        });
-
+        watcher.on('add', () => rawSources++);
+        registry.on('sourceAdded', () => totalSources++);
         registry.on('dependenciesAdded', () => {
             doneDeps++;
 

@@ -11,12 +11,12 @@ process.on('message', ({type, transforms, source, filename}) => {
             return Promise.reject(`${filename} was transformed with nothing.`);
         }
 
-        let promise = Promise.resolve();
+        let promise = Promise.resolve({source});
 
         transforms.forEach(transform => {
             promise = promise
             .then(analytics.tic.bind(analytics, transform.id))
-            .then(() => {
+            .then(({source}) => {
                 const xform = require(transform.plugin);
                 return xform({filename, source}, transform.options);
             })

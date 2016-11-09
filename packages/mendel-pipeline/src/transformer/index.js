@@ -4,7 +4,7 @@
  const analyticsCollector = require('../helpers/analytics/analytics-collector');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
-const {extname, resolve: pathResolve} = require('path');
+const {resolve: pathResolve} = require('path');
 const {existsSync} = require('fs');
 const {sync: moduleResolveSync} = require('resolve');
 
@@ -82,43 +82,23 @@ function singleMode(transforms, {filename, source}) {
  * Knows how to do all kinds of trasnforms in parallel way
  */
 class TrasnformManager {
-    constructor(transforms) {
+    constructor(transforms, config) {
         this._transforms = new Map();
-
-        Object.keys(transforms).forEach(transformId => {
-            this._transforms.set(transformId, Object.assign({}, transforms[transformId], {
-                id: transformId,
-                plugin: this._resolvePlugin(transforms[transformId].plugin),
+        transforms.forEach(transform => {
+            this._transforms.set(transform.id, Object.assign(transform, {
+                plugin: this.resolvePlugin(config.cwd, transform.plugin),
             }));
         });
     }
 
-    _resolvePlugin(plugin) {
-        // pass function
-        if (typeof plugin !== 'string') return plugin;
-        // file in the cwd
-        if (existsSync(pathResolve(process.cwd(), plugin))) return pathResolve(process.cwd(), plugin);
-        // node_modules
-        if (existsSync(pathResolve(process.cwd(), 'node_modules', plugin, 'package.json'))) {
-            const packageJson = require(pathResolve(process.cwd(), 'node_modules', plugin, 'package.json'));
+    resolvePlugin(cwd, plugin) {
+        if (existsSync(pathResolve(cwd, plugin))) return pathResolve(cwd, plugin);
 
-            if ((packageJson.keywords || []).indexOf('mendel-ift') < 0) {
-                throw new Error(`Mendel IFT plugin (${plugin}) is not valid.`);
-            }
-
-            return moduleResolveSync(plugin, {basedir: process.cwd()});
-        }
-
-        throw new Error('Could not find Mendel IFT plugin: ' + plugin);
+        // node_modules do not live in the cwd. We search where mendelrc is.
+        return moduleResolveSync(plugin, {basedir: process.cwd()});
     }
 
     transform(filename, transformIds, source) {
-        // TODO make sure plugins can handle certain extensions.
-        // For instance, babel dies when you pass non-JS source to it.
-        if (['.js', '.jsx'].indexOf(extname(filename)) < 0) {
-            return Promise.resolve({filename, source});
-        }
-
         debug(`Transforming "${filename}" with [${transformIds}]`);
         const transforms = transformIds.map(transformId => this._transforms.get(transformId));
 

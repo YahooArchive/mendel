@@ -2,7 +2,7 @@ build-dir: ./output_root
 
 base-config:
   id: default
-  # dir: ./src/default
+  dir: ./src/default
 
 variation-config:
   variation-dirs:

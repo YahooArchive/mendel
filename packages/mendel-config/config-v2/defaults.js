@@ -15,19 +15,13 @@ module.exports = function() {
             variations: {},
         },
         'route-config': {
-            variation: '/d/mendel/:variations/:bundle',
-            hash: '/d/mendel/:hash/:bundle',
+            variation: '/mendel/:variations/:bundle',
+            hash: '/mendel/:hash/:bundle',
         },
         transforms: {},
-        types: {
-            css: {},
-            js: {
-                extensions: ['.js', '.json'],
-            },
-            node_modules: {}
-        },
+        types: {},
         generators: {},
         env: {},
-        bundles: {}
+        bundles: {},
     };
 };

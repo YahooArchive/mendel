@@ -5,7 +5,7 @@ function VariationConfig(config) {
     var variationConfig = config['variation-config'];
     if (!variationConfig) return null;
 
-    this.variationDir = (variationConfig['variation-dirs'] || [])
+    this.variationDirs = (variationConfig['variation-dirs'] || [])
         .filter(Boolean)
         .map(function(dir) { return path.resolve(config.cwd, dir); });
     this.variations = variationConfig.variations;
@@ -14,7 +14,7 @@ function VariationConfig(config) {
 }
 
 VariationConfig.validate = createValidator({
-    variationDir: {type: 'array', minLen: 1},
+    variationDirs: {type: 'array', minLen: 1},
 });
 
 module.exports = VariationConfig;

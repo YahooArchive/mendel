@@ -5,6 +5,7 @@ class Entry {
         this.id = id;
         this.normalizedId;
         this.type;
+        this.effectiveExt = path.extname(id);
         this.sourceVersions = new Map();
         this.sourceVersions.set('raw', rawSource);
         this.dependents = [];
@@ -16,9 +17,13 @@ class Entry {
         this.sourceVersions.set(transformIds.join('_'), source);
     }
 
+    setEffectiveExt(effectiveExt) {
+        this.effectiveExt = effectiveExt;
+    }
+
     getSource(transformIds) {
         if (!Array.isArray(transformIds)) throw new Error(`Expected "${transformIds}" to be an array.`);
-        return this.sourceVersions.get(transformIds.join('_'));
+        return this.sourceVersions.get(transformIds.join('_') || 'raw');
     }
 
     getClosestSource(transformIds) {
@@ -74,14 +79,26 @@ function isNodeModule(id) {
 class MendelCache {
     constructor(config) {
         this._store = new Map();
-        this._config = config;
-        this.variationalRegex = new RegExp(`(${this._config.variationsdir}${path.sep}(\\w+)|${this._config.basetree})${path.sep}?`);
+        this._baseConfig = config.baseConfig;
+        this._variationConfig = config.variationConfig;
+
+        const variationDirSet = new Set();
+        Object.keys(this._variationConfig.variations)
+            .filter(varKey => this._variationConfig.variations[varKey])
+            .forEach(varKey => {
+                this._variationConfig.variations[varKey].forEach(varFolderName => variationDirSet.add(varFolderName));
+            });
+        const varDirNames = Array.from(variationDirSet.keys());
+
+        this.variationalRegex = new RegExp(`(${varDirNames.map(dirName => `(${dirName})${path.sep}\\w+`).join('|')}|${this._baseConfig.dir})${path.sep}?`);
     }
 
     getNormalizedId(id) {
         if (isNodeModule(id)) return id;
 
-        return id.replace(this.variationalRegex, '');
+        // This is wrong WIP
+        // return id.replace(this.variationalRegex, '');
+        return id;
     }
 
     getType(id) {
@@ -92,10 +109,17 @@ class MendelCache {
         return 'binary';
     }
 
+    getVariation(path) {
+        const variationalMatch = path.match(this.variationalRegex);
+
+        if (!variationalMatch) return this._baseConfig.id;
+        return 'still working on it';
+    }
+
     addEntry(id, rawSource) {
         this._store.set(id, new Entry(id, rawSource));
         const entry = this._store.get(id);
-        entry.variation = (id.match(this.variationalRegex)|| [0,0,this._config.base])[2];
+        entry.variation = this.getVariation(id);
         entry.normalizedId = this.getNormalizedId(id);
         entry.type = this.getType(id);
     }

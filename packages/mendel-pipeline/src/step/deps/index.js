@@ -16,22 +16,25 @@ class DepsManager extends EventEmitter {
      * @param {MendelRegistry} registry
      * @param {String} config.cwd
      */
-    constructor({registry}, {cwd, basetree, base, variationsdir}) {
+    constructor({registry}, {cwd, baseConfig, variationConfig}) {
         super();
         this._registry = registry;
 
         this._cwd = cwd;
-        this._basetree = basetree;
-        this._baseName = base;
-        this._variationsdir = variationsdir;
+        this._baseConfig = baseConfig;
+        this._variationConfig = variationConfig;
         this._queue = [];
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
 
         this._registry.on('sourceTransformed', (entry, transformIds) => {
-            // TODO make this configurable. Non-JS is yet parsible
-            if (['.js', '.jsx'].indexOf(extname(entry.id)) < 0) return;
+            // Acorn used in deps can only parse js and jsx types.
+            if (['.js', '.jsx'].indexOf(entry.effectiveExt) < 0) {
+                // there are no dependency
+                return this._registry.setDependencies(entry.id, {});
+            }
+
             if (!entry.dependenciesUpToDate) {
                 this._queue.push({
                     filePath: entry.id,
@@ -82,9 +85,9 @@ class DepsManager extends EventEmitter {
             variation,
             source,
             cwd: this._cwd,
-            baseDir: this._basetree,
-            baseName: this._baseName,
-            varsDir: this._variationsdir,
+            baseDir: this._baseConfig.dir,
+            baseName: this._baseConfig.id,
+            varDirs: this._variationConfig.variationDirs,
         });
         this.next();
     }

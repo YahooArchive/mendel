@@ -1,11 +1,9 @@
-var path = require('path');
 var createValidator = require('./validator');
 
-function TransformConfig(id, options) {
+function TransformConfig(id, transform) {
     this.id = id;
-    var plugin = options.plugin || '';
-    this.plugin = path.extname(plugin) ? path.resolve(plugin) : plugin;
-    this.options = options;
+    this.plugin = transform.plugin;
+    this.options = transform.options;
 
     TransformConfig.validate(this);
 }

@@ -10,12 +10,13 @@ var TransformConfig = require('./transform-config');
 var BundleConfig = require('./bundle-config');
 var VariationConfig = require('./variation-config');
 var BaseConfig = require('./base-config');
+var TypesConfig = require('./types-config');
 
 module.exports = function(config) {
     var defaults = defaultConfig();
 
     // merge by priority
-    config = xtend(defaults, config);
+    config = deepMerge(defaults, config);
 
     // merge environment based config
     config.environment = config.environment || process.env.MENDEL_ENV || process.env.NODE_ENV;
@@ -30,11 +31,13 @@ module.exports = function(config) {
     config.cwd = path.resolve(config.cwd);
     config.baseConfig = new BaseConfig(config);
     config.variationConfig = new VariationConfig(config);
-
-    Object.keys(config.transforms).forEach(function(transformId) {
+    config.types = Object.keys(config.types).map(function(typeName) {
+        return new TypesConfig(typeName, config.types[typeName]);
+    });
+    config.transforms = Object.keys(config.transforms).map(function(transformId) {
         return new TransformConfig(transformId, config.transforms[transformId]);
     });
-    Object.keys(config.bundles).forEach(function(bundleId) {
+    config.bundles = Object.keys(config.bundles).map(function(bundleId) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
 

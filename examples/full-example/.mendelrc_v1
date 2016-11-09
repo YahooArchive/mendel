@@ -1,0 +1,73 @@
+
+outdir: ./build
+bundlesoutdir: client
+serveroutdir: server
+
+base: base
+basetree: isomorphic/base
+bundles:
+  vendor:
+    require:
+      - react
+      - react-dom
+  main:
+    entries:
+      - ./isomorphic/base/main.js
+    external:
+      - react
+      - react-dom
+      - ./isomorphic/base/components/lazy.js
+    transform:
+      - babelify
+  lazy:
+    require:
+      - ./isomorphic/base/components/lazy.js
+    external:
+      - react
+      - react-dom
+    transform:
+      - babelify
+
+manifestProcessors:
+  -
+    - mendel-manifest-extract-bundles
+    - external: lazy
+      from: main
+
+variationsdir: isomorphic/variations
+variations:
+  unexisting_folder:
+  bucket_A:
+    - unexisting_folder
+  feature_B:
+  partner_C:
+  bucket_D:
+    - partner_C
+
+
+env:
+  production:
+    manifestProcessors:
+      -
+        - mendel-manifest-extract-bundles
+        - external: lazy
+          from: main
+      -
+        - mendel-manifest-uglify
+    bundles:
+      vendor:
+        transform:
+          -  &envify
+            - envify
+            - global: true
+              NODE_ENV: production
+      main:
+        transform:
+          - babelify
+          - *envify
+      lazy:
+        transform:
+          - babelify
+          - *envify
+
+

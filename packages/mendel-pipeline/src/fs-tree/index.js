@@ -1,11 +1,11 @@
 const chokidar = require('chokidar');
 const EventEmitter = require('events').EventEmitter;
-const {resolve: pathResolve} = require('path');
+const {resolve: pathResolve, extname} = require('path');
 const {readFile} = require('fs');
 const verbose = require('debug')('verbose:mendel:fs');
 
 class FileTreeWatcher extends EventEmitter {
-    constructor({registry}, {cwd, ignore}) {
+    constructor({registry}, {cwd, ignore, types}) {
         super();
 
         this._registry = registry;
@@ -16,11 +16,19 @@ class FileTreeWatcher extends EventEmitter {
         // file size priority
         this.isInitialized = false;
         this.initialProrityQueue = [];
+        this.sourceExt = new Set();
+        Object.keys(types).forEach(typeName => {
+            const type = types[typeName];
+
+            if (type.isBinary) return;
+            type.extensions.forEach(ext => this.sourceExt.add(ext));
+        });
 
         this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
         this.watcher
         .on('change', (path) => {
-            readFile(pathResolve(this.cwd, path), 'utf8', (err, source) => {
+            const encoding = this.sourceExt.has(extname(path)) ? 'utf8' : 'binary';
+            readFile(pathResolve(this.cwd, path), encoding, (err, source) => {
                 this._registry.remove(path);
                 this._registry.addEntry(path, source);
             });
@@ -29,11 +37,12 @@ class FileTreeWatcher extends EventEmitter {
             this._registry.remove(path);
         })
         .on('add', (path, stats) => {
-            readFile(pathResolve(this.cwd, path), 'utf8', (err, source) => {
+            const encoding = this.sourceExt.has(extname(path)) ? 'utf8' : 'binary';
+            readFile(pathResolve(this.cwd, path), encoding, (err, source) => {
                 if (!this.isInitialized) {
                     return this.initialProrityQueue.push({source, path, size: stats.size});
                 }
-                // this.emit('add', path, source);
+                this.emit('add', path, source);
                 this._registry.addEntry(path, source);
             });
         })
