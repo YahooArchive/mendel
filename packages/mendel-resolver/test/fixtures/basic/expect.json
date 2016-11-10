@@ -1,0 +1,4 @@
+{
+  "main": "fixtures/basic/index.js",
+  "browser": "fixtures/basic/index.js"
+}

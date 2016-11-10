@@ -2,5 +2,8 @@ build/
 node_modules/
 coverage/
 .nyc_output/
+*.log
+.DS_*
 mendel-build/
 build-requirify/
+*.log

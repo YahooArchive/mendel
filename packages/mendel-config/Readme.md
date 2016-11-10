@@ -61,6 +61,151 @@ In `.mendelrc` or `package.json` the bundles entry is an object, we will transfo
 Flattening is useful to use YAML references to manipulate the file lists. For example, the `logged_in_bundle` bellow will have all files from `vendor` and from `main`, since arrays are flattened:
 
 ```yml
+# Mendel v2
+
+build-dir: ./build
+
+# Base/default variation configuration
+base-config:
+  id: base
+  dir: ./src/master
+
+variation-config:
+  variation-dirs:
+    - ./src/environments
+    - ./src/settings
+    - ./src/experiments
+    - ./src/themes
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    # id of variation
+    button_color:
+      # name of the folder
+      - blue_button
+
+route-config:
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
+
+transforms: # a list of all available transforms for all envs and types
+  babelify-dev:
+    plugin: mendel-babelify
+    options:
+      plugins:
+        -
+          - react-intl
+          - messagesDir: ./tmp/strings/
+            enforceDescriptions: true
+  babelify-prod:
+    plugin: mendel-babelify
+    options:
+      plugins:
+        - react-intl-remove-description
+        - transform-react-remove-prop-types
+        -
+          - react-intl
+          - messagesDir: ./tmp/strings/
+            enforceDescriptions: true
+  custom-transform:
+    plugin: ./transforms/custom.js
+  envify-dev:
+    options:
+      NODE_ENV: development
+  envify-prod:
+    options:
+      NODE_ENV: production
+  minify:
+    plugin: mendel-uglify-js
+  coverage:
+    plugin: mendel-istanbul
+  post-css:
+    plugin: mendel-post-css
+    options:
+      foo: bar # auto-prefixex, rtl-css
+
+types:
+  css:
+    transforms:
+      - post-css
+    outlet:
+      plugin: mendel-css-pack
+  javascript:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - envify-dev
+      - babelify-dev
+    extensions:
+      - .js
+      - .json
+      - .jsx
+  node_modules:
+    transforms:
+      - envify-dev
+
+env:
+  production:
+    types:
+      javascript:
+        outlet:
+          plugin: mendel-bundle-rollup
+        transforms:
+          - envify-prod
+          - babelify-dev
+          - minify
+        node_modules:
+          - envify-prod
+          - minify
+  unit-test:
+    types:
+      javascript:
+        transforms:
+          - envify-dev
+          - babelify-dev
+          - coverage
+
+# Order is relevant. E.g.,
+# if extract-bundles comes first, we can generate lazy bundle specific css
+# if css comes first, css file includes rules from files on lazy bundles
+# if node-modules is last, we can use lazy-bundle as optional input (see below)
+generators: # AKA graph transforms - or graph operations
+  - id: extract-bundles
+    plugin: mendel-extract-bundles
+  - id: node-modules-generator
+    plugin: mendel-extract-node-modules
+
+# "outfile" is optional and only needed for single layer generation
+bundles:
+  main:
+    outfile: app.js
+    entries:
+      - /apps/main
+  lazy-group-1:
+    outfile: lazy1.js
+    generator: extract-bundles
+    extract-from: main
+    extract-entries:
+      - /apps/lazy
+  deps:
+    outfile: vendor.js
+    generator: node-modules-generator
+    all-bundles: true # expects only 1 bundle to apply this generator, or throws
+                      # look for node_modules in every other bundle
+    # alternative configuration
+    # if the array don't contain lazy, the node_modules only used on lazy would
+    # be kept on lazy_bundle
+    # bundles:
+    #   - mail_app
+    #   - compose_app
+  css:
+    outfile: app.css
+    generator: atomic-css-generator
+    entries:
+      - /apps/main
+```
+
+```yml
+# Mendel v1
 bundles:
 
   vendor:

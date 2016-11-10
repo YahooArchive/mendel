@@ -9,7 +9,6 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-[{*.json,*.yml,.mendelrc}]
+[{*.json,*.yml,.mendelrc,*.*rc}]
 indent_style = space
 indent_size = 2
-

@@ -1,0 +1,35 @@
+{
+  "name": "mendel-pipeline",
+  "version": "1.0.0",
+  "description": "Coordenates all async operations for Mendel",
+  "main": "src/pipeline.js",
+  "bin": "src/cli.js",
+  "scripts": {
+    "test": "tap test/*.js",
+    "lint": "eslint ."
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "chokidar": "^1.6.0",
+    "commander": "^2.9.0",
+    "debug": "^2.2.0",
+    "mendel-deps": "*",
+    "mendel-resolver": "^1.0.0",
+    "pretty-ms": "^2.1.0",
+    "resolve": "^1.1.7",
+    "text-table": "^0.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.7.1",
+    "tap": "^7.1.2"
+  },
+  "engines": {
+    "node": ">=6.0"
+  }
+}

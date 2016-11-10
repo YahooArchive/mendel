@@ -1,0 +1,5 @@
+{
+  "main": "fixtures/hard-variational/base/index.js",
+  "browser": "fixtures/hard-variational/base/index.js",
+  "extra": "fixtures/hard-variational/variations/var1/extra.js"
+}

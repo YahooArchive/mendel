@@ -6,7 +6,7 @@ var t = require('tap');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-var config = require('../packages/mendel-config/config');
+var config = require('../packages/mendel-config');
 var origEnv = process.env.NODE_ENV;
 var where;
 var opts;
@@ -122,5 +122,38 @@ t.match(config(where), {
         {id: 'test', entries: ['bar.js']}
     ]
 }, 'staging environment');
+
+where = './config-samples/4/';
+process.env.NODE_ENV = 'development';
+t.match(config(where), {
+    'base-config': {
+        id: 'default',
+        dir: /.*src\/default$/,
+    },
+    types: {
+        js: {
+            outlet: {
+                plugin: 'mendel-bundle-browser-pack'
+            },
+            extensions: ['.js', '.json', '.jsx'],
+        },
+    }
+}, 'default environment');
+
+process.env.NODE_ENV = 'production';
+t.match(config(where), {
+    'base-config': {
+        id: 'default',
+        dir: /.*src\/default$/,
+    },
+    types: {
+        js: {
+            outlet: {
+                plugin: 'mendel-bundle-rollup'
+            },
+            extensions: ['.js', '.json', '.jsx'],
+        },
+    }
+}, 'production environment');
 
 process.env.NODE_ENV = origEnv;

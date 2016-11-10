@@ -4,31 +4,14 @@
    See the accompanying LICENSE file for terms. */
 
 var path = require("path");
-var fs = require("fs");
 var xtend = require("xtend");
-var yaml = require('js-yaml');
 var defaultConfig = require('./defaults');
 
 module.exports = function(config) {
     var defaults = defaultConfig();
 
-    // figure out basedir before we look for a fileconfig
-    if (typeof config === 'string') config = { basedir: config };
-    config = config || {};
-    config.basedir = config.basedir || defaults.basedir;
-
-    var fileConfig = {};
-    // support --no-config or {config: false} to skip looking for file configs
-    if (config.config !== false) {
-        fileConfig = findConfig(config.basedir);
-    }
-
     // merge by priority
-    config = xtend(defaults, fileConfig, config);
-
-    if (fileConfig.basedir) {
-        config.basedir = fileConfig.basedir;
-    }
+    config = xtend(defaults, config);
 
     // merge environment based config
     var environment = process.env.MENDEL_ENV || process.env.NODE_ENV;
@@ -56,46 +39,8 @@ module.exports = function(config) {
     }
     config.bundles = parseBundles(config.bundles);
 
-
     return config;
 };
-
-function findConfig(where) {
-    var parts = where.split(path.sep);
-
-    do {
-        var loc = parts.join(path.sep);
-        if (!loc) break;
-
-        var config;
-        var rc = path.join(loc, ".mendelrc");
-        if (fs.existsSync(rc)) {
-            config = loadFromYaml(rc);
-            config.basedir = path.dirname(rc);
-            return config;
-        }
-
-        var packagejson = path.join(loc, "package.json");
-        if (fs.existsSync(packagejson)) {
-            var pkg = require(path.resolve(packagejson));
-            if (pkg.mendel) {
-                config = pkg.mendel;
-                config.basedir = path.dirname(packagejson);
-                return config;
-            }
-        }
-
-        parts.pop();
-    } while (parts.length);
-
-    return {
-        basedir: where,
-    };
-}
-
-function loadFromYaml(path) {
-    return yaml.safeLoad(fs.readFileSync(path, 'utf8'));
-}
 
 function parseBundles(bundles) {
     // istanbul ignore if
