@@ -47,6 +47,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "async": "^2.1.2",
+    "async": "^2.1.2"
   }
 }
