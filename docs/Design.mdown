@@ -680,12 +680,10 @@ https://github.com/yahoo/mendel/tree/master/packages/mendel-core
 1. User browser requests CDN url
     1. `https://your.cdn/some_route/some_hash.js`
 2. CDN fetch contents from Application URL
-    1. `https://yourapp.com/d/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
+    1. `https://yourapp.com/mendel/bWVuZGVsAQAA_woAXorelKkTdpi858lasbIQRS6SCfw/main_app.js`
 3. Mendel uses manifest and hash to generate a list of dependencies for this user
     1. `[Mendel-hash] + [Manifest] → [dep1, dep2, dep3, …]`
     2. Current implementation gives a `404` if the hash is not a Mendel hash and `404` if the hash don’t match and validates against the current manifest.
 4. Mendel packages a bundle for this user
     1. `[dep1, dep2, dep3, ...] → [javascript payload]` (with `browser_pack`)
 5. CDN gets the response, caches the URL for a period of time (based on headers and how frequently the asset is requested). and serves to any user requesting the same combination of experiments
-
-

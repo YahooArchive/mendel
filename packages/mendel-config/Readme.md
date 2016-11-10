@@ -84,8 +84,8 @@ variation-config:
       - blue_button
 
 route-config:
-  variation: /d/mendel/:variations/:bundle
-  hash: /d/mendel/:hash/:bundle
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
 
 transforms: # a list of all available transforms for all envs and types
   babelify-dev:

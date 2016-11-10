@@ -12,8 +12,8 @@ variation-config:
     button_color:
 
 route-config:
-  variation: /d/mendel/:variations/:bundle
-  hash: /d/mendel/:hash/:bundle
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
 
 transforms: # a list of all available transforms for all envs and types
   babelify-prod:
