@@ -1,13 +1,16 @@
+const BaseStep = require('./step');
 const debug = require('debug')('mendel:ist');
 const path = require('path');
 
-class IndependentSourceTransform {
+class IndependentSourceTransform extends BaseStep {
     /**
      * @param {MendelRegistry} tool.registry
      * @param {Transformer} tool.transformer
      * @param {Array<String>} config.commonTransformIds
      */
     constructor({registry, transformer}, {types, transforms}) {
+        super();
+
         this._registry = registry;
         this._transformer = transformer;
         this._extToTransformIds = new Map();
@@ -33,8 +36,6 @@ class IndependentSourceTransform {
                 });
             }
         });
-
-        this._registry.on('sourceAdded', (entry) => this.transform(entry.id, entry.getSource(['raw'])));
     }
 
     getTransform(filePath) {
@@ -59,16 +60,20 @@ class IndependentSourceTransform {
         return {transformIds, effectiveExt};
     }
 
-    transform(filePath, source) {
+    perform(entry) {
+        const filePath = entry.id;
+        const source = entry.getSource(['raw']);
         const {transformIds, effectiveExt} = this.getTransform(filePath);
-        if (!transformIds.length) {
-            // To notify registry that the trasnform is done
-            return this._registry.addTransformedSource({filePath, transformIds, effectiveExt, source});
+
+        let promise = Promise.resolve();
+        if (transformIds.length) {
+            promise = promise.then(() => this._transformer.transform(filePath, transformIds, source));
         }
 
-        this._transformer.transform(filePath, transformIds, source)
+        promise
         .then(({source}) => this._registry.addTransformedSource({filePath, transformIds, effectiveExt, source}))
-        .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`));
+        .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`))
+        .then(() => this.emit('done', {entryId: filePath}, transformIds));
     }
 }
 

@@ -1,9 +1,9 @@
-const EventEmitter = require('events').EventEmitter;
+const BaseStep = require('../step');
 const path = require('path');
 const fs = require('fs');
-const analytics = require('../helpers/analytics/analytics')('fs');
+const analytics = require('../../helpers/analytics/analytics')('fs');
 
-class FileReader extends EventEmitter {
+class FileReader extends BaseStep {
     constructor({registry}, {types, cwd}) {
         super();
 
@@ -13,11 +13,9 @@ class FileReader extends EventEmitter {
         Object.keys(types)
         .filter(typeName => !types[typeName].isBinary)
         .forEach(typeName => types[typeName].extensions.forEach(ext => this.sourceExt.add(ext)));
-
-        registry.on('entryAdded', this.read.bind(this));
     }
 
-    read(entry) {
+    perform(entry) {
         const filePath = entry.id;
         const encoding = this.sourceExt.has(path.extname(filePath)) ? 'utf8' : 'binary';
 
@@ -29,6 +27,7 @@ class FileReader extends EventEmitter {
 
             analytics.toc('read');
             this.registry.addRawSource(filePath, source);
+            this.emit('done', {entryId: filePath});
         });
     }
 }

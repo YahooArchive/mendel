@@ -5,11 +5,15 @@ class Entry {
         this.id = id;
         this.normalizedId;
         this.type;
+        this.step = 0;
         this.effectiveExt = path.extname(id);
         this.sourceVersions = new Map();
         this.dependents = [];
         this.dependencies = new Map();
-        this.dependenciesUpToDate = false;
+    }
+
+    incrementStep() {
+        this.step++;
     }
 
     setSource(transformIds, source) {
@@ -46,14 +50,12 @@ class Entry {
     }
 
     setDependencies(deps) {
-        this.dependenciesUpToDate = true;
         if (deps instanceof Map) this.dependencies = deps;
         Object.keys(deps).forEach(dependencyLiteral => this.dependencies.set(dependencyLiteral, deps[dependencyLiteral]));
     }
 
     reset() {
         this.sourceVersions.clear();
-        this.dependenciesUpToDate = false;
         this.dependencies.clear();
         this.dependents = [];
     }

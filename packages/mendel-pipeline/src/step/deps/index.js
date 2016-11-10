@@ -1,14 +1,14 @@
 const analyticsCollector = require('../../helpers/analytics/analytics-collector');
 const analytics = require('../../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:deps:master');
-const EventEmitter = require('events').EventEmitter;
+const BaseStep = require('../step');
 const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
-class DepsManager extends EventEmitter {
+class DepsManager extends BaseStep {
     /**
      * @param {MendelRegistry} registry
      * @param {String} config.cwd
@@ -24,25 +24,6 @@ class DepsManager extends EventEmitter {
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
-
-        this._registry.on('sourceTransformed', (entry, transformIds) => {
-            // Acorn used in deps can only parse js and jsx types.
-            if (['.js', '.jsx'].indexOf(entry.effectiveExt) < 0) {
-                // there are no dependency
-                return this._registry.setDependencies(entry.id, {});
-            }
-
-            if (!entry.dependenciesUpToDate) {
-                this._queue.push({
-                    filePath: entry.id,
-                    source: entry.getSource(transformIds),
-                    variation: entry.variation,
-                });
-            }
-
-            this.next();
-        });
-
         this._workerProcesses.forEach(workerProcess => {
             workerProcess.on('message', ({error, type, filePath, deps}) => {
                 if (type === 'error') {
@@ -61,6 +42,7 @@ class DepsManager extends EventEmitter {
                     this._registry.setDependencies(filePath, deps);
                 }
 
+                if (type === 'error' || type === 'done') this.emit('done', {entryId: filePath});
                 this.next();
             });
         });
@@ -68,6 +50,24 @@ class DepsManager extends EventEmitter {
         process.on('exit', () => {
             this._workerProcesses.forEach(workerProcess => workerProcess.kill());
         });
+    }
+
+    perform(entry, transformIds) {
+        // Acorn used in deps can only parse js and jsx types.
+        if (['.js', '.jsx'].indexOf(entry.effectiveExt) < 0) {
+            // there are no dependency
+            return this._registry.setDependencies(entry.id, {});
+        }
+
+        if (entry.step < 4) {
+            this._queue.push({
+                filePath: entry.id,
+                source: entry.getSource(transformIds),
+                variation: entry.variation,
+            });
+        }
+
+        this.next();
     }
 
     next() {

@@ -7,6 +7,7 @@ class MendelRegistry extends EventEmitter {
     constructor(config) {
         super();
 
+        this._steps = config.steps;
         this._mendelCache = new MendelCache(config);
     }
 
@@ -24,7 +25,7 @@ class MendelRegistry extends EventEmitter {
     }
 
     addEntry(filePath) {
-        this._mendelCache.addEntry(filePath);
+        this._mendelCache.addEntry(filePath, this._steps);
         this.emit('entryAdded', this._mendelCache.getEntry(filePath));
     }
 
