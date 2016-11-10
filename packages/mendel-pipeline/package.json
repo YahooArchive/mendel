@@ -22,8 +22,7 @@
     "mendel-deps": "*",
     "mendel-resolver": "^1.0.0",
     "pretty-ms": "^2.1.0",
-    "resolve": "^1.1.7",
-    "text-table": "^0.2.0"
+    "resolve": "^1.1.7"
   },
   "devDependencies": {
     "eslint": "^3.7.1",

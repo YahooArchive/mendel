@@ -1,7 +1,8 @@
 /**
  * Independent/Isolated file transform
  */
- const analyticsCollector = require('../helpers/analytics/analytics-collector');
+const analyticsCollector = require('../helpers/analytics/analytics-collector');
+const analytics = require('../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
 const {resolve: pathResolve} = require('path');
@@ -35,7 +36,9 @@ const parallelMode = (function() {
             workerProcess.removeListener('message', onMessage);
             next();
         });
+        analytics.tic('transform');
         workerProcess.send({type: 'start', transforms, filename, source});
+        analytics.toc('transform');
         next();
     }
 

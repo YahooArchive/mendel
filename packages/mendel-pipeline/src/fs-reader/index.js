@@ -1,6 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const path = require('path');
 const fs = require('fs');
+const analytics = require('../helpers/analytics/analytics')('fs');
 
 class FileReader extends EventEmitter {
     constructor({registry}, {types, cwd}) {
@@ -20,11 +21,13 @@ class FileReader extends EventEmitter {
         const filePath = entry.id;
         const encoding = this.sourceExt.has(path.extname(filePath)) ? 'utf8' : 'binary';
 
+        analytics.tic('read');
         fs.readFile(path.resolve(this.cwd, filePath), encoding, (err, source) => {
             if (err) {
                 // TODO handle the error
             }
 
+            analytics.toc('read');
             this.registry.addRawSource(filePath, source);
         });
     }
