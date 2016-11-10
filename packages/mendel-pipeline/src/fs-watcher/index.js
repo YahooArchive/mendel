@@ -5,7 +5,7 @@ const {readFile} = require('fs');
 const verbose = require('debug')('verbose:mendel:fs');
 
 class FileTreeWatcher extends EventEmitter {
-    constructor({registry}, {cwd, ignore, types}) {
+    constructor({registry}, {cwd, ignore}) {
         super();
 
         this._registry = registry;
@@ -16,13 +16,6 @@ class FileTreeWatcher extends EventEmitter {
         // file size priority
         this.isInitialized = false;
         this.initialProrityQueue = [];
-        this.sourceExt = new Set();
-        Object.keys(types).forEach(typeName => {
-            const type = types[typeName];
-
-            if (type.isBinary) return;
-            type.extensions.forEach(ext => this.sourceExt.add(ext));
-        });
 
         this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
         this.watcher
@@ -39,22 +32,19 @@ class FileTreeWatcher extends EventEmitter {
         .on('add', (path, stats) => {
             this.emit('add', path);
 
-            const encoding = this.sourceExt.has(extname(path)) ? 'utf8' : 'binary';
-            readFile(pathResolve(this.cwd, path), encoding, (err, source) => {
-                if (!this.isInitialized) {
-                    return this.initialProrityQueue.push({source, path, size: stats.size});
-                }
-                this._registry.addEntry(path, source);
-            });
+            if (!this.isInitialized) {
+                return this.initialProrityQueue.push({path, size: stats.size});
+            }
+
+            this._registry.addEntry(path);
         })
         .once('ready', () => {
             this.isInitialized = true;
 
-            this.initialProrityQueue = this.initialProrityQueue.sort(({size: aSize}, {size: bSize}) => bSize - aSize);
-            this.initialProrityQueue = this.initialProrityQueue.sort((a, b) => packageJsonSort(b) - packageJsonSort(a));
-            this.initialProrityQueue.forEach(({source, path}) => {
-                this._registry.addEntry(path, source);
-            });
+            this.initialProrityQueue
+                .sort(({size: aSize}, {size: bSize}) => bSize - aSize)
+                .sort((a, b) => packageJsonSort(b) - packageJsonSort(a))
+                .forEach(({path}) => this._registry.addEntry(path));
 
             // Cleanup the queue afterwards
             this.initialProrityQueue = [];
@@ -62,11 +52,13 @@ class FileTreeWatcher extends EventEmitter {
             this.emit('ready');
         });
 
-        this._registry.on('directoryAdded', (entry, path) => {
+        this._registry.on('entryRequested', (entry, path) => this.subscribe(path));
+        this._registry.on('dependenciesAdded', (entry, path) => {
             // No need to watch the file that is already being tracked
             if (entry) return;
             this.subscribe(path);
         });
+
         this._registry.on('sourceRemoved', (path) => this.watcher.unsubscribe(path));
     }
 

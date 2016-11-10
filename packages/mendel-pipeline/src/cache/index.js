@@ -1,13 +1,12 @@
 const path = require('path');
 
 class Entry {
-    constructor(id, rawSource) {
+    constructor(id) {
         this.id = id;
         this.normalizedId;
         this.type;
         this.effectiveExt = path.extname(id);
         this.sourceVersions = new Map();
-        this.sourceVersions.set('raw', rawSource);
         this.dependents = [];
         this.dependencies = new Map();
         this.dependenciesUpToDate = false;
@@ -116,8 +115,8 @@ class MendelCache {
         return 'still working on it';
     }
 
-    addEntry(id, rawSource) {
-        this._store.set(id, new Entry(id, rawSource));
+    addEntry(id) {
+        this._store.set(id, new Entry(id));
         const entry = this._store.get(id);
         entry.variation = this.getVariation(id);
         entry.normalizedId = this.getNormalizedId(id);
