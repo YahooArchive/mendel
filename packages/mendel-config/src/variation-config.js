@@ -14,7 +14,8 @@ function VariationConfig(config) {
 }
 
 VariationConfig.validate = createValidator({
-    variationDirs: {type: 'array', minLen: 1},
+    // There can be a user of Mendel who does not want variation but faster build.
+    variationDirs: {type: 'array', minLen: 0},
 });
 
 module.exports = VariationConfig;

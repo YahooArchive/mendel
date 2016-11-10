@@ -7,6 +7,8 @@ function TypesConfig(typeName, type) {
     this.isBinary = type.isBinary || false;
     this.parser = type.parser;
     this.transforms = type.transforms;
+    this.outlet = type.outlet;
+
     TypesConfig.validate(this);
 }
 

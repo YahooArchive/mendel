@@ -130,14 +130,16 @@ t.match(config(where), {
         id: 'default',
         dir: /.*src\/default$/,
     },
-    types: {
-        js: {
+    types: [
+        {
+            name: 'js',
             outlet: {
-                plugin: 'mendel-bundle-browser-pack'
+                plugin: 'mendel-bundle-browser-pack',
             },
+            transforms: ['envify-dev'],
             extensions: ['.js', '.json', '.jsx'],
         },
-    }
+    ],
 }, 'default environment');
 
 process.env.NODE_ENV = 'production';
@@ -146,14 +148,18 @@ t.match(config(where), {
         id: 'default',
         dir: /.*src\/default$/,
     },
-    types: {
-        js: {
+    types: [
+        {
+            name: 'js',
+            isBinary: false,
+            parser: null,
             outlet: {
-                plugin: 'mendel-bundle-rollup'
+                plugin: 'mendel-bundle-rollup',
             },
+            transforms: ['envify-prod', 'babelify-dev'],
             extensions: ['.js', '.json', '.jsx'],
         },
-    }
+    ],
 }, 'production environment');
 
 process.env.NODE_ENV = origEnv;

@@ -1,6 +1,6 @@
 var path = require('path');
-var configV1 = require('./config-v1');
-var configV2 = require('./config-v2');
+var configParserLegacy = require('./legacy');
+var configParser = require('./src');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var xtend = require('xtend');
@@ -56,8 +56,8 @@ module.exports = function(config) {
     if (fileConfig.cwd) config.cwd = fileConfig.cwd;
 
     if (config['base-config']) {
-        return configV2(config);
+        return configParser(config);
     } else {
-        return configV1(config);
+        return configParserLegacy(config);
     }
 };
