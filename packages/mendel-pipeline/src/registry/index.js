@@ -10,8 +10,12 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache = new MendelCache(config);
     }
 
-    emit(eventName) {
-        verbose(eventName);
+    emit(eventName, entry) {
+        if (entry && entry.id) {
+            verbose(eventName, entry.id);
+        } else {
+            verbose(eventName);
+        }
         EventEmitter.prototype.emit.apply(this, arguments);
     }
 

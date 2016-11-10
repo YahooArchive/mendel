@@ -1,6 +1,6 @@
 const chokidar = require('chokidar');
 const EventEmitter = require('events').EventEmitter;
-const {resolve: pathResolve, extname} = require('path');
+const {resolve: pathResolve, basename, extname} = require('path');
 const {readFile} = require('fs');
 const verbose = require('debug')('verbose:mendel:fs');
 
@@ -37,20 +37,24 @@ class FileTreeWatcher extends EventEmitter {
             this._registry.remove(path);
         })
         .on('add', (path, stats) => {
+            this.emit('add', path);
+
             const encoding = this.sourceExt.has(extname(path)) ? 'utf8' : 'binary';
             readFile(pathResolve(this.cwd, path), encoding, (err, source) => {
                 if (!this.isInitialized) {
                     return this.initialProrityQueue.push({source, path, size: stats.size});
                 }
-                this.emit('add', path, source);
                 this._registry.addEntry(path, source);
             });
         })
         .once('ready', () => {
             this.isInitialized = true;
 
-            this.initialProrityQueue.sort(({size: aSize}, {size: bSize}) => bSize - aSize);
-            this.initialProrityQueue.forEach(({source, path}) => this.emit('add', path, source));
+            this.initialProrityQueue = this.initialProrityQueue.sort(({size: aSize}, {size: bSize}) => bSize - aSize);
+            this.initialProrityQueue = this.initialProrityQueue.sort((a, b) => packageJsonSort(b) - packageJsonSort(a));
+            this.initialProrityQueue.forEach(({source, path}) => {
+                this._registry.addEntry(path, source);
+            });
 
             // Cleanup the queue afterwards
             this.initialProrityQueue = [];
@@ -66,8 +70,12 @@ class FileTreeWatcher extends EventEmitter {
         this._registry.on('sourceRemoved', (path) => this.watcher.unsubscribe(path));
     }
 
-    emit(eventName) {
-        verbose(eventName);
+    emit(eventName, filePath) {
+        if (typeof filePath === 'string' ) {
+            verbose(eventName, filePath);
+        } else {
+            verbose(eventName);
+        }
         EventEmitter.prototype.emit.apply(this, arguments);
     }
 
@@ -78,6 +86,10 @@ class FileTreeWatcher extends EventEmitter {
     unsubscribe(path) {
         this.watcher.unwatch(path);
     }
+}
+
+function packageJsonSort(entry) {
+    return basename(entry.path) === 'package.json' ? 1 : 0;
 }
 
 module.exports = FileTreeWatcher;
