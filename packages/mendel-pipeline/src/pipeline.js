@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel');
+const debug = require('debug')('mendel:pipeline');
 const analyticsCollector = require('./helpers/analytics/analytics-collector');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const Transformer = require('./transformer');
@@ -38,16 +38,19 @@ function MendelPipeline(options) {
     }
 
     if (options.watch !== true) {
-        let rawSources = 0;
         let totalEntries = 0;
         let doneDeps = 0;
 
-        registry.on('entryAdded', () => totalEntries++);
-        registry.on('sourceAdded', () => rawSources++);
-        registry.on('dependenciesAdded', () => {
+        watcher.on('done', () => totalEntries++);
+        depsResolver.on('done', () => {
             doneDeps++;
-
-            if (totalEntries === rawSources && totalEntries === doneDeps) {
+            if (totalEntries === doneDeps) {
+                debug(`${totalEntries} entries were processed.`);
+                debug(
+                    Array.from(registry._mendelCache._store.values())
+                    .map(({id}) => id)
+                    .join('\n')
+                );
                 process.exit(0);
             }
         });

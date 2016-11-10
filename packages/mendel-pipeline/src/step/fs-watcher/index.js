@@ -19,11 +19,9 @@ class FsWatcher extends BaseStep {
         this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
         this.watcher
         .on('change', (path) => {
-            const encoding = this.sourceExt.has(extname(path)) ? 'utf8' : 'binary';
-            readFile(pathResolve(this.cwd, path), encoding, (err, source) => {
-                this._registry.remove(path);
-                this._registry.addEntry(path, source);
-            });
+            this._registry.remove(path);
+            this._registry.addEntry(path, source);
+            this.emit('done', {entryId: path});
         })
         .on('unlink', (path) => {
             this._registry.remove(path);
@@ -50,13 +48,7 @@ class FsWatcher extends BaseStep {
         });
 
         this._registry.on('entryRequested', (entry, path) => this.subscribe(path));
-        this._registry.on('dependenciesAdded', (entry, path) => {
-            // No need to watch the file that is already being tracked
-            if (entry) return;
-            this.subscribe(path);
-        });
-
-        this._registry.on('sourceRemoved', (path) => this.watcher.unsubscribe(path));
+        this._registry.on('entryRemoved', (path) => this.watcher.unsubscribe(path));
     }
 
     subscribe(path) {

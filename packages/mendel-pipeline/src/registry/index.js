@@ -26,13 +26,11 @@ class MendelRegistry extends EventEmitter {
 
     addEntry(filePath) {
         this._mendelCache.addEntry(filePath, this._steps);
-        this.emit('entryAdded', this._mendelCache.getEntry(filePath));
     }
 
     addRawSource(filePath, source) {
         const entry = this._mendelCache.getEntry(filePath);
         entry.setSource(['raw'], source);
-        this.emit('sourceAdded', entry);
     }
 
     addTransformedSource({filePath, transformIds, effectiveExt, source}) {
@@ -44,21 +42,17 @@ class MendelRegistry extends EventEmitter {
         const entry = this._mendelCache.getEntry(filePath);
         entry.setEffectiveExt(effectiveExt);
         entry.setSource(transformIds, source);
-        this.emit('sourceTransformed', entry, transformIds);
     }
 
     setDependencies(filePath, deps) {
         if (!this._mendelCache.hasEntry(filePath)) return;
 
         this._mendelCache.setDependencies(filePath, deps);
-        this.emit('dependenciesAdded', this._mendelCache.getEntry(filePath), filePath);
     }
 
     invalidateDepedencies(filePath) {
-        if (!this._mendelCache.hasEntry(filePath)) return;
-
         // TODO modify entries and its deps recursively
-        this.emit('dependenciesInvalidated', this._mendelCache.getEntry(filePath));
+        if (!this._mendelCache.hasEntry(filePath)) return;
     }
 
     remove(filePath) {
@@ -67,7 +61,7 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache.deleteEntry(filePath);
 
         // Because Entry is deleted, we don't really dispatch with the Entry
-        this.emit('sourceRemoved', filePath);
+        this.emit('entryRemoved', filePath);
     }
 
     getEntry(filePath) {

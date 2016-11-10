@@ -23,7 +23,7 @@ class CliPrinter extends BasePrinter {
         chalk.enabled = true && (options.enableColor || true);
         this.processStart = Date.now();
 
-        this.nameMaxLen = options.nameMaxLen || 20;
+        this.nameMaxLen = options.nameMaxLen || 30;
     }
 
     groupData(data, columnIndex) {
