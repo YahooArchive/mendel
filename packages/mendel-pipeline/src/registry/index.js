@@ -20,12 +20,18 @@ class MendelRegistry extends EventEmitter {
     }
 
     addToPipeline(dirPath) {
-        this.emit('directoryAdded', null, dirPath);
+        this.emit('entryRequested', null, dirPath);
     }
 
-    addEntry(filePath, rawSource) {
-        this._mendelCache.addEntry(filePath, rawSource);
-        this.emit('sourceAdded', this._mendelCache.getEntry(filePath));
+    addEntry(filePath) {
+        this._mendelCache.addEntry(filePath);
+        this.emit('entryAdded', this._mendelCache.getEntry(filePath));
+    }
+
+    addRawSource(filePath, source) {
+        const entry = this._mendelCache.getEntry(filePath);
+        entry.setSource(['raw'], source);
+        this.emit('sourceAdded', entry);
     }
 
     addTransformedSource({filePath, transformIds, effectiveExt, source}) {

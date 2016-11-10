@@ -1,6 +1,7 @@
 const analyticsCollector = require('./helpers/analytics/analytics-collector');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
-const FsTree = require('./fs-tree');
+const Watcher = require('./fs-watcher');
+const Reader = require('./fs-reader');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
 const Initialize = require('./step/initialize');
@@ -21,22 +22,22 @@ function MendelPipeline(options) {
 
     // Pipeline steps
     const initializer = new Initialize({registry, transformer}, options);
-    const watcher = new FsTree({registry, transformer}, options);
+    const watcher = new Watcher({registry, transformer}, options);
+    const reader = new Reader({registry, transformer}, options);
     const ist = new IST({registry, transformer}, options);
     const depsResolver = new DepResolver({registry, transformer}, options);
 
     if (options.watch !== true) {
         let rawSources = 0;
-        let totalSources = 0;
+        let totalEntries = 0;
         let doneDeps = 0;
 
-        watcher.on('add', () => rawSources++);
-        registry.on('sourceAdded', () => totalSources++);
+        registry.on('entryAdded', () => totalEntries++);
+        registry.on('sourceAdded', () => rawSources++);
         registry.on('dependenciesAdded', () => {
             doneDeps++;
 
-            if (totalSources >= rawSources && doneDeps === totalSources) {
-                debug(`done!`);
+            if (totalEntries === rawSources && totalEntries === doneDeps) {
                 process.exit(0);
             }
         });

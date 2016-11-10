@@ -1,4 +1,5 @@
 const analytics = require('../helpers/analytics/analytics-worker')('transform');
+const analyticsIpc = require('../helpers/analytics/analytics-worker')('ipc');
 const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
 debug(`[Slave ${process.pid}] online`);
@@ -31,7 +32,9 @@ process.on('message', ({type, transforms, source, filename}) => {
 
         promise.then(({source, map}) => {
             debug(`[Slave ${process.pid}] Transform done.`);
+            analyticsIpc.tic('transform');
             process.send({type: 'done', filename, source, map});
+            analyticsIpc.toc('transform');
         })
         .catch(error => {
             console.log(error.stack);

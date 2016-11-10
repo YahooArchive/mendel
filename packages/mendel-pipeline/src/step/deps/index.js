@@ -1,12 +1,9 @@
-/**
- * Independent/Isolated file transform
- */
 const analyticsCollector = require('../../helpers/analytics/analytics-collector');
+const analytics = require('../../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:deps:master');
 const EventEmitter = require('events').EventEmitter;
 const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
-const {extname} = require('path');
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
@@ -79,6 +76,8 @@ class DepsManager extends EventEmitter {
         const {filePath, source, variation} = this._queue.shift();
         const workerId = this._idleWorkerQueue.shift();
         const workerProcess = this._workerProcesses.find(({pid}) => workerId === pid);
+
+        analytics.tic('deps');
         workerProcess.send({
             type: 'start',
             filePath,
@@ -89,6 +88,7 @@ class DepsManager extends EventEmitter {
             baseName: this._baseConfig.id,
             varDirs: this._variationConfig.variationDirs,
         });
+        analytics.toc('deps');
         this.next();
     }
 }
