@@ -1,7 +1,6 @@
 const BaseStep = require('../step');
 const chokidar = require('chokidar');
-const {resolve: pathResolve, basename, extname} = require('path');
-const {readFile} = require('fs');
+const path = require('path');
 
 class FsWatcher extends BaseStep {
     constructor({registry}, {cwd, ignore}) {
@@ -20,7 +19,7 @@ class FsWatcher extends BaseStep {
         this.watcher
         .on('change', (path) => {
             this._registry.remove(path);
-            this._registry.addEntry(path, source);
+            this._registry.addEntry(path);
             this.emit('done', {entryId: path});
         })
         .on('unlink', (path) => {
@@ -61,7 +60,7 @@ class FsWatcher extends BaseStep {
 }
 
 function packageJsonSort(entry) {
-    return basename(entry.path) === 'package.json' ? 1 : 0;
+    return path.basename(entry.path) === 'package.json' ? 1 : 0;
 }
 
 module.exports = FsWatcher;

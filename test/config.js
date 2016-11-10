@@ -140,6 +140,29 @@ t.match(config(where), {
             extensions: ['.js', '.json', '.jsx'],
         },
     ],
+    transforms: [
+        {
+            id: 'babelify-prod',
+            plugin: 'mendel-babelify',
+            options: {
+                plugins: ['react-intl-remove-description', 'transform-react-remove-prop-types'],
+            },
+        },
+        {
+            id: 'envify-dev',
+            plugin: 'mendel-envify',
+            options: {
+                NODE_ENV: 'development',
+            },
+        },
+        {
+            id: 'envify-prod',
+            plugin: 'mendel-envify',
+            options: {
+                NODE_ENV: 'production',
+            },
+        },
+    ],
 }, 'default environment');
 
 process.env.NODE_ENV = 'production';
