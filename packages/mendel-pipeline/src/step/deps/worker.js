@@ -1,4 +1,5 @@
 const analytics = require('../../helpers/analytics/analytics-worker')('deps');
+const analyticsIpc = require('../../helpers/analytics/analytics-worker')('ipc');
 const debug = require('debug')('mendel:deps:slave-' + process.pid);
 const dep = require('mendel-deps');
 const path = require('path');
@@ -25,7 +26,9 @@ process.on('message', ({type, filePath, source, variation, cwd, baseDir, baseNam
         .then((deps) => {
             analytics.toc();
             debug(`Dependencies for ${filePath} found!`);
+            analyticsIpc.tic('deps');
             process.send({type: 'done', filePath, deps});
+            analyticsIpc.toc('deps');
         })
         .catch(error => {
             console.error(error.stack);
