@@ -16,11 +16,13 @@ class Step extends EventEmitter {
 
     get verbose() {
         if (this._verbose) return this._verbose;
-        return this._verbose = debug(`verbose:mendel:${this.constructor.name}`);
+        return this._verbose = debug(
+            `verbose:mendel:filestep:${this.constructor.name}`
+        );
     }
 
-    emit(eventName) {
-        this.verbose(eventName);
+    emit(eventName, {entryId}) {
+        this.verbose(eventName, entryId);
 
         super.emit.apply(this, arguments);
     }
