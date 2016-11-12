@@ -4,7 +4,7 @@
    See the accompanying LICENSE file for terms. */
 
 var path = require('path');
-var xtend = require('xtend');
+var debug = require('debug')('mendel:config');
 var defaultConfig = require('./defaults');
 var TransformConfig = require('./transform-config');
 var BundleConfig = require('./bundle-config');
@@ -19,13 +19,15 @@ module.exports = function(config) {
     config = deepMerge(defaults, config);
 
     // merge environment based config
-    config.environment = config.environment || process.env.MENDEL_ENV || process.env.NODE_ENV;
+    config.environment = config.environment ||
+                         process.env.MENDEL_ENV ||
+                         process.env.NODE_ENV ||
+                         'development';
     var envConfig = config.env[config.environment];
 
     if (envConfig) {
         config = deepMerge(config, envConfig);
     }
-    delete config.env;
 
     // Use absolute path for path configs
     config.cwd = path.resolve(config.cwd);
@@ -34,12 +36,18 @@ module.exports = function(config) {
     config.types = Object.keys(config.types).map(function(typeName) {
         return new TypesConfig(typeName, config.types[typeName]);
     });
-    config.transforms = Object.keys(config.transforms).map(function(transformId) {
+    config.transforms = Object.keys(config.transforms).map(transformId => {
         return new TransformConfig(transformId, config.transforms[transformId]);
     });
     config.bundles = Object.keys(config.bundles).map(function(bundleId) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
+
+    const inspect = require('util').inspect;
+    debug(inspect(config, {
+        colors: true,
+        depth: null,
+    }));
 
     return config;
 };
