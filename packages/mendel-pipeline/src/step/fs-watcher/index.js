@@ -46,8 +46,8 @@ class FsWatcher extends BaseStep {
             this.initialProrityQueue = [];
         });
 
-        this._registry.on('entryRequested', (entry, path) => this.subscribe(path));
-        this._registry.on('entryRemoved', (path) => this.watcher.unsubscribe(path));
+        this._registry.on('entryRequested', (path) => this.subscribe(path));
+        this._registry.on('entryRemoved', (path) => this.unsubscribe(path));
     }
 
     subscribe(path) {

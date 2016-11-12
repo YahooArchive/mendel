@@ -7,25 +7,27 @@ class MendelRegistry extends EventEmitter {
     constructor(config) {
         super();
 
-        this._steps = config.steps;
         this._mendelCache = new MendelCache(config);
     }
 
     emit(eventName, entry) {
         if (entry && entry.id) {
             verbose(eventName, entry.id);
+        } else if(entry) {
+            verbose(eventName, entry);
         } else {
             verbose(eventName);
         }
-        EventEmitter.prototype.emit.apply(this, arguments);
+        super.emit.apply(this, arguments);
     }
 
-    addToPipeline(dirPath) {
-        this.emit('entryRequested', null, dirPath);
+    addToPipeline(path) {
+        this.emit('entryRequested', path);
     }
 
     addEntry(filePath) {
-        this._mendelCache.addEntry(filePath, this._steps);
+        this._mendelCache.addEntry(filePath);
+        this.emit('entryAdded', filePath);
     }
 
     addRawSource(filePath, source) {
@@ -35,8 +37,10 @@ class MendelRegistry extends EventEmitter {
 
     addTransformedSource({filePath, transformIds, effectiveExt, source}) {
         if (!this._mendelCache.hasEntry(filePath)) {
-            error(`Adding a source to a file that is unknown. This should be not possible: ${filePath}`);
-            this._mendelCache.addEntry(filePath, source);
+            const msg = `Adding a source to a file that is unknown.
+                              This should be not possible: ${filePath}`;
+            error(msg);
+            this._mendelCache.addEntry(filePath);
         }
 
         const entry = this._mendelCache.getEntry(filePath);
