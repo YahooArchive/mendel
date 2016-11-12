@@ -6,6 +6,11 @@ env:
 rules:
   semi: 2
   no-console: 0
+  max-len:
+    - 1
+    - code: 80
+      ignoreComments: true
+      ignoreTrailingComments: true
   comma-dangle:
     - 1
     - always-multiline
