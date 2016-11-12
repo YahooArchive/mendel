@@ -2,10 +2,11 @@ const path = require('path');
 const Entry = require('./entry.js');
 
 class MendelCache {
-    constructor(config) {
+    constructor({cwd, baseConfig, variationConfig}) {
+        this._cwd = cwd;
         this._store = new Map();
-        this._baseConfig = config.baseConfig;
-        this._variationConfig = config.variationConfig;
+        this._baseConfig = baseConfig;
+        this._variationConfig = variationConfig;
 
         const variationDirSet = new Set();
         Object.keys(this._variationConfig.variations)
