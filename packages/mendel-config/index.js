@@ -13,7 +13,8 @@ function findConfig(where) {
         if (!loc) break;
 
         var config;
-        var rc = path.join(loc, '.mendelrc');
+        var mendelrc = process.env.MENDELRC || '.mendelrc';
+        var rc = path.join(loc, mendelrc);
         if (fs.existsSync(rc)) {
             config = loadFromYaml(rc);
             config.basedir = path.dirname(rc);

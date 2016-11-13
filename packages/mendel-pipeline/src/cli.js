@@ -4,6 +4,8 @@ const config = require('../../mendel-config');
 const program = require('commander');
 const path = require('path');
 
+process.env.MENDELRC = process.env.MENDELRC || '.mendelrc_v2';
+
 function parseIgnores(val='', previousIgnores) {
     return previousIgnores.concat(
         val.split(',')

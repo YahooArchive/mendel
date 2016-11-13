@@ -1,0 +1,88 @@
+base-config:
+  id: base
+  dir: ./isomorphic/base
+
+variation-config:
+  variation-dirs:
+    - ./isomorphic/variations
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    unexisting_folder:
+    bucket_A:
+      - unexisting_folder
+    feature_B:
+    partner_C:
+    bucket_D:
+      - partner_C
+
+route-config:
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
+
+transforms: # a list of all available transforms for all envs and types
+  babel:
+    plugin: mendel-transform-babel
+    options:
+      presets:
+        - es2015
+        - react
+  json-parse:
+    plugin: mendel-parser-json
+
+types:
+  json:
+    extensions:
+      - .json
+    parser: json-parse
+  js:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - babel
+    extensions:
+      - .js
+      - .jsx
+env:
+  production:
+    types:
+      js:
+        outlet:
+          plugin: mendel-bundle-rollup
+        transforms:
+          - envify-prod
+          - babelify-dev
+        node_modules:
+          - envify-prod
+
+# needs to be array because order is relevant
+# if extract-bundles comes first, we can generage lazy bundle specific css
+# if atomic-css comes first, mail-css includes rules from files on lazy bundles
+# if node-modules is last, we can use lazy-bundle as optional input (see below)
+generators: # AKA graph transforms - or graph operations
+  - id: extract-bundles
+    plugin: mendel-extract-bundles
+  - id: node-modules-generator
+    plugin: mendel-extract-node-modules
+
+# "outfile" is optional and only needed for single layer generation
+bundles:
+  vendor:
+    outfile: vendor.js
+    require:
+      - react
+      - react-dom
+  main:
+    outfile: main.js
+    entries:
+      - ./isomorphic/base/main.js
+    external:
+      - react
+      - react-dom
+      - ./isomorphic/base/components/lazy.js
+  lazy:
+    outfile: main_lazy.js
+    require:
+      - ./isomorphic/base/components/lazy.js
+    external:
+      - react
+      - react-dom
