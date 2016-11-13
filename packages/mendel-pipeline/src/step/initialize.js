@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel:initialize');
+// const debug = require('debug')('mendel:initialize');
 
 class Initialize {
     /**

@@ -12,6 +12,7 @@ module.exports = function(config) {
 
     // merge by priority
     config = xtend(defaults, config);
+    config.basedir = config.basedir || defaults.basedir;
 
     // merge environment based config
     var environment = process.env.MENDEL_ENV || process.env.NODE_ENV;

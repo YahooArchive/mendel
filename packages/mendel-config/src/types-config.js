@@ -1,4 +1,3 @@
-var path = require('path');
 var createValidator = require('./validator');
 
 function TypesConfig(typeName, type) {
