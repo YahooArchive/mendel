@@ -1,0 +1,45 @@
+{
+  "name": "karma-mendel",
+  "version": "1.0.0",
+  "description": "Karma plugin for mendel",
+  "main": "lib/plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mendel",
+    "karma-plugin"
+  ],
+  "contributors": [
+    {
+      "name": "Vojta Jina",
+      "email": "vojta.jina@gmail.com"
+    },
+    {
+      "name": "James Shore",
+      "email": "jshore@jamesshore.com"
+    },
+    {
+      "name": "Ben Drucker",
+      "email": "bvdrucker@gmail.com"
+    },
+    {
+      "name": "Mark Ethan Trostler",
+      "email": "mark@zzo.com"
+    },
+    {
+      "name": "Marian Zagoruiko",
+      "email": "marian@zagoruiko.gmail.com"
+    },
+    {
+      "name": "Irae Carvalho",
+      "email": "irae@irae.pro.br"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
+  "dependencies": {}
+}
