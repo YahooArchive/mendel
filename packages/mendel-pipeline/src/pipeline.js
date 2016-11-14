@@ -1,61 +1,96 @@
-const debug = require('debug')('mendel:pipeline');
-const analyticsCollector = require('./helpers/analytics/analytics-collector');
-const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
-const Transformer = require('./transformer');
-const MendelRegistry = require('./registry');
-const Initialize = require('./step/initialize');
-const Watcher = require('./step/fs-watcher');
-const Reader = require('./step/fs-reader');
+const _debug = require('debug');
+
 const IST = require('./step/ist');
 const DepResolver = require('./step/deps');
+const EventEmitter = require('events').EventEmitter;
 
-module.exports = MendelPipeline;
+module.exports = class MendelPipeline extends EventEmitter {
+    constructor({defaultSteps, state, options}) {
+        super();
+        this._debug = _debug(`mendel:pipeline:${options.environment}`);
 
-function MendelPipeline(options) {
-    analyticsCollector.setOptions({
-        printer: new AnalyticsCliPrinter({enableColor: true}),
-    });
+        // Steps init
+        const ist = new IST(state, options);
+        const depsResolver = new DepResolver(state, options);
 
-    const registry = new MendelRegistry(options);
-    const transformer = new Transformer(options.transforms, options);
+        // Steps order
+        const steps = [
+            defaultSteps.watcher,
+            defaultSteps.reader,
+            ist,
+            depsResolver,
+        ];
 
-    // Pipeline steps
-    const initializer = new Initialize({registry, transformer}, options);
-    const watcher = new Watcher({registry, transformer}, options);
-    const reader = new Reader({registry, transformer}, options);
-    const ist = new IST({registry, transformer}, options);
-    const depsResolver = new DepResolver({registry, transformer}, options);
+        // Async step chain
+        for (let i = 0; i < steps.length - 1; i++) {
+            const curStep = steps[i];
+            const nextStep = steps[i + 1];
+            curStep.on('done', function({entryId}) {
+                const rest = Array.prototype.slice.call(arguments, 1);
+                const entry = state.registry.getEntry(entryId);
+                entry.incrementStep();
+                nextStep.perform.apply(nextStep, [entry].concat(rest));
+            });
+        }
 
-    const steps = [watcher, reader, ist, depsResolver];
-    for (let i = 0; i < steps.length - 1; i++) {
-        const curStep = steps[i];
-        const nextStep = steps[i + 1];
-        curStep.on('done', function({entryId}) {
-            const entry = registry.getEntry(entryId);
-            entry.incrementStep();
-            nextStep.perform.apply(nextStep, [entry].concat(Array.prototype.slice.call(arguments, 1)));
-        });
+        this.state = state;
+        this.steps = steps;
+        this.options = options;
     }
 
-    if (options.watch !== true) {
-        let totalEntries = 0;
-        let doneDeps = 0;
+    watch() {
+        this._debug('working');
 
-        watcher.on('done', () => totalEntries++);
-        depsResolver.on('done', () => {
-            doneDeps++;
-            if (totalEntries === doneDeps) {
-                debug(`${totalEntries} entries were processed.`);
-                debug(
-                    Array.from(registry._mendelCache._store.values())
-                    .map(({id}) => id)
-                    .join('\n')
-                );
-                process.exit(0);
-            }
-        });
+        let startedEntries = 0;
+        let doneEntries = 0;
+
+        this.steps[0]
+            .on('done', () => startedEntries++);
+
+        this.steps[this.steps.length-1]
+            .on('done', () => { doneEntries++;
+
+                if (startedEntries === doneEntries) {
+
+                    const total = this.state.registry.size();
+                    this._debug(`${doneEntries} entries were processed.`);
+                    this._debug(`${total} entries in registry.`);
+
+                    startedEntries = 0;
+                    doneEntries = 0;
+
+                    this.emit('idle', doneEntries);
+                }
+            });
+
+        // TODO: initializer to init based on options, not hardcoded
+        // Listen to everything in cwd
+        this.state.registry.addToPipeline('.');
     }
 
-    // COMMENCE!
-    initializer.start();
-}
+    run() {
+        /*
+
+        TODO:
+
+        This detection is very crude and contains racing conditions.
+
+        Sometimes a "entryRequested" by deps and before FSWatcher can
+        emit('done') the idle state is achieved.
+
+        This will not be a problem in the future when we have outlets, since
+        outlets will need to wait for the whole graph with async patterns. This
+        will force the process to wait.
+
+        */
+        this.on('idle', () => {
+            const breakLine = '\n    ';
+            const entries = this.state.registry.entries();
+            this._debug(
+                breakLine + entries.map(({id}) => id).join(breakLine)
+            );
+            process.exit(0);
+        });
+        this.watch();
+    }
+};

@@ -85,11 +85,11 @@ function singleMode(transforms, {filename, source}) {
  * Knows how to do all kinds of trasnforms in parallel way
  */
 class TrasnformManager {
-    constructor(transforms, config) {
+    constructor({cwd, transforms}) {
         this._transforms = new Map();
         transforms.forEach(transform => {
             this._transforms.set(transform.id, Object.assign(transform, {
-                plugin: this.resolvePlugin(config.cwd, transform.plugin),
+                plugin: this.resolvePlugin(cwd, transform.plugin),
             }));
         });
     }

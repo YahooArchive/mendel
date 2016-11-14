@@ -4,10 +4,10 @@ const error = require('debug')('mendel:registry:error');
 const verbose = require('debug')('verbose:mendel:registry');
 
 class MendelRegistry extends EventEmitter {
-    constructor(config) {
+    constructor({cwd, baseConfig, variationConfig}) {
         super();
 
-        this._mendelCache = new MendelCache(config);
+        this._mendelCache = new MendelCache({cwd, baseConfig, variationConfig});
     }
 
     emit(eventName, entry) {
@@ -57,6 +57,14 @@ class MendelRegistry extends EventEmitter {
     invalidateDepedencies(filePath) {
         // TODO modify entries and its deps recursively
         if (!this._mendelCache.hasEntry(filePath)) return;
+    }
+
+    size() {
+        return this._mendelCache._store.size;
+    }
+
+    entries() {
+        return Array.from(this._mendelCache._store.values());
     }
 
     remove(filePath) {

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-const mendelPipeline = require('./pipeline');
-const config = require('../../mendel-config');
+/* eslint max-len: "off" */
 const program = require('commander');
 const path = require('path');
+const MendelPipelineDaemon = require('./daemon');
 
 process.env.MENDELRC = process.env.MENDELRC || '.mendelrc_v2';
 
@@ -22,6 +22,30 @@ program
     .option('-w, --watch', 'Watch mode', false)
     .parse(process.argv);
 
-// Example usage
-const mendelConfig = config(Object.assign(program, {cwd: path.resolve(process.cwd(), program.args[0])}));
-mendelPipeline(mendelConfig);
+
+const cliOptions = Object.assign(program, {
+    cwd: path.resolve(process.cwd(), program.args[0]),
+});
+
+if (program.watch) {
+    const daemon = new MendelPipelineDaemon(cliOptions);
+    daemon.watch();
+} else {
+    /* TODO:
+        request.get(defaultDeamonAddres + '/status', (error, response) => {
+            if (error && isConnectionRefused(error)) {
+                const daemon = new MendelPipelineDaemon(cliOptions);
+                daemon.run();
+            } else {
+                request({
+                    url: defaultDeamonAddres + '/run',
+                    query: cliOptions,
+                });
+            }
+        });
+    */
+    const daemon = new MendelPipelineDaemon(cliOptions);
+    daemon.run();
+}
+
+
