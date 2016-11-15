@@ -11,7 +11,8 @@ var tmp = require('tmp');
 var realSamples = path.join(__dirname, './manifest-samples/');
 var copySamples = tmp.dirSync().name;
 
-var postProcessManifests = require('../packages/mendel-cli/post-process-manifest');
+var postProcessManifests = require(
+    '../packages/mendel-cli/post-process-manifest');
 var extract = require('../packages/mendel-manifest-extract-bundles');
 
 test('postProcessManifests applying post-processors', function (t) {
@@ -23,17 +24,17 @@ test('postProcessManifests applying post-processors', function (t) {
         manifestProcessors:[
             [extract, {
                 from: "bad-sort",
-                external: "foo-is-children"
+                external: "foo-is-children",
             }],
         ],
         outdir: copySamples,
         bundles: [{
             // just re-using, important part is that are some files there
             bundleName: 'bad-sort',
-            manifest: 'bad-sort.manifest.json'
+            manifest: 'bad-sort.manifest.json',
         }, {
             bundleName: 'foo-is-children',
-            manifest: 'foo-is-children.manifest.json'
+            manifest: 'foo-is-children.manifest.json',
         }],
     }, function(error) {
         t.error(error);

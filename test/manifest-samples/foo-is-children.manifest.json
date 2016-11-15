@@ -5,12 +5,15 @@
     "other": 2
   },
   "bundles": [{
+    "id":"foo",
     "variations": ["var"],
     "data": [{
       "source": "",
       "deps": {}
     }]
   },{
+    "id": "parent",
+    "entry": true,
     "variations": ["var"],
     "data": [{
       "source": "",
@@ -20,6 +23,7 @@
       }
     }]
   },{
+    "id": "other",
     "variations": ["var"],
     "data": [{
       "source": "",

@@ -11,7 +11,8 @@ var tmp = require('tmp');
 var realSamples = path.join(__dirname, './manifest-samples/');
 var copySamples = tmp.dirSync().name;
 
-var postProcessManifests = require('../packages/mendel-cli/post-process-manifest');
+var postProcessManifests = require(
+    '../packages/mendel-cli/post-process-manifest');
 
 test('postProcessManifests loads manifests', function (t) {
     copyRecursiveSync(realSamples, copySamples);
@@ -21,7 +22,7 @@ test('postProcessManifests loads manifests', function (t) {
         outdir: copySamples,
         bundles: [{
             bundleName: 'minimal',
-            manifest: 'minimal.manifest.json'
+            manifest: 'minimal.manifest.json',
         }],
     }, t.error);
 });
@@ -34,15 +35,15 @@ test('postProcessManifests sorts and cleans manifests', function (t) {
         outdir: copySamples,
         bundles: [{
             bundleName: 'bad-sort',
-            manifest: 'bad-sort.manifest.json'
+            manifest: 'bad-sort.manifest.json',
         }],
     }, function(error) {
         t.error(error);
         var result = require(path.join(copySamples, 'bad-sort.manifest.json'));
 
-        t.equal(result.bundles.length, 3, 'removed one unused bundle');
+        t.equal(result.bundles.length, 4, 'removed one unused bundle');
         t.deepEqual(result.indexes,
-            { bar: 0, foo: 1, zoo: 2 }, 'reordered indexes');
+            { bar: 0, foo: 1, root:2, zoo: 3 }, 'reordered indexes');
         t.deepEqual(Object.keys(result.bundles[1].data[0].deps),
             ["bar", "zoo"], 'reordered deps');
     });
@@ -57,7 +58,7 @@ test('postProcessManifests validates manifests', function (t) {
         outdir: copySamples,
         bundles: [{
             bundleName: 'bad',
-            manifest: 'bad.manifest.json'
+            manifest: 'bad.manifest.json',
         }],
     }, function(err) {
         t.equal(err.code, "INVALID_MANIFEST", "should validate manifests");
@@ -82,12 +83,12 @@ test('postProcessManifests applying post-processors', function (t) {
     postProcessManifests({
         manifestProcessors:[
             [passThroughProcessor, {'LMAO':"the french smiley cat"}],
-            path.resolve(__filename)
+            path.resolve(__filename),
         ],
         outdir: copySamples,
         bundles: [{
             bundleName: 'minimal',
-            manifest: 'minimal.manifest.json'
+            manifest: 'minimal.manifest.json',
         }],
     }, function(error) {
         t.error(error);
