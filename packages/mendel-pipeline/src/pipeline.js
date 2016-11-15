@@ -1,5 +1,6 @@
 const debug = require('debug')('mendel:pipeline');
 const analyticsCollector = require('./helpers/analytics/analytics-collector');
+const analyzeSteps = require('./helpers/analytics/analytics')('steps');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
@@ -27,15 +28,20 @@ function MendelPipeline(options) {
     const depsResolver = new DepResolver({registry, transformer}, options);
 
     const steps = [watcher, reader, ist, depsResolver];
-    for (let i = 0; i < steps.length - 1; i++) {
-        const curStep = steps[i];
-        const nextStep = steps[i + 1];
+
+    steps.forEach((curStep, i) => {
+        const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
         curStep.on('done', function({entryId}) {
+            analyzeSteps.toc(`${curStep.constructor.name}:${entryId}`);
             const entry = registry.getEntry(entryId);
             entry.incrementStep();
+
+            if (!nextStep) return;
+
+            analyzeSteps.tic(`${nextStep.constructor.name}:${entryId}`);
             nextStep.perform.apply(nextStep, [entry].concat(Array.prototype.slice.call(arguments, 1)));
         });
-    }
+    });
 
     if (options.watch !== true) {
         let totalEntries = 0;
