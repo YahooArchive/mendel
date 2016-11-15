@@ -4,11 +4,11 @@ const analyzeSteps = require('./helpers/analytics/analytics')('steps');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
+const DepResolver = require('./deps');
 const Initialize = require('./step/initialize');
 const Watcher = require('./step/fs-watcher');
 const Reader = require('./step/fs-reader');
 const IST = require('./step/ist');
-const DepResolver = require('./step/deps');
 
 module.exports = MendelPipeline;
 
@@ -19,15 +19,16 @@ function MendelPipeline(options) {
 
     const registry = new MendelRegistry(options);
     const transformer = new Transformer(options.transforms, options);
+    const depsResolver = new DepResolver(options);
+
+    const toolset = {registry, transformer, depsResolver};
 
     // Pipeline steps
-    const initializer = new Initialize({registry, transformer}, options);
-    const watcher = new Watcher({registry, transformer}, options);
-    const reader = new Reader({registry, transformer}, options);
-    const ist = new IST({registry, transformer}, options);
-    const depsResolver = new DepResolver({registry, transformer}, options);
-
-    const steps = [watcher, reader, ist, depsResolver];
+    const initializer = new Initialize(toolset, options);
+    const watcher = new Watcher(toolset, options);
+    const reader = new Reader(toolset, options);
+    const ist = new IST(toolset, options);
+    const steps = [watcher, reader, ist];
 
     steps.forEach((curStep, i) => {
         const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
@@ -48,7 +49,7 @@ function MendelPipeline(options) {
         let doneDeps = 0;
 
         watcher.on('done', () => totalEntries++);
-        depsResolver.on('done', () => {
+        ist.on('done', () => {
             doneDeps++;
             if (totalEntries === doneDeps) {
                 debug(`${totalEntries} entries were processed.`);
