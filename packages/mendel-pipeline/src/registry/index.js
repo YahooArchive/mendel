@@ -59,7 +59,7 @@ class MendelRegistry extends EventEmitter {
         if (!this._mendelCache.hasEntry(filePath)) return;
     }
 
-    remove(filePath) {
+    removeEntry(filePath) {
         if (!this._mendelCache.hasEntry(filePath)) return;
 
         this._mendelCache.deleteEntry(filePath);

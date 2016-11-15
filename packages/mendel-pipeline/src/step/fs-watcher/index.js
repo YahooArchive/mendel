@@ -18,12 +18,12 @@ class FsWatcher extends BaseStep {
         this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
         this.watcher
         .on('change', (path) => {
-            this._registry.remove(path);
+            this._registry.removeEntry(path);
             this._registry.addEntry(path);
             this.emit('done', {entryId: path});
         })
         .on('unlink', (path) => {
-            this._registry.remove(path);
+            this._registry.removeEntry(path);
         })
         .on('add', (path, stats) => {
             if (!this.isInitialized) return this.initialProrityQueue.push({path, size: stats.size});
