@@ -9,10 +9,10 @@ const numCPUs = require('os').cpus().length;
  */
 class DepsManager {
     /**
-     * @param {String} config.cwd
+     * @param {String} config.projectRoot
      */
-    constructor({cwd, baseConfig, variationConfig}) {
-        this._cwd = cwd;
+    constructor({projectRoot, baseConfig, variationConfig}) {
+        this._projectRoot = projectRoot;
         this._baseConfig = baseConfig;
         this._variationConfig = variationConfig;
         this._queue = [];
@@ -81,7 +81,7 @@ class DepsManager {
             filePath,
             variation,
             source,
-            cwd: this._cwd,
+            projectRoot: this._projectRoot,
             baseDir: this._baseConfig.dir,
             baseName: this._baseConfig.id,
             varDirs: this._variationConfig.variationDirs,

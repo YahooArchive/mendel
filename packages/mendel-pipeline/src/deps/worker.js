@@ -7,15 +7,15 @@ const VariationalResolver = require('mendel-resolver/variational-resolver');
 
 debug(`[Slave ${process.pid}] online`);
 
-process.on('message', ({type, filePath, source, variation, cwd, baseDir, baseName, varDirs}) => {
+process.on('message', ({type, filePath, source, variation, projectRoot, baseDir, baseName, varDirs}) => {
     if (type === 'start') {
         debug(`Detecting dependencies for ${filePath}`);
 
         analytics.tic();
         const resolver = new VariationalResolver({
-            cwd,
+            projectRoot,
             envNames: ['main', 'browser'],
-            basedir: path.resolve(cwd, path.dirname(filePath)),
+            basedir: path.resolve(projectRoot, path.dirname(filePath)),
             baseVariationDir: baseDir,
             variationDirs: varDirs,
             variations: [variation, baseName],

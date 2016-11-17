@@ -2,14 +2,14 @@ const ModuleResolver = require('./index');
 const path = require('path');
 
 class VariationalModuleResolver extends ModuleResolver {
-    constructor(config) {
-        super(config);
+    constructor({projectRoot, envNames, basedir, baseVariationDir, variationDirs, variations}) {
+        super({cwd: projectRoot, basedir, envNames});
 
         // Must be a path relative to the basedir
-        this.cwd = config.cwd;
-        this.baseVarDir = path.resolve(this.cwd, config.baseVariationDir);
-        this.varDirs = config.variationDirs.map(varDir => path.resolve(this.cwd, varDir));
-        this.variationChain = config.variations.reduce((reduced, variation) => {
+        this.projectRoot = projectRoot;
+        this.baseVarDir = path.resolve(projectRoot, baseVariationDir);
+        this.varDirs = variationDirs.map(varDir => path.resolve(projectRoot, varDir));
+        this.variationChain = variations.reduce((reduced, variation) => {
             return reduced.concat(this.varDirs.map(varDir => path.resolve(varDir, variation)));
         }, []).concat([this.baseVarDir]);
     }

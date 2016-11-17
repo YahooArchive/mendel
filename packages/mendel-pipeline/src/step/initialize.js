@@ -5,13 +5,13 @@ class Initialize {
      * @param {Array<String>} config.commonTransformIds
      * @param {Transformer} toolset.transformer
      */
-    constructor({registry}, {cwd}) {
-        this.cwd = cwd;
+    constructor({registry}, {projectRoot}) {
+        this.projectRoot = projectRoot;
         this.registry = registry;
     }
 
     start() {
-        // Listen to everything in cwd
+        // Listen to everything in projectRoot
         this.registry.addToPipeline('.');
     }
 }
