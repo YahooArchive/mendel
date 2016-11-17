@@ -7,22 +7,43 @@ const VariationalResolver = require('mendel-resolver/variational-resolver');
 
 debug(`[Slave ${process.pid}] online`);
 
-process.on('message', ({type, filePath, source, variation, cwd, baseDir, baseName, varDirs}) => {
+process.on('message', (payload) => {
+    const { type,
+            filePath,
+            normalizedId,
+            variation,
+            source,
+            projectRoot,
+            baseConfig,
+            variationConfig } = payload;
+
     if (type === 'start') {
         debug(`Detecting dependencies for ${filePath}`);
 
         analytics.tic();
         const resolver = new VariationalResolver({
-            cwd,
             envNames: ['main', 'browser'],
-            basedir: path.resolve(cwd, path.dirname(filePath)),
-            baseVariationDir: baseDir,
-            variationDirs: varDirs,
-            variations: [variation, baseName],
+            variations: [variation, baseConfig.id].filter(Boolean),
+            // entry related
+            variation,
+            normalizedId,
+            basedir: path.resolve(projectRoot, path.dirname(filePath)),
+            // config params
+            projectRoot,
+            baseConfig,
+            variationConfig,
         });
 
         debug(`Detecting dependencies for ${filePath}`);
         dep({source, resolver})
+        .then((deps) => {
+            Object.keys(deps).forEach(literal => {
+                Object.keys(deps[literal]).forEach(envName => {
+                    deps[literal][envName] = withPrefix(deps[literal][envName]);
+                });
+            });
+            return deps;
+        })
         .then((deps) => {
             analytics.toc();
             debug(`Dependencies for ${filePath} found!`);
@@ -31,8 +52,8 @@ process.on('message', ({type, filePath, source, variation, cwd, baseDir, baseNam
             analyticsIpc.toc('deps');
         })
         .catch(error => {
+            debug(`Errored while finding dependencies: "${filePath}"`);
             console.error(error.stack);
-            debug(`Errored while finding dependencies: "${filePath}" - ${error.stack}`);
             process.send({type: 'error', filePath, error: error.message});
         })
         .catch(err => {
@@ -43,3 +64,10 @@ process.on('message', ({type, filePath, source, variation, cwd, baseDir, baseNam
         process.exit(0);
     }
 });
+
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) {
+        path = './'+path;
+    }
+    return path;
+}

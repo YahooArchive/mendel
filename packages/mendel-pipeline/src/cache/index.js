@@ -1,29 +1,29 @@
 const path = require('path');
 const Entry = require('./entry.js');
+const variationMatches = require('mendel-development/variation-matches');
 
 class MendelCache {
     constructor(config) {
         this._store = new Map();
         this._baseConfig = config.baseConfig;
-        this._variationConfig = config.variationConfig;
-
-        const variationDirSet = new Set();
-        Object.keys(this._variationConfig.variations)
-            .filter(varKey => this._variationConfig.variations[varKey])
-            .forEach(varKey => {
-                this._variationConfig.variations[varKey].forEach(varFolderName => variationDirSet.add(varFolderName));
-            });
-        const varDirNames = Array.from(variationDirSet.keys());
-
-        this.variationalRegex = new RegExp(`(${varDirNames.map(dirName => `(${dirName})${path.sep}\\w+`).join('|')}|${this._baseConfig.dir})${path.sep}?`);
+        this._variations = config.variationConfig.variations;
     }
 
     getNormalizedId(id) {
-        if (isNodeModule(id)) return id;
+        let normalizedId = id;
 
-        // This is wrong WIP
-        // return id.replace(this.variationalRegex, '');
-        return id;
+        const match = variationMatches(this._variations, id);
+        if (match && !isNodeModule(id)) {
+            const parts = path.parse(match.file);
+            if (parts.base === 'package.json' || parts.name === 'index') {
+                normalizedId = './' + parts.dir;
+            } else {
+                // no extension
+                normalizedId = './' + path.join(parts.dir, parts.name);
+            }
+        }
+
+        return normalizedId;
     }
 
     getType(id) {
@@ -34,11 +34,24 @@ class MendelCache {
         return 'binary';
     }
 
-    getVariation(path) {
-        const variationalMatch = path.match(this.variationalRegex);
+    /*
+        getVariation() returns either `false` variationPath string.
+        It is important to understand this is not the variationId since more
+        than one variationId can include the same file because of variation
+        inheritance.
 
-        if (!variationalMatch) return this._baseConfig.id;
-        return 'still working on it';
+        We need to tell apart files without variation from files that can be
+        variational. All files inside variationConfig.allDirs can have variation
+        but files in parent folders can't.
+
+        In Mendel v1 no `node_modules` can have variations, but we might chose
+        to support in Mendel v2 if we keep getVariation() with this "lose return
+        value", as oposed to be based on `entryType`.
+    */
+    getVariation(path) {
+        const match = variationMatches(this._variations, path);
+        if (match) return match.variation.id;
+        return false;
     }
 
     addEntry(id) {
@@ -66,8 +79,8 @@ class MendelCache {
 
         Object.keys(dependencyMap).forEach(dependencyKey => {
             const dep = dependencyMap[dependencyKey];
-            dep.browser = this.getNormalizedId(dep.browser);
-            dep.main = this.getNormalizedId(dep.main);
+            dep.browser = dep.browser;
+            dep.main = dep.main;
         });
 
         entry.setDependencies(dependencyMap);

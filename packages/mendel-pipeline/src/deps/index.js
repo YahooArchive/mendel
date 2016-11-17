@@ -9,10 +9,10 @@ const numCPUs = require('os').cpus().length;
  */
 class DepsManager {
     /**
-     * @param {String} config.cwd
+     * @param {String} config.projectRoot
      */
-    constructor({cwd, baseConfig, variationConfig}) {
-        this._cwd = cwd;
+    constructor({projectRoot, baseConfig, variationConfig}) {
+        this._projectRoot = projectRoot;
         this._baseConfig = baseConfig;
         this._variationConfig = variationConfig;
         this._queue = [];
@@ -43,6 +43,7 @@ class DepsManager {
                 resolve, reject,
                 filePath: entry.id,
                 source: entry.getSource(transformIds),
+                normalizedId: entry.normalizedId,
                 variation: entry.variation,
             });
         });
@@ -52,7 +53,7 @@ class DepsManager {
         if (!this._queue.length || !this._idleWorkerQueue.length) return;
 
         const self = this;
-        const {filePath, source, variation, resolve, reject} = this._queue.shift();
+        const {filePath, source, normalizedId, variation, resolve, reject} = this._queue.shift();
         const workerId = this._idleWorkerQueue.shift();
         const workerProcess = this._workerProcesses.find(({pid}) => workerId === pid);
 
@@ -78,13 +79,15 @@ class DepsManager {
         analytics.tic('deps');
         workerProcess.send({
             type: 'start',
+            // entry properties
             filePath,
+            normalizedId,
             variation,
             source,
-            cwd: this._cwd,
-            baseDir: this._baseConfig.dir,
-            baseName: this._baseConfig.id,
-            varDirs: this._variationConfig.variationDirs,
+            // config properties
+            projectRoot: this._projectRoot,
+            baseConfig: this._baseConfig,
+            variationConfig: this._variationConfig,
         });
         analytics.toc('deps');
         this.next();

@@ -3,11 +3,11 @@ const chokidar = require('chokidar');
 const path = require('path');
 
 class FsWatcher extends BaseStep {
-    constructor({registry}, {cwd, ignore}) {
+    constructor({registry}, {projectRoot, ignore}) {
         super();
 
         this._registry = registry;
-        this.cwd = cwd;
+        this.projectRoot = projectRoot;
         // Default ignore .dot files.
         this.ignored = (ignore || []).concat([/[\/\\]\./]);
 
@@ -15,17 +15,23 @@ class FsWatcher extends BaseStep {
         this.isInitialized = false;
         this.initialProrityQueue = [];
 
-        this.watcher = new chokidar.FSWatcher({cwd: this.cwd, ignored: this.ignored});
+        this.watcher = new chokidar.FSWatcher({
+            cwd: this.projectRoot,
+            ignored: this.ignored,
+        });
+
         this.watcher
         .on('change', (path) => {
+            path = withPrefix(path);
             this._registry.removeEntry(path);
             this._registry.addEntry(path);
             this.emit('done', {entryId: path});
         })
         .on('unlink', (path) => {
-            this._registry.removeEntry(path);
+            this._registry.removeEntry(withPrefix(path));
         })
         .on('add', (path, stats) => {
+            path = withPrefix(path);
             if (!this.isInitialized) return this.initialProrityQueue.push({path, size: stats.size});
 
             this._registry.addEntry(path);
@@ -57,6 +63,13 @@ class FsWatcher extends BaseStep {
     unsubscribe(path) {
         this.watcher.unwatch(path);
     }
+}
+
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) {
+        path = './'+path;
+    }
+    return path;
 }
 
 function packageJsonSort(entry) {

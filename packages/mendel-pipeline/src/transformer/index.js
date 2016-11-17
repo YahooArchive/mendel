@@ -89,16 +89,19 @@ class TrasnformManager {
         this._transforms = new Map();
         transforms.forEach(transform => {
             this._transforms.set(transform.id, Object.assign(transform, {
-                plugin: this.resolvePlugin(config.cwd, transform.plugin),
+                plugin: this.resolvePlugin(
+                    config.projectRoot, transform.plugin),
             }));
         });
     }
 
-    resolvePlugin(cwd, plugin) {
-        if (existsSync(pathResolve(cwd, plugin))) return pathResolve(cwd, plugin);
+    resolvePlugin(projectRoot, plugin) {
+        if (existsSync(pathResolve(projectRoot, plugin))) {
+            return pathResolve(projectRoot, plugin);
+        }
 
-        // node_modules do not live in the cwd. We search where mendelrc is.
-        return moduleResolveSync(plugin, {basedir: process.cwd()});
+        // node_modules do not live in the source, use regular resolver
+        return moduleResolveSync(plugin, {basedir: projectRoot});
     }
 
     transform(filename, transformIds, source) {

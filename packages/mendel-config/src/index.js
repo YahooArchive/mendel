@@ -3,36 +3,42 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var path = require('path');
-var debug = require('debug')('mendel:config');
-var defaultConfig = require('./defaults');
-var TransformConfig = require('./transform-config');
-var BundleConfig = require('./bundle-config');
-var VariationConfig = require('./variation-config');
-var BaseConfig = require('./base-config');
-var TypesConfig = require('./types-config');
+const path = require('path');
+const inspect = require('util').inspect;
+const debug = require('debug')('mendel:config');
 
-module.exports = function(config) {
-    var defaults = defaultConfig();
+const defaultConfig = require('./defaults');
+const TransformConfig = require('./transform-config');
+const BundleConfig = require('./bundle-config');
+const VariationConfig = require('./variation-config');
+const BaseConfig = require('./base-config');
+const TypesConfig = require('./types-config');
 
-    // merge by priority
-    config = deepMerge(defaults, config);
+module.exports = function(rawConfig) {
+    const defaults = defaultConfig();
+    const pureConfig = onlyKeys(rawConfig, Object.keys(defaults));
+    const fullConfig = deepMerge(defaults, pureConfig);
 
     // merge environment based config
-    config.environment = config.environment ||
-                         process.env.MENDEL_ENV ||
-                         process.env.NODE_ENV ||
-                         'development';
-    var envConfig = config.env[config.environment];
+    fullConfig.environment = fullConfig.environment ||
+                             process.env.MENDEL_ENV ||
+                             process.env.NODE_ENV   ||
+                             'development';
 
-    if (envConfig) {
-        config = deepMerge(config, envConfig);
+
+    let defaultEnvConfig = fullConfig;
+    const envOverrides = fullConfig.env[defaultEnvConfig.environment];
+    if (envOverrides) {
+        defaultEnvConfig = deepMerge(fullConfig, envOverrides);
     }
 
+    const config = undashConfig(defaultEnvConfig);
+    config.variationConfig = undashConfig(config.variationConfig);
+
     // Use absolute path for path configs
-    config.cwd = path.resolve(config.cwd);
-    config.baseConfig = new BaseConfig(config);
-    config.variationConfig = new VariationConfig(config);
+    config.projectRoot = path.resolve(config.projectRoot);
+    config.baseConfig = BaseConfig(config);
+    config.variationConfig = VariationConfig(config);
     config.types = Object.keys(config.types).map(function(typeName) {
         return new TypesConfig(typeName, config.types[typeName]);
     });
@@ -43,7 +49,6 @@ module.exports = function(config) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
 
-    const inspect = require('util').inspect;
     debug(inspect(config, {
         colors: true,
         depth: null,
@@ -51,6 +56,30 @@ module.exports = function(config) {
 
     return config;
 };
+
+
+function undashConfig(dashedConfig) {
+    return Object.keys(dashedConfig).reduce((config, key) => {
+        const dashRegexp = /\-([a-z])/i;
+        if (dashRegexp.test(key)) {
+            const newKey = key.replace(dashRegexp, (dash, letter) => {
+                return letter.toUpperCase();
+            });
+            config[newKey] = dashedConfig[key];
+        } else {
+            config[key] = dashedConfig[key];
+        }
+        return config;
+    }, {});
+}
+
+
+function onlyKeys(oldObj, whitelist) {
+    return whitelist.reduce((newObj, key) => {
+        newObj[key] = oldObj[key];
+        return newObj;
+    }, {});
+}
 
 function deepMerge(dest, src) {
     for (var key in src) {
