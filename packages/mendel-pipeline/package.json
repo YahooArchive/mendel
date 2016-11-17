@@ -19,6 +19,7 @@
     "chokidar": "^1.6.0",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
+    "mendel-development": "*",
     "mendel-deps": "*",
     "mendel-resolver": "^1.0.0",
     "pretty-ms": "^2.1.0",

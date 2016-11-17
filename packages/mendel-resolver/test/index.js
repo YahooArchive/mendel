@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const Resolver = require('../');
-const VariationalResolver = require('../src/resolver/variational-resolver');
+const VariationalResolver = require('../variational-resolver');
 const fs = require('fs');
 const path = require('path');
 const basePath = path.resolve(__dirname, './fixtures');

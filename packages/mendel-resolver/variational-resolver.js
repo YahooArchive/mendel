@@ -1,24 +1,41 @@
 const ModuleResolver = require('./index');
 const path = require('path');
+const variationMatches = require('mendel-development/variation-matches');
 
 class VariationalModuleResolver extends ModuleResolver {
-    constructor({projectRoot, envNames, basedir, baseVariationDir, variationDirs, variations}) {
+    constructor({
+        envNames,
+        variations,
+        // entry related
+        variation,
+        normalizedId,
+        basedir,
+        // config params
+        projectRoot,
+        baseConfig,
+        variationConfig,
+    }) {
         super({cwd: projectRoot, basedir, envNames});
 
-        // Must be a path relative to the basedir
+        this.variationChain = variations.map(variationPath => {
+            return path.resolve(projectRoot, variationPath);
+        });
+        this.baseVarDir = path.resolve(projectRoot, baseConfig.dir);
+
+        this.variation = variation;
+        this.normalizedId = normalizedId;
+        // config params
         this.projectRoot = projectRoot;
-        this.baseVarDir = path.resolve(projectRoot, baseVariationDir);
-        this.varDirs = variationDirs.map(varDir => path.resolve(projectRoot, varDir));
-        this.variationChain = variations.reduce((reduced, variation) => {
-            return reduced.concat(this.varDirs.map(varDir => path.resolve(varDir, variation)));
-        }, []).concat([this.baseVarDir]);
+        this.baseConfig = baseConfig;
+        this.variationList = variationConfig.variations;
     }
 
     // Module id is a path without the variational information
     getModuleId(variationalPath) {
-        const varNameStrippedPath = path.resolve(this.basedir, variationalPath)
-            .replace(new RegExp(`((${this.varDirs.join('|')})${path.sep}\\w+|${this.baseVarDir})${path.sep}?`), '');
-        return varNameStrippedPath || '.';
+        const fileInPlace = path.resolve(this.basedir, variationalPath);
+        const match = variationMatches(this.variationList, fileInPlace);
+
+        return match ? match.file : '.';
     }
 
     isBasePath(modulePath) {
@@ -26,7 +43,9 @@ class VariationalModuleResolver extends ModuleResolver {
     }
 
     resolveFile(modulePath) {
-        if (this.isBasePath(modulePath)) return super.resolveFile(modulePath);
+        if (this.isBasePath(modulePath) || isNodeModule(modulePath)) {
+            return super.resolveFile(modulePath);
+        }
 
         let promise = Promise.reject();
         const moduleId = this.getModuleId(modulePath);
@@ -63,7 +82,7 @@ class VariationalModuleResolver extends ModuleResolver {
     }
 
     resolveDir(moduleName) {
-        if (this.isBasePath(moduleName) || moduleName.indexOf('node_modules') >= 0) return super.resolveDir(moduleName);
+        if (this.isBasePath(moduleName) || isNodeModule(moduleName)) return super.resolveDir(moduleName);
 
         const moduleId = this.getModuleId(moduleName);
         let promise = Promise.reject();
@@ -76,6 +95,10 @@ class VariationalModuleResolver extends ModuleResolver {
 
         return promise.catch(() => this.resolveFile(path.join(moduleName, 'index')));
     }
+}
+
+function isNodeModule(id) {
+    return id.indexOf('node_modules') >= 0;
 }
 
 module.exports = VariationalModuleResolver;

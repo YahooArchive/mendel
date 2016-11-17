@@ -22,14 +22,16 @@ class FsWatcher extends BaseStep {
 
         this.watcher
         .on('change', (path) => {
+            path = withPrefix(path);
             this._registry.removeEntry(path);
             this._registry.addEntry(path);
             this.emit('done', {entryId: path});
         })
         .on('unlink', (path) => {
-            this._registry.removeEntry(path);
+            this._registry.removeEntry(withPrefix(path));
         })
         .on('add', (path, stats) => {
+            path = withPrefix(path);
             if (!this.isInitialized) return this.initialProrityQueue.push({path, size: stats.size});
 
             this._registry.addEntry(path);
@@ -61,6 +63,13 @@ class FsWatcher extends BaseStep {
     unsubscribe(path) {
         this.watcher.unwatch(path);
     }
+}
+
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) {
+        path = './'+path;
+    }
+    return path;
 }
 
 function packageJsonSort(entry) {
