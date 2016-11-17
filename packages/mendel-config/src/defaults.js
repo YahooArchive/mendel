@@ -4,12 +4,12 @@
 
 module.exports = function() {
     return {
-        cwd: process.cwd(),
+        projectRoot: process.cwd(),
         'base-config': {
             id: 'base',
             dir: process.cwd(),
         },
-        'build-dir': 'mendel-build',
+        'build-dir': 'build',
         'variation-config': {
             'variation-dirs': [],
             variations: {},

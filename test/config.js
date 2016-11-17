@@ -126,7 +126,7 @@ t.match(config(where), {
 where = './config-samples/4/';
 process.env.NODE_ENV = 'development';
 t.match(config(where), {
-    'base-config': {
+    baseConfig: {
         id: 'default',
         dir: /.*src\/default$/,
     },
@@ -145,7 +145,8 @@ t.match(config(where), {
             id: 'babelify-prod',
             plugin: 'mendel-babelify',
             options: {
-                plugins: ['react-intl-remove-description', 'transform-react-remove-prop-types'],
+                plugins: ['react-intl-remove-description',
+                'transform-react-remove-prop-types'],
             },
         },
         {
@@ -167,7 +168,7 @@ t.match(config(where), {
 
 process.env.NODE_ENV = 'production';
 t.match(config(where), {
-    'base-config': {
+    baseConfig: {
         id: 'default',
         dir: /.*src\/default$/,
     },

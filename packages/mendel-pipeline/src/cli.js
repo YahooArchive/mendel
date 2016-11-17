@@ -17,11 +17,12 @@ function parseIgnores(val='', previousIgnores) {
 program
     .version('0.1.0')
     .usage('[options] <dir path>')
-    .option('--ignore <patterns>', 'Comma separated ignore glob patterns', parseIgnores, ['**/_test_/**', '**/_browser_test_/**', '**/assets/**'])
+    .option('--ignore <patterns>', 'Comma separated ignore glob patterns',
+        parseIgnores, ['**/_test_/**', '**/_browser_test_/**', '**/assets/**'])
     // .option('-v, --verbose', 'Verbose mode')
     .option('-w, --watch', 'Watch mode', false)
     .parse(process.argv);
 
 // Example usage
-const mendelConfig = config(Object.assign(program, {cwd: path.resolve(process.cwd(), program.args[0])}));
+const mendelConfig = config(program);
 mendelPipeline(mendelConfig);

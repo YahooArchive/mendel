@@ -1,21 +1,36 @@
-var path = require('path');
-var createValidator = require('./validator');
+const parseVariations = require('../variations');
+const createValidator = require('./validator');
+const validate = createValidator({
+    variations: {type: 'array', minLen: 1},
+    // There can be a user of Mendel who does not want variation but faster build.
+    allVariationDirs: {type: 'array', minLen: 0},
+    allDirs: {type: 'array', minLen: 1},
+});
 
 function VariationConfig(config) {
-    var variationConfig = config['variation-config'];
-    if (!variationConfig) return null;
+    const variations = parseVariations(config);
+    const allVariationDirs = getAllDirs(variations);
 
-    this.variationDirs = (variationConfig['variation-dirs'] || [])
-        .filter(Boolean)
-        .map(function(dir) { return path.resolve(config.cwd, dir); });
-    this.variations = variationConfig.variations;
+    variations.push({
+        id: config.baseConfig.id,
+        chain: [config.baseConfig.dir],
+    });
 
-    VariationConfig.validate(this);
+    const allDirs = getAllDirs(variations);
+    const variationConfig = {variations, allDirs, allVariationDirs};
+
+    validate(variationConfig);
+
+    return variationConfig;
 }
 
-VariationConfig.validate = createValidator({
-    // There can be a user of Mendel who does not want variation but faster build.
-    variationDirs: {type: 'array', minLen: 0},
-});
+function getAllDirs(variationArray) {
+    return variationArray.reduce((allDirs, variation) => {
+        variation.chain.forEach(dir => {
+            if (!allDirs.includes(dir)) allDirs.push(dir);
+        });
+        return allDirs;
+    }, []);
+}
 
 module.exports = VariationConfig;
