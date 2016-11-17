@@ -113,17 +113,18 @@ function MendelMiddleware(opts) {
             return next();
         }
 
+        var pack = bpack({raw: true, hasExports: true});
+        var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
+        if (!decodedResults || decodedResults.error) {
+            return notFound(res, decodedResults && decodedResults.error);
+        }
+
         // Serve bundle
         res.set({
             'Content-Type': 'application/javascript',
             'Cache-Control': 'public, max-age=31536000'
         });
 
-        var pack = bpack({raw: true, hasExports: true});
-        var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
-        if (!decodedResults || decodedResults.error) {
-            return notFound(res, decodedResults && decodedResults.error);
-        }
         pack.pipe(res);
         var modules = indexedDeps(decodedResults.deps.filter(Boolean));
         for (var i = 0; i < modules.length; i++) {
