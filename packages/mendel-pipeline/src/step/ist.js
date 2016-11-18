@@ -14,6 +14,7 @@ class IndependentSourceTransform extends BaseStep {
         this._transformer = transformer;
         this._depsResolver = depsResolver;
     }
+
     perform(entry) {
         const filePath = entry.id;
         const buildPlan = this._registry.getTransformPlans(entry.id);
@@ -28,15 +29,20 @@ class IndependentSourceTransform extends BaseStep {
         }
 
         promise
-        .then(({source}) => this._registry.addTransformedSource({filePath, transformIds, source}))
-        .then(() => this._depsResolver.detect(entry, transformIds))
-        .then(({deps}) => {
-            Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
-                // In case the entry is missing for dependency, time to add them into our pipeline.
-                if (!this._registry.hasEntry(browser)) this._registry.addToPipeline(browser);
-                if (!this._registry.hasEntry(main)) this._registry.addToPipeline(main);
+        .then(({source}) => {
+            this._depsResolver.detect(entry, transformIds).then(({deps}) => {
+                Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
+                    // In case the entry is missing for dependency, time to add them into our pipeline.
+                    if (!this._registry.hasEntry(browser)) this._registry.addToPipeline(browser);
+                    if (!this._registry.hasEntry(main)) this._registry.addToPipeline(main);
+                });
+                this._registry.addTransformedSource({
+                    filePath,
+                    transformIds,
+                    source,
+                    deps,
+                });
             });
-            this._registry.setDependencies(filePath, deps);
         })
         .then(() => this.emit('done', {entryId: filePath}, transformIds))
         .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`));
