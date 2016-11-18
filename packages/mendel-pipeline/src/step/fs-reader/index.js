@@ -10,17 +10,14 @@ class FileReader extends BaseStep {
         this.projectRoot = projectRoot;
         this.registry = registry;
         this.sourceExt = new Set();
-        Object.keys(types)
-        .filter(typeName => !types[typeName].isBinary)
-        .forEach(typeName => types[typeName].extensions.forEach(ext => this.sourceExt.add(ext)));
     }
 
     perform(entry) {
         const filePath = entry.id;
-        const encoding = this.sourceExt.has(path.extname(filePath)) ? 'utf8' : 'binary';
 
         analytics.tic('read');
-        fs.readFile(path.resolve(this.projectRoot, filePath), encoding, (err, source) => {
+        // FIX ME
+        fs.readFile(path.resolve(this.projectRoot, filePath), 'utf8', (err, source) => {
             if (err) {
                 // TODO handle the error
             }

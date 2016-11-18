@@ -3,6 +3,7 @@ const analytics = require('../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:deps:master');
 const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
+const path = require('path');
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
@@ -28,14 +29,9 @@ class DepsManager {
         setImmediate(() => this.next());
 
         // Acorn used in deps can only parse js and jsx types.
-        if (['.js', '.jsx'].indexOf(entry.effectiveExt) < 0) {
+        if (['.js', '.jsx'].indexOf(path.extname(entry.id)) < 0) {
             // there are no dependency
             return Promise.resolve({id: entry.id, deps: {}});
-        } else if (entry.step >= 3) {
-            return Promise.resolve({
-                id: entry.id,
-                deps: entry.dependencies,
-            });
         }
 
         return new Promise((resolve, reject) => {

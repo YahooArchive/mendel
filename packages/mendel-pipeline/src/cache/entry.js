@@ -6,7 +6,6 @@ class Entry {
         this.normalizedId;
         this.type;
         this.step = 0;
-        this.effectiveExt = path.extname(id);
         this.sourceVersions = new Map();
         this.dependents = [];
         this.dependencies = new Map();
@@ -18,10 +17,6 @@ class Entry {
 
     setSource(transformIds, source) {
         this.sourceVersions.set(transformIds.join('_'), source);
-    }
-
-    setEffectiveExt(effectiveExt) {
-        this.effectiveExt = effectiveExt;
     }
 
     getSource(transformIds) {

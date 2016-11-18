@@ -5,9 +5,6 @@ const analyticsCollector = require('../helpers/analytics/analytics-collector');
 const analytics = require('../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
-const {resolve: pathResolve} = require('path');
-const {existsSync} = require('fs');
-const {sync: moduleResolveSync} = require('resolve');
 
 const parallelMode = (function() {
     const numCPUs = require('os').cpus().length;
@@ -85,28 +82,16 @@ function singleMode(transforms, {filename, source}) {
  * Knows how to do all kinds of trasnforms in parallel way
  */
 class TrasnformManager {
-    constructor(transforms, config) {
+    constructor(transforms) {
         this._transforms = new Map();
         transforms.forEach(transform => {
-            this._transforms.set(transform.id, Object.assign(transform, {
-                plugin: this.resolvePlugin(
-                    config.projectRoot, transform.plugin),
-            }));
+            this._transforms.set(transform.id, transform);
         });
-    }
-
-    resolvePlugin(projectRoot, plugin) {
-        if (existsSync(pathResolve(projectRoot, plugin))) {
-            return pathResolve(projectRoot, plugin);
-        }
-
-        // node_modules do not live in the source, use regular resolver
-        return moduleResolveSync(plugin, {basedir: projectRoot});
     }
 
     transform(filename, transformIds, source) {
         debug(`Transforming "${filename}" with [${transformIds}]`);
-        const transforms = transformIds.map(transformId => this._transforms.get(transformId));
+        const transforms = transformIds.map(id => this._transforms.get(id));
 
         let mode;
         if (transformIds.every(transformId => typeof this._transforms.get(transformId).plugin === 'string')) {

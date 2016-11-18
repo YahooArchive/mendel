@@ -43,7 +43,7 @@ module.exports = function(rawConfig) {
         return new TypesConfig(typeName, config.types[typeName]);
     });
     config.transforms = Object.keys(config.transforms).map(transformId => {
-        return new TransformConfig(transformId, config.transforms[transformId]);
+        return new TransformConfig(transformId, config.transforms[transformId], config);
     });
     config.bundles = Object.keys(config.bundles).map(function(bundleId) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
