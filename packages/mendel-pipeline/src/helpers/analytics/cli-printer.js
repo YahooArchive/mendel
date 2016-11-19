@@ -92,6 +92,8 @@ class CliPrinter extends BasePrinter {
     }
 
     print(data) {
+        if (!data.length) return;
+
         console.log(chalk.bgWhite.black(padRight(' Sorted by grouping (aggregate of all thread)', process.stdout.columns || 80)));
         this._print(data, [1]);
 

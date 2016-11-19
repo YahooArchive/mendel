@@ -5,8 +5,8 @@ class AnalyticsCollector {
 
         global.analytics = this;
         process.on('message', () => this.record());
-        process.on('exit', () => {
-            if (this.options.printer) {
+        process.on('exit', (code) => {
+            if (code === 0 && this.options.printer) {
                 this.options.printer.print(this.data);
             }
         });
