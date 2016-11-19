@@ -1,4 +1,3 @@
-const path = require('path');
 
 class Entry {
     constructor(id) {
