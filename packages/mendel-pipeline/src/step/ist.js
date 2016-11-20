@@ -29,7 +29,6 @@ class IndependentSourceTransform extends BaseStep {
 
         promise
         .then(({source}) => this._registry.addTransformedSource({filePath, transformIds, source}))
-        .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`))
         .then(() => this._depsResolver.detect(entry, transformIds))
         .then(({deps}) => {
             Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
@@ -39,7 +38,8 @@ class IndependentSourceTransform extends BaseStep {
             });
             this._registry.setDependencies(filePath, deps);
         })
-        .then(() => this.emit('done', {entryId: filePath}, transformIds));
+        .then(() => this.emit('done', {entryId: filePath}, transformIds))
+        .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`));
     }
 }
 

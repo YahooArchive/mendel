@@ -1,19 +1,22 @@
-// const debug = require('debug')('mendel:initialize');
+const BaseStep = require('./step');
 
-class Initialize {
+class Initialize extends BaseStep {
     /**
      * @param {Array<String>} config.commonTransformIds
      * @param {Transformer} toolset.transformer
      */
-    constructor({registry}, {projectRoot, variationConfig}) {
-        this.projectRoot = projectRoot;
-        this.registry = registry;
-        this.allDirs = variationConfig.allDirs;
+    constructor({cache}) {
+        super();
+        this.cache = cache;
     }
 
     start() {
-        // Add base and all variations to file watcher
-        this.registry.addToPipeline(this.allDirs);
+        this.cache.on('entryAdded', id => this.pushEntry(id));
+        this.cache.entries().forEach(id => this.pushEntry(id));
+    }
+
+    pushEntry(entryId) {
+        this.emit('done', {entryId: entryId});
     }
 }
 

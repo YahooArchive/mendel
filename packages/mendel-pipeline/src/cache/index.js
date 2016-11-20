@@ -1,9 +1,13 @@
 const path = require('path');
+const EventEmitter = require('events').EventEmitter;
+const verbose = require('debug')('verbose:mendel:cache');
+
 const Entry = require('./entry.js');
 const variationMatches = require('mendel-development/variation-matches');
 
-class MendelCache {
+class MendelCache extends EventEmitter {
     constructor(config) {
+        super();
         this._store = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
@@ -33,18 +37,38 @@ class MendelCache {
     }
 
     addEntry(id) {
-        this._store.set(id, new Entry(id));
-        const entry = this._store.get(id);
-        entry.variation = this.getVariation(id);
-        entry.normalizedId = this.getNormalizedId(id);
+        if (!this._store.has(id)) {
+            const entry = new Entry(id);
+            entry.variation = this.getVariation(id);
+            entry.normalizedId = this.getNormalizedId(id);
+            this._store.set(id, entry);
+            this.emit('entryAdded', id);
+        }
+    }
+
+    requestEntry(id) {
+        if (!this._store.has(id)) {
+            this.emit('entryRequested', id);
+        }
     }
 
     hasEntry(id) {
         return this._store.has(id);
     }
 
-    deleteEntry(id) {
-        this._store.delete(id);
+    removeEntry(id) {
+        if (this._store.has(id)) {
+            this._store.delete(id);
+            this.emit('entryRemoved', id);
+        }
+    }
+
+    size() {
+        return this._store.size;
+    }
+
+    entries() {
+        return Array.from(this._store.values());
     }
 
     getEntry(id) {
@@ -61,6 +85,17 @@ class MendelCache {
         });
 
         entry.setDependencies(dependencyMap);
+    }
+
+    emit(eventName, entry) {
+        if (entry && entry.id) {
+            verbose(eventName, entry.id);
+        } else if(entry) {
+            verbose(eventName, entry);
+        } else {
+            verbose(eventName);
+        }
+        super.emit.apply(this, arguments);
     }
 }
 

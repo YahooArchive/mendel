@@ -1,14 +1,13 @@
 const EventEmitter = require('events').EventEmitter;
-const MendelCache = require('../cache');
 const error = require('debug')('mendel:registry:error');
 const verbose = require('debug')('verbose:mendel:registry');
 
 // TODO: Multipe MendelRegistry per environment, but global cache
 class MendelRegistry extends EventEmitter {
-    constructor(config) {
+    constructor(config, cache) {
         super();
 
-        this._mendelCache = new MendelCache(config);
+        this._mendelCache = cache;
 
         // Parser can map a type to another type
         this._parserTypeConversion = new Map();
@@ -97,8 +96,8 @@ class MendelRegistry extends EventEmitter {
         };
     }
 
-    addToPipeline(path) {
-        this.emit('entryRequested', path);
+    addToPipeline(filePath) {
+        this._mendelCache.requestEntry(filePath);
     }
 
     addEntry(filePath) {

@@ -1,13 +1,9 @@
-const BaseStep = require('../step');
-const chokidar = require('chokidar');
 const path = require('path');
+const chokidar = require('chokidar');
 
-class FsWatcher extends BaseStep {
-    constructor({registry}, {projectRoot, ignore}) {
-        super();
-
-        this._registry = registry;
-        this.projectRoot = projectRoot;
+class FsWatcher {
+    constructor({projectRoot, ignore}, cache) {
+        this.cache = cache;
         // Default ignore .dot files.
         this.ignored = (ignore || []).concat([/[\/\\]\./]);
 
@@ -23,19 +19,22 @@ class FsWatcher extends BaseStep {
         this.watcher
         .on('change', (path) => {
             path = withPrefix(path);
-            this._registry.removeEntry(path);
-            this._registry.addEntry(path);
-            this.emit('done', {entryId: path});
+            this.cache.removeEntry(path);
+            this.cache.addEntry(path);
         })
         .on('unlink', (path) => {
-            this._registry.removeEntry(withPrefix(path));
+            this.cache.removeEntry(withPrefix(path));
         })
         .on('add', (path, stats) => {
             path = withPrefix(path);
-            if (!this.isInitialized) return this.initialProrityQueue.push({path, size: stats.size});
-
-            this._registry.addEntry(path);
-            this.emit('done', {entryId: path});
+            if (!this.isInitialized) {
+                this.initialProrityQueue.push({
+                    path,
+                    size: stats.size,
+                });
+            } else {
+                this.cache.addEntry(path);
+            }
         })
         .once('ready', () => {
             this.isInitialized = true;
@@ -44,16 +43,20 @@ class FsWatcher extends BaseStep {
                 .sort(({size: aSize}, {size: bSize}) => bSize - aSize)
                 .sort((a, b) => packageJsonSort(b) - packageJsonSort(a))
                 .forEach(({path}) => {
-                    this._registry.addEntry(path);
-                    this.emit('done', {entryId: path});
+                    this.cache.addEntry(path);
                 });
 
             // Cleanup the queue afterwards
             this.initialProrityQueue = [];
         });
 
-        this._registry.on('entryRequested', (path) => this.subscribe(path));
-        this._registry.on('entryRemoved', (path) => this.unsubscribe(path));
+        this.cache.on('entryRequested', (path) => {
+            // Adding entry upfront avoids filesystem async nature to make hard
+            // to track how many files we have in the system
+            this.cache.addEntry(path);
+            this.subscribe(path);
+        });
+        this.cache.on('entryRemoved', (path) => this.unsubscribe(path));
     }
 
     subscribe(path) {

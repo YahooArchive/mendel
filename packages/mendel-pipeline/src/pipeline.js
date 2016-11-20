@@ -1,63 +1,84 @@
 const debug = require('debug')('mendel:pipeline');
 const analyticsCollector = require('./helpers/analytics/analytics-collector');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
-const Transformer = require('./transformer');
 const MendelRegistry = require('./registry');
-const DepResolver = require('./deps');
 const Initialize = require('./step/initialize');
-const Watcher = require('./step/fs-watcher');
 const Reader = require('./step/fs-reader');
 const IST = require('./step/ist');
 
-module.exports = MendelPipeline;
+const EventEmitter = require('events').EventEmitter;
 
-function MendelPipeline(options) {
-    analyticsCollector.setOptions({
-        printer: new AnalyticsCliPrinter({enableColor: true}),
-    });
+module.exports = class MendelPipeline extends EventEmitter {
+    constructor ({options, cache, transformer, depsResolver}) {
+        super();
+        this.cache = cache;
 
-    const registry = new MendelRegistry(options);
-    const transformer = new Transformer(options.transforms, options);
-    const depsResolver = new DepResolver(options);
-
-    const toolset = {registry, transformer, depsResolver};
-
-    // Pipeline steps
-    const initializer = new Initialize(toolset, options);
-    const watcher = new Watcher(toolset, options);
-    const reader = new Reader(toolset, options);
-    const ist = new IST(toolset, options);
-    const steps = [watcher, reader, ist];
-
-    steps.forEach((curStep, i) => {
-        const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
-        curStep.on('done', function({entryId}) {
-            const entry = registry.getEntry(entryId);
-            entry.incrementStep();
-            if (!nextStep) return;
-            nextStep.perform.apply(nextStep, [entry].concat(Array.prototype.slice.call(arguments, 1)));
+        analyticsCollector.setOptions({
+            printer: new AnalyticsCliPrinter({enableColor: true}),
         });
-    });
 
-    if (options.watch !== true) {
-        let totalEntries = 0;
-        let doneDeps = 0;
+        const registry = new MendelRegistry(options, cache);
+        const toolset = {cache, registry, transformer, depsResolver};
 
-        watcher.on('done', () => totalEntries++);
-        ist.on('done', () => {
-            doneDeps++;
-            if (totalEntries === doneDeps) {
-                debug(`${totalEntries} entries were processed.`);
-                debug(
-                    Array.from(registry._mendelCache._store.values())
-                    .map(({id}) => id)
-                    .join('\n')
+        // Pipeline steps
+        const initializer = new Initialize(toolset, options);
+        const reader = new Reader(toolset, options);
+        const ist = new IST(toolset, options);
+        const steps = [initializer, reader, ist];
+
+        steps.forEach((curStep, i) => {
+            const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
+            curStep.on('done', function({entryId}) {
+                const entry = registry.getEntry(entryId);
+                entry.incrementStep();
+                if (!nextStep) return;
+                nextStep.perform.apply(
+                    nextStep,
+                    [entry].concat(Array.prototype.slice.call(arguments, 1))
                 );
-                process.exit(0);
-            }
+            });
         });
+
+        this.steps = steps;
     }
 
-    // COMMENCE!
-    initializer.start();
-}
+    watch() {
+        debug('working');
+
+        let startedEntries = 0;
+        let doneEntries = 0;
+
+        this.steps[0]
+            .on('done', () => startedEntries++);
+
+        this.steps[this.steps.length-1]
+            .on('done', () => { doneEntries++;
+
+                if (startedEntries === doneEntries) {
+
+                    const total = this.cache.size();
+                    debug(`${doneEntries} entries were processed.`);
+                    debug(`${total} entries in registry.`);
+
+                    startedEntries = 0;
+                    doneEntries = 0;
+
+                    this.emit('idle', doneEntries);
+                }
+            });
+
+        this.steps[0].start();
+    }
+
+    run() {
+        this.on('idle', () => {
+            const breakLine = '\n    ';
+            const entries = this.cache.entries();
+            debug(
+                breakLine + entries.map(({id}) => id).join(breakLine)
+            );
+            process.exit(0);
+        });
+        this.watch();
+    }
+};

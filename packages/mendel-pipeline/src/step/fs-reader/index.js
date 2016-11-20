@@ -2,9 +2,10 @@ const BaseStep = require('../step');
 const path = require('path');
 const fs = require('fs');
 const analytics = require('../../helpers/analytics/analytics')('fs');
+const debugError = require('debug')('mendel:reader:error');
 
 class FileReader extends BaseStep {
-    constructor({registry}, {types, projectRoot}) {
+    constructor({registry}, {projectRoot}) {
         super();
 
         this.projectRoot = projectRoot;
@@ -13,18 +14,19 @@ class FileReader extends BaseStep {
     }
 
     perform(entry) {
-        const filePath = entry.id;
+        const filePath = path.resolve(this.projectRoot, entry.id);
 
         analytics.tic('read');
-        // FIX ME
-        fs.readFile(path.resolve(this.projectRoot, filePath), 'utf8', (err, source) => {
-            if (err) {
-                // TODO handle the error
+        fs.readFile(filePath, 'utf8', (error, source) => {
+            analytics.toc('read');
+            if (error) {
+                debugError(`Errored while reading ${filePath}`);
+                // TODO: uncomment line below, fix resolver
+                // throw error;
             }
 
-            analytics.toc('read');
-            this.registry.addRawSource(filePath, source);
-            this.emit('done', {entryId: filePath});
+            this.registry.addRawSource(entry.id, source);
+            this.emit('done', {entryId: entry.id});
         });
     }
 }
