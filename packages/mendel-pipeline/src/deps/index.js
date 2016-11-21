@@ -39,8 +39,6 @@ class DepsManager {
                 resolve, reject,
                 filePath: entry.id,
                 source: source,
-                normalizedId: entry.normalizedId,
-                variation: entry.variation,
             });
         });
     }
@@ -49,7 +47,7 @@ class DepsManager {
         if (!this._queue.length || !this._idleWorkerQueue.length) return;
 
         const self = this;
-        const {filePath, source, normalizedId, variation, resolve, reject} = this._queue.shift();
+        const {filePath, source, resolve, reject} = this._queue.shift();
         const workerId = this._idleWorkerQueue.shift();
         const workerProcess = this._workerProcesses.find(({pid}) => workerId === pid);
 
@@ -76,10 +74,8 @@ class DepsManager {
         workerProcess.send({
             type: 'start',
             // entry properties
-            filePath,
-            normalizedId,
-            variation,
             source,
+            filePath,
             // config properties
             projectRoot: this._projectRoot,
             baseConfig: this._baseConfig,

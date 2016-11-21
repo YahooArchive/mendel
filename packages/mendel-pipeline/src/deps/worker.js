@@ -10,8 +10,6 @@ debug(`[Slave ${process.pid}] online`);
 process.on('message', (payload) => {
     const { type,
             filePath,
-            normalizedId,
-            variation,
             source,
             projectRoot,
             baseConfig,
@@ -23,10 +21,7 @@ process.on('message', (payload) => {
         analytics.tic();
         const resolver = new VariationalResolver({
             envNames: ['main', 'browser'],
-            variations: [variation, baseConfig.id].filter(Boolean),
             // entry related
-            variation,
-            normalizedId,
             basedir: path.resolve(projectRoot, path.dirname(filePath)),
             // config params
             projectRoot,

@@ -5,10 +5,7 @@ const variationMatches = require('mendel-development/variation-matches');
 class VariationalModuleResolver extends ModuleResolver {
     constructor({
         envNames,
-        variations,
         // entry related
-        variation,
-        normalizedId,
         basedir,
         // config params
         projectRoot,
@@ -17,17 +14,22 @@ class VariationalModuleResolver extends ModuleResolver {
     }) {
         super({cwd: projectRoot, basedir, envNames});
 
-        this.variationChain = variations.map(variationPath => {
-            return path.resolve(projectRoot, variationPath);
-        });
-        this.baseVarDir = path.resolve(projectRoot, baseConfig.dir);
-
-        this.variation = variation;
-        this.normalizedId = normalizedId;
         // config params
         this.projectRoot = projectRoot;
         this.baseConfig = baseConfig;
         this.variationList = variationConfig.variations;
+
+        // derivatives
+        this.baseVarDir = path.resolve(projectRoot, baseConfig.dir);
+        this.variationChain = [this.baseVarDir];
+
+        const match = variationMatches(this.variationList, basedir);
+        if (match) {
+            const absChain = match.variation.chain.map(varDir => {
+                return path.resolve(path.resolve(projectRoot, varDir));
+            });
+            this.variationChain = absChain.concat([this.baseVarDir]);
+        }
     }
 
     // Module id is a path without the variational information
