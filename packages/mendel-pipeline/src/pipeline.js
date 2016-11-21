@@ -17,8 +17,11 @@ module.exports = class MendelPipeline extends EventEmitter {
             printer: new AnalyticsCliPrinter({enableColor: true}),
         });
 
-        const registry = new MendelRegistry(options, cache);
-        const toolset = {cache, registry, transformer, depsResolver};
+        const registry = this._registry = new MendelRegistry(options, cache);
+        const toolset = {
+            cache, registry,
+            transformer, depsResolver,
+        };
 
         // Pipeline steps
         const initializer = new Initialize(toolset, options);
@@ -30,7 +33,6 @@ module.exports = class MendelPipeline extends EventEmitter {
             const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
             curStep.on('done', function({entryId}) {
                 const entry = registry.getEntry(entryId);
-                entry.incrementStep();
                 if (!nextStep) return;
                 nextStep.perform.apply(
                     nextStep,

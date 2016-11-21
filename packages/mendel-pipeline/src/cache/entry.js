@@ -3,13 +3,8 @@ class Entry {
         this.id = id;
         this.normalizedId;
         this.type;
-        this.step = 0;
         this.sourceVersions = new Map();
         this.dependents = [];
-    }
-
-    incrementStep() {
-        this.step++;
     }
 
     setSource(transformIds, source, deps) {

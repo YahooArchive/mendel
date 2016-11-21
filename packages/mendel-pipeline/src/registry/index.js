@@ -120,6 +120,8 @@ class MendelRegistry extends EventEmitter {
 
         const entry = this._mendelCache.getEntry(filePath);
         entry.setSource(transformIds, source, deps);
+
+        this.emit('_transformedSource', filePath);
     }
 
     invalidateDepedencies(filePath) {
@@ -142,6 +144,47 @@ class MendelRegistry extends EventEmitter {
 
     hasEntry(filePath) {
         return this._mendelCache.hasEntry(filePath);
+    }
+
+    waitForGraphForGst(entryId, gstId, visitedEntries=new Set()) {
+        const entry = this.getEntry(entryId);
+        const {gst, ist} = this.getTransformPlans(entryId);
+        visitedEntries.add(entry);
+
+        // this GST was not planned for this entry's type
+        // which means we can just move forward but with ist's result
+        const expectedTransformIds = gst[gstId] && gst[gstId].ids.length ?
+            gst[gstId].ids : ist.ids;
+        let promise;
+        if (entry.hasSource(expectedTransformIds)) {
+            promise = Promise.resolve();
+        } else {
+            promise = new Promise(resolve => {
+                this.on('_transformedSource', function handleTransform(id) {
+                    if (id !== entryId) return;
+                    resolve();
+
+                    this.removeListener('_transformedSource', handleTransform);
+                });
+            });
+        }
+
+        return promise.then(() => {
+            const deps = entry.getDependency(expectedTransformIds);
+            const depIds = Object.keys(deps)
+                .map(depLiteral => deps[depLiteral].main);
+                // TODO below should be correct when the deps use normId
+                // .reduce((reduced, depNormId) => {
+                //     return reduced.concat(
+                //         this._mendelCache.getEntriesByNormId(depNormId)
+                //     );
+                // }, []);
+            const waitForDeps = depIds.map(dep => {
+                return this.waitForGraphForGst(dep, gstId, visitedEntries);
+            });
+            return Promise.all(waitForDeps)
+                .then(() => Array.from(visitedEntries.keys()));
+        });
     }
 }
 

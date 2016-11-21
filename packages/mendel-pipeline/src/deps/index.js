@@ -25,7 +25,7 @@ class DepsManager {
         });
     }
 
-    detect(entry, transformIds) {
+    detect(entry, source) {
         setImmediate(() => this.next());
 
         // Acorn used in deps can only parse js and jsx types.
@@ -38,7 +38,7 @@ class DepsManager {
             this._queue.push({
                 resolve, reject,
                 filePath: entry.id,
-                source: entry.getSource(transformIds),
+                source: source,
                 normalizedId: entry.normalizedId,
                 variation: entry.variation,
             });

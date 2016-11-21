@@ -9,6 +9,7 @@ class MendelCache extends EventEmitter {
     constructor(config) {
         super();
         this._store = new Map();
+        this._normalizedIdToEntryIds = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
     }
@@ -41,6 +42,12 @@ class MendelCache extends EventEmitter {
             const entry = new Entry(id);
             entry.variation = this.getVariation(id);
             entry.normalizedId = this.getNormalizedId(id);
+
+            if (!this._normalizedIdToEntryIds.has(entry.normalizedId)) {
+                this._normalizedIdToEntryIds.set(entry.normalizedId, []);
+            }
+            this._normalizedIdToEntryIds.get(entry.normalizedId).push(entry.id);
+
             this._store.set(id, entry);
             this.emit('entryAdded', id);
         }
@@ -75,16 +82,8 @@ class MendelCache extends EventEmitter {
         return this._store.get(id);
     }
 
-    setDependencies(id, dependencyMap) {
-        const entry = this.getEntry(id);
-
-        Object.keys(dependencyMap).forEach(dependencyKey => {
-            const dep = dependencyMap[dependencyKey];
-            dep.browser = dep.browser;
-            dep.main = dep.main;
-        });
-
-        entry.setDependencies(dependencyMap);
+    getEntriesByNormId(normId) {
+        return this._normalizedIdToEntryIds.get(normId);
     }
 
     emit(eventName, entry) {
