@@ -26,6 +26,12 @@ transforms: # a list of all available transforms for all envs and types
       presets:
         - es2015
         - react
+  uglyfy: # lazy to write the real one, will be faster if we have real uglify?
+    plugin: mendel-transform-babel
+    options:
+      presets:
+        - react
+        - babili
   json-parse:
     plugin: mendel-parser-json
 
@@ -49,10 +55,10 @@ env:
         outlet:
           plugin: mendel-bundle-rollup
         transforms:
-          - envify-prod
-          - babelify-dev
+          - babel
+          - uglyfy
         node_modules:
-          - envify-prod
+          - uglyfy
 
 # needs to be array because order is relevant
 # if extract-bundles comes first, we can generage lazy bundle specific css

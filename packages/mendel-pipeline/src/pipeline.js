@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel:pipeline');
+const _debug = require('debug');
 const analyticsCollector = require('./helpers/analytics/analytics-collector');
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const MendelRegistry = require('./registry');
@@ -11,6 +11,7 @@ const EventEmitter = require('events').EventEmitter;
 module.exports = class MendelPipeline extends EventEmitter {
     constructor ({options, cache, transformer, depsResolver}) {
         super();
+        this.debug = _debug('mendel:pipeline:' + options.environment);
         this.cache = cache;
 
         analyticsCollector.setOptions({
@@ -45,7 +46,7 @@ module.exports = class MendelPipeline extends EventEmitter {
     }
 
     watch() {
-        debug('working');
+        this.debug('working');
 
         let startedEntries = 0;
         let doneEntries = 0;
@@ -59,8 +60,8 @@ module.exports = class MendelPipeline extends EventEmitter {
                 if (startedEntries === doneEntries) {
 
                     const total = this.cache.size();
-                    debug(`${doneEntries} entries were processed.`);
-                    debug(`${total} entries in registry.`);
+                    this.debug(`${doneEntries} entries were processed.`);
+                    this.debug(`${total} entries in registry.`);
 
                     startedEntries = 0;
                     doneEntries = 0;
@@ -70,17 +71,5 @@ module.exports = class MendelPipeline extends EventEmitter {
             });
 
         this.steps[0].start();
-    }
-
-    run() {
-        this.on('idle', () => {
-            const breakLine = '\n    ';
-            const entries = this.cache.entries();
-            debug(
-                breakLine + entries.map(({id}) => id).join(breakLine)
-            );
-            process.exit(0);
-        });
-        this.watch();
     }
 };

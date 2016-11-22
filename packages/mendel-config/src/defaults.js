@@ -3,6 +3,9 @@
    See the accompanying LICENSE file for terms. */
 
 module.exports = function() {
+    const mendelEnv = process.env.MENDEL_ENV ||
+                      process.env.NODE_ENV ||
+                      'development';
     return {
         projectRoot: process.cwd(),
         'base-config': {
@@ -14,6 +17,7 @@ module.exports = function() {
             'variation-dirs': [],
             variations: {},
         },
+        'environment': mendelEnv,
         'route-config': {
             variation: '/mendel/:variations/:bundle',
             hash: '/mendel/:hash/:bundle',

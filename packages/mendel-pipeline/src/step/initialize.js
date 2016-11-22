@@ -11,12 +11,14 @@ class Initialize extends BaseStep {
     }
 
     start() {
-        this.cache.on('entryAdded', id => this.pushEntry(id));
-        this.cache.entries().forEach(id => this.pushEntry(id));
+        this.cache.on('entryAdded', id => this.pushEntryId(id));
+        this.cache.entries()
+            .filter(Boolean)
+            .forEach(entry => this.pushEntryId(entry.id));
     }
 
-    pushEntry(entryId) {
-        this.emit('done', {entryId: entryId});
+    pushEntryId(id) {
+        this.emit('done', {entryId: id});
     }
 }
 

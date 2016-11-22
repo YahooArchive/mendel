@@ -26,7 +26,8 @@ module.exports = class MendelPipelineDaemon {
 
         // Create environments
         this.environments = {};
-        this.environments['default'] = config;
+        this.pipelines = {};
+        this.default = config.environment;
         this.environments[config.environment] = config;
         Object.keys(config.env).forEach((environment) => {
             if (!this.environments.hasOwnProperty(environment)) {
@@ -36,23 +37,28 @@ module.exports = class MendelPipelineDaemon {
                 this.environments[environment] = envConf;
             }
         });
-        this.pipelines = {};
 
         this.watcher.subscribe(config.variationConfig.allDirs);
     }
 
-    watch(environment) {
+    watch(environment=this.default) {
+        // this prioritizes the default env first
         const pipeline = this.getPipeline(environment);
-        pipeline.watch(environment);
+        pipeline.on('idle', () => this.watchAll());
     }
 
-    run(environment) {
-        const pipeline = this.getPipeline(environment);
-        pipeline.run(environment);
+    watchAll() {
+        Object.keys(this.environments).forEach(envName => {
+            this.watch(envName);
+        });
     }
 
-    getPipeline(environment) {
-        environment = environment || 'default';
+    run(environment=this.default) {
+        const pipeline = this.getPipeline(environment);
+        pipeline.on('idle', () => process.exit(0));
+    }
+
+    getPipeline(environment=this.default) {
         if (!this.pipelines[environment]) {
             debug('init', environment);
             const envConf = this.environments[environment];
@@ -62,6 +68,7 @@ module.exports = class MendelPipelineDaemon {
                 depsResolver: this.depsResolver,
                 options: envConf,
             });
+            this.pipelines[environment].watch();
         }
         return this.pipelines[environment];
     }

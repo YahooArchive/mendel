@@ -19,13 +19,6 @@ module.exports = function(rawConfig) {
     const pureConfig = onlyKeys(rawConfig, Object.keys(defaults));
     const fullConfig = deepMerge(defaults, pureConfig);
 
-    // merge environment based config
-    fullConfig.environment = fullConfig.environment ||
-                             process.env.MENDEL_ENV ||
-                             process.env.NODE_ENV   ||
-                             'development';
-
-
     let defaultEnvConfig = fullConfig;
     const envOverrides = fullConfig.env[defaultEnvConfig.environment];
     if (envOverrides) {
@@ -42,8 +35,8 @@ module.exports = function(rawConfig) {
     config.types = Object.keys(config.types).map(function(typeName) {
         return new TypesConfig(typeName, config.types[typeName]);
     });
-    config.transforms = Object.keys(config.transforms).map(transformId => {
-        return new TransformConfig(transformId, config.transforms[transformId], config);
+    config.transforms = Object.keys(config.transforms).map(id => {
+        return new TransformConfig(id, config.transforms[id], config);
     });
     config.bundles = Object.keys(config.bundles).map(function(bundleId) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
@@ -87,7 +80,7 @@ function deepMerge(dest, src) {
         if (src.hasOwnProperty(key)) {
             if (isObject(dest[key]) && isObject(src[key])) {
                 dest[key] = deepMerge(dest[key], src[key]);
-            } else {
+            } else if (typeof src[key] !== 'undefined') {
                 dest[key] = src[key];
             }
         }
