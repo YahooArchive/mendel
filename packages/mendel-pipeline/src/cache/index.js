@@ -86,6 +86,21 @@ class MendelCache extends EventEmitter {
         return this._normalizedIdToEntryIds.get(normId);
     }
 
+    setSource(id, transformIds, source, deps) {
+        const entry = this.getEntry(id);
+        const normalizedDeps = {};
+        Object.keys(deps).forEach(depLiteral => {
+            const depObject = deps[depLiteral];
+            const normDep = {};
+            normalizedDeps[depLiteral] = normDep;
+            Object.keys(depObject).forEach(envName => {
+                normDep[envName] = this.getNormalizedId(depObject[envName]);
+            });
+        });
+
+        entry.setSource(transformIds, source, normalizedDeps);
+    }
+
     emit(eventName, entry) {
         if (entry && entry.id) {
             verbose(eventName, entry.id);
@@ -95,6 +110,18 @@ class MendelCache extends EventEmitter {
             verbose(eventName);
         }
         super.emit.apply(this, arguments);
+    }
+
+    debug() {
+        Array.from(this._store.values()).forEach(entry => {
+            console.log(entry.id);
+            console.log('  norm: ' + entry.normalizedId);
+            console.log('  var: ' + entry.variation);
+            console.log('  sources:');
+            Array.from(entry.sourceVersions.entries()).forEach(([ids, {deps}]) => {
+                console.log(`    ${ids}: ${JSON.stringify(deps)}`);
+            });
+        });
     }
 }
 

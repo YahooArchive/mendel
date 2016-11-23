@@ -118,8 +118,7 @@ class MendelRegistry extends EventEmitter {
             this._mendelCache.addEntry(filePath);
         }
 
-        const entry = this._mendelCache.getEntry(filePath);
-        entry.setSource(transformIds, source, deps);
+        this._mendelCache.setSource(filePath, transformIds, source, deps);
 
         this.emit('_transformedSource', filePath);
     }
