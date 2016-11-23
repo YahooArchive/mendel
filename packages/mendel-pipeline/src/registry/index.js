@@ -2,7 +2,6 @@ const EventEmitter = require('events').EventEmitter;
 const error = require('debug')('mendel:registry:error');
 const verbose = require('debug')('verbose:mendel:registry');
 
-// TODO: Multipe MendelRegistry per environment, but global cache
 class MendelRegistry extends EventEmitter {
     constructor(config, cache) {
         super();

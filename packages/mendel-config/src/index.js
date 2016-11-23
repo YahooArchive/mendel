@@ -42,6 +42,8 @@ module.exports = function(rawConfig) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
 
+    validateTypesAndTransforms(config);
+
     debug(inspect(config, {
         colors: true,
         depth: null,
@@ -49,7 +51,6 @@ module.exports = function(rawConfig) {
 
     return config;
 };
-
 
 function undashConfig(dashedConfig) {
     return Object.keys(dashedConfig).reduce((config, key) => {
@@ -90,4 +91,68 @@ function deepMerge(dest, src) {
 
 function isObject(obj) {
     return ({}).toString.call(obj).slice(8, -1).toLowerCase() === 'object';
+}
+
+/**
+ * Catches bad configurations like:
+ * - Cannot have circular parser dependency
+ * - No GST after parser
+ **/
+function validateTypesAndTransforms(config) {
+    const error = [];
+    const transformMap = new Map();
+    const typeConversation = new Map();
+    config.transforms.forEach(xform => transformMap.set(xform.id, xform));
+    config.types.forEach(type => typeConversation.set(type.name, type.parserToType));
+
+    config.types.forEach(type => {
+        type.transforms
+        .filter(transformId => !transformMap.has(transformId))
+        .forEach(transformId => {
+            error.push([
+                `Type "${type.id}" defines transform [${transformId}]`,
+                `that does not exist in transforms declaration.`,
+            ].join(' '));
+        });
+
+        if (type.parser) {
+            const badTransforms = type.transforms
+            .filter(xformId => transformMap.has(xformId))
+            .filter(xformId => transformMap.get(xformId).kind === 'gst');
+
+            if (badTransforms.length) {
+                error.push([
+                    `Type "${type.id}" cannot define graph source transform`,
+                    `[${badTransforms.join(', ')}] when it has a parser.`,
+                ].join(' '));
+            }
+        }
+    });
+
+    // Walk parser type conversion to detect cycles
+    Array.from(typeConversation.keys()).forEach(key => {
+        let currentType = key;
+        const visited = new Set();
+
+        while (currentType && !visited.has(currentType)) {
+            visited.add(currentType);
+            currentType = typeConversation.get(currentType);
+        }
+
+        // If currentType does not exist, it means there is no conversion for previous type
+        if (currentType) {
+            error.push([
+                `Type "${key}" leads to circular type conversion that has`,
+                `a chain of [${Array.from(visited.keys()).join(', ')}]`,
+            ].join(' '));
+        }
+    });
+
+    if (error.length) {
+        throw new Error(
+            error.filter(Boolean).reduce((reduced, error) => {
+                return reduced += 'x ' + error + '\n';
+            }, '[Bad configuration] Configuration is not valid:\n')
+        );
+    }
 }

@@ -29,7 +29,7 @@ module.exports = function createValidator(schema) {
             throw new Error(
                 error.filter(Boolean).reduce(function(reduced, error) {
                     return reduced += 'x ' + error + '\n';
-                }, '[Bad configuration] Configuration is not valid because of following:\n') +
+                }, '[Bad configuration] Configuration is not valid:\n') +
                 JSON.stringify(instance, null, 2)
             );
         }

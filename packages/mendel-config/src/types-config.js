@@ -18,10 +18,7 @@ function TypesConfig(typeName, type) {
     this.isBinary = type.isBinary || false;
     this.parser = type.parser;
     this.parserToType = type['parser-to-type'];
-    // TODO Have to make sure gst do not show up when parser is present
-    // Like parser will change the type of a file all together;
-    // how does graph transform make sense?
-    this.transforms = type.transforms;
+    this.transforms = type.transforms || [];
     this.outlet = type.outlet;
 
     TypesConfig.validate(this);
