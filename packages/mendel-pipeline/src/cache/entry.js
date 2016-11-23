@@ -2,7 +2,6 @@ class Entry {
     constructor(id) {
         this.id = id;
         this.normalizedId;
-        this.type;
         this.sourceVersions = new Map();
         this.dependents = [];
         this.done = []; // environments array
@@ -58,6 +57,13 @@ class Entry {
         return type ? type.name : 'others';
     }
 
+    hasDependency(transformIds) {
+        if (!this.sourceVersions.has(transformIds.join('_'))) {
+            return false;
+        }
+        return !!this.sourceVersions.get(transformIds.join('_')).deps;
+    }
+
     getDependency(transformIds) {
         return this.sourceVersions.get(transformIds.join('_')).deps || [];
     }
@@ -73,7 +79,6 @@ class Entry {
             id: this.id,
             normalizedId: this.normalizedId,
             variation: this.variation,
-            type: this.type,
             dependents: this.dependents,
         };
     }

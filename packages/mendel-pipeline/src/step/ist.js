@@ -1,6 +1,5 @@
 const BaseStep = require('./step');
 const debug = require('debug')('mendel:ist');
-const path = require('path');
 
 class IndependentSourceTransform extends BaseStep {
     /**
@@ -23,7 +22,6 @@ class IndependentSourceTransform extends BaseStep {
 
         const {transformIds: closestTransformIds, source} = entry.getClosestSource(transformIds);
         const prunedTransformIds = transformIds.slice(closestTransformIds.length);
-
         let promise = Promise.resolve({source});
         if (prunedTransformIds.length) {
             promise = promise.then(() => this._transformer.transform(filePath, prunedTransformIds, source));
