@@ -16,13 +16,14 @@ class FileReader extends BaseStep {
     }
 
     perform(entry) {
+        // raw can exist without read step in case of virtual files and others.
+        if (entry.hasSource(['raw'])) {
+            return this.emit('done', {entryId: entry.id});
+        }
+
         const filePath = path.resolve(this.projectRoot, entry.id);
         const entryType = this.registry.getType(entry.id);
         const isBinary = !this._typeMap.has(entryType) || this._typeMap.get(entryType).isBinary;
-
-        if (entryType === 'virtual') {
-            return this.emit('done', {entryId: entry.id});
-        }
 
         analytics.tic('read');
         fs.readFile(filePath, isBinary ? 'binary' : 'utf8', (error, source) => {
