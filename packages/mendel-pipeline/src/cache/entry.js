@@ -5,6 +5,7 @@ class Entry {
         this.type;
         this.sourceVersions = new Map();
         this.dependents = [];
+        this.done = []; // environments array
     }
 
     setSource(transformIds, source, deps) {
@@ -52,6 +53,17 @@ class Entry {
     reset() {
         this.sourceVersions.clear();
         this.dependents = [];
+    }
+
+    serialize() {
+        return {
+            id: this.id,
+            normalizedId: this.normalizedId,
+            variation: this.variation,
+            type: this.type,
+            dependents: this.dependents,
+            done: this.done,
+        };
     }
 
     // For debugging purposes

@@ -9,6 +9,7 @@ const Transformer = require('./transformer');
 const DepResolver = require('./deps');
 
 const MendelPipeline = require('./pipeline');
+const CacheServer = require('./cache/server');
 
 require('./helpers/analytics/analytics-collector').setOptions({
     printer: new AnalyticsCliPrinter({enableColor: true}),
@@ -22,6 +23,7 @@ module.exports = class MendelPipelineDaemon {
         this.transformer = new Transformer(config);
         this.depsResolver = new DepResolver(config);
 
+        this.server = new CacheServer(config, this.cache);
         this.watcher = new Watcher(config, this.cache);
 
         // Create environments
@@ -38,6 +40,7 @@ module.exports = class MendelPipelineDaemon {
             }
         });
 
+        this.server.on('environmentRequested', (env) => this.watch(env));
         this.watcher.subscribe(config.variationConfig.allDirs);
     }
 

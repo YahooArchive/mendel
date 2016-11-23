@@ -26,6 +26,12 @@ program
 if (program.watch) {
     const daemon = new MendelPipelineDaemon(program);
     daemon.watch();
+
+    // TODO: real client, this is just for testing
+    // Try $ DEBUG=*net* mendel-pipeline --watch
+    const mendelConfig = require('../../mendel-config');
+    const CacheClient = require('./cache/client');
+    new CacheClient(mendelConfig(program));
 } else {
     /* TODO:
         request.get(defaultDeamonAddres + '/status', (error, response) => {

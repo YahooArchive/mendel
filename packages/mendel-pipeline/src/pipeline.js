@@ -5,6 +5,7 @@ const MendelRegistry = require('./registry');
 const Initialize = require('./step/initialize');
 const Reader = require('./step/fs-reader');
 const IST = require('./step/ist');
+const End = require('./step/end');
 
 const EventEmitter = require('events').EventEmitter;
 
@@ -28,7 +29,8 @@ module.exports = class MendelPipeline extends EventEmitter {
         const initializer = new Initialize(toolset, options);
         const reader = new Reader(toolset, options);
         const ist = new IST(toolset, options);
-        const steps = [initializer, reader, ist];
+        const end = new End(toolset, options);
+        const steps = [initializer, reader, ist, end];
 
         steps.forEach((curStep, i) => {
             const nextStep = i < steps.length - 1 ? steps[i + 1] : null;

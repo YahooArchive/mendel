@@ -53,6 +53,12 @@ class MendelCache extends EventEmitter {
         }
     }
 
+    doneEntry(id, environment) {
+        const entry = this.getEntry(id);
+        entry.done.push(environment);
+        this.emit('doneEntry', entry);
+    }
+
     requestEntry(id) {
         if (!this._store.has(id)) {
             this.emit('entryRequested', id);
