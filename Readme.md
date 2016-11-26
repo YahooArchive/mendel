@@ -41,9 +41,9 @@ Mendel is built on top of solid [design principles](docs/Design.mdown) and is ha
 
   * **Maintainability**: All variation/experimentation code is organized and compiled in a way to be immediately disposable, impose no maintenance overhead, and be very easy to debug and analyze.
   * **Performance**: Server side resolution is synchronous and fast, and client side code will have no payload overhead.
-  * **Security**: Bundle URL and client-side compiled code does not contain variation/experiment information.
+  * **Security**: Bundle URL and client-side compiled code does not contain variation/experiment information. Only the packages that are absolutely needed are included in the bundle.
 
-Mendel also have a clear development flow. All other experimentation we could find lack built in support for a smooth development workflow. In Mendel fast development cycle is a first-class citizen.
+Mendel also has a clear development flow. All other experimentation we could find lacked built in support for a smooth development workflow. In Mendel, fast development cycles are a first-class citizen.
 
 ## How to use Mendel
 
@@ -113,10 +113,10 @@ from "src/" tree.
 
 ## Stability and Roadmap
 
-The way mendel experiments are built is quite stable since mid 2014, and Mendel implementation just improves how it is compiled and add some features, like multi-layer. Mendel 1.x can be considered stable and is also used in production applications by Yahoo. We are also [building Mendel 2.x](docs/Roadmap.mdown), which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will be breaking changes in 2.0.
+The way Mendel experiments are built has been quite stable since mid 2014, and Mendel implementation just improves how it is compiled and adds several features, like multi-layer. Mendel 1.x can be considered stable and is used by production applications at Yahoo. We are also [building Mendel 2.x](docs/Roadmap.mdown), in which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will have breaking changes in 2.0.
 
 
-Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.mdown) to get you started there.
+Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.mdown) to get you started.
 
 ## Why is is Mendel so different?
 
@@ -126,13 +126,13 @@ The main goal for Mendel is to be sustainable. Sustainability comes from being a
 
 ## Why is it called "Mendel"?
 
-[George Mendel](https://en.wikipedia.org/wiki/Gregor_Mendel) is considered one of the pioneers in genetics. His famous experiments include identifying phenotypes such as seed shape, flower color, seed coat tint, pod shape, unripe pod color, flower location, and plant height on different breeds of pea plants. We find that in many ways, we are doing similar experiments with our software applications. We want to know what "application phenotypes" will be most fitting for the relationship between our products and our users, hence the homage to George Mendel.
+[Gregor Mendel](https://en.wikipedia.org/wiki/Gregor_Mendel) is considered one of the pioneers in genetics. His famous experiments include identifying phenotypes such as seed shape, flower color, seed coat tint, pod shape, unripe pod color, flower location, and plant height on different breeds of pea plants. We find that in many ways, we are doing similar experiments with our software applications. We want to know what "application phenotypes" will be most fitting for the relationship between our products and our users, hence the homage to George Mendel.
 
 ### Developing Mendel and Contributions
 
-Mendel is a monorepo. In order to develop for Mendel you will need to create a lot of `npm link`s. To make it easy, we created a small script. You can run `npm run linkall` to link all packages to your node installation and cross-link all Mendel packages that depend on each other. This will also run `npm install` in all places that you need to.
+Mendel is a monorepo. In order to develop for Mendel you will need to create a lot of `npm link`s. To make it easier, we created a small script. You can run `npm run linkall` to link all packages to your node installation and cross-link all Mendel packages that depend on each other. This will also run `npm install` in all places that you need to.
 
-Mendel follows Browserify plugin pattern and NPM small packages style. Whitespace conventions are on `.editorconfig` file, please use [editor config plugin for your code editor](http://editorconfig.org).
+Mendel follows Browserify's plugin pattern and NPM small packages style. Whitespace conventions are on `.editorconfig` file, please use [editor config plugin for your code editor](http://editorconfig.org).
 
 We also have some [test documentation](docs/Tests.mdown) in case you want to make a pull request.
 
