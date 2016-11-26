@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "js-yaml": "^3.6.1",
+    "minimatch": "^3.0.3",
+    "resolve": "^1.1.7",
     "xtend": "^4.0.1"
   }
 }
