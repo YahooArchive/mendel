@@ -49,8 +49,9 @@ class CacheServer extends EventEmitter {
                 switch (data.type) {
                     case 'bootstrap':
                         {
-                            this.bootstrap(client);
                             this.emit('environmentRequested', data.environment);
+                            client.environment = data.environment;
+                            this.bootstrap(client);
                             break;
                         }
                     default:
@@ -81,6 +82,9 @@ class CacheServer extends EventEmitter {
     }
 
     _sendEntry(client, entry) {
+        if (-1 === entry.done.indexOf(client.environment)) {
+            return;
+        }
         client.send({
             totalEntries: this.cache.size(),
             type: 'addEntry',
@@ -103,12 +107,22 @@ class CacheServer extends EventEmitter {
         const deps = entry.getDependency(transformIds);
         const source = entry.getSource(transformIds);
 
+        let variation = this.getVariationForEntry(entry);
+        if (!variation) {
+            variation = this.config.variationConfig.baseVariation;
+        }
+        variation = variation.chain[0];
+
         return {
             id: entry.id,
             normalizedId: entry.normalizedId,
-            variation: entry.variation,
-            type, deps, source,
+            variation, type, deps, source,
         };
+    }
+
+    getVariationForEntry(entry) {
+        const variations = this.config.variationConfig.variations;
+        return variations.find(({id}) => id === entry.variation);
     }
 
     signalRemoval(id) {

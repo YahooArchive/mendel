@@ -23,10 +23,8 @@ program
 
 
 if (program.outlet) {
-    // Try $ DEBUG=*net* mendel-pipeline --watch
-    const mendelConfig = require('../../mendel-config');
-    const CacheClient = require('./cache/client');
-    new CacheClient(mendelConfig(program));
+    const MendelOutlets = require('./outlets');
+    new MendelOutlets(program);
 } else if (program.watch) {
     const MendelPipelineDaemon = require('./daemon');
     const daemon = new MendelPipelineDaemon(program);

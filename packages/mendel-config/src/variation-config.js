@@ -11,13 +11,19 @@ function VariationConfig(config) {
     const variations = parseVariations(config);
     const allVariationDirs = getAllDirs(variations);
 
-    variations.push({
+    const baseVariation = {
         id: config.baseConfig.id,
         chain: [config.baseConfig.dir],
-    });
+    };
+    variations.push(baseVariation);
 
     const allDirs = getAllDirs(variations);
-    const variationConfig = {variations, allDirs, allVariationDirs};
+    const variationConfig = {
+        variations,
+        baseVariation,
+        allDirs,
+        allVariationDirs,
+    };
 
     validate(variationConfig);
 
