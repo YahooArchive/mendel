@@ -7,17 +7,20 @@ For the moment, Mendel relies on some private repository for integration tests. 
 **File organization:**
 
   * All tests are at the test directory
-  * All subdirectories are stubs and fixtures\
-  * Every test files corresponds to exactly one source file
-  *  All build/ directories are ignored, so if your tests generate something the output is not committed by accident.
+  * All subdirectories are stubs and fixtures
+  * Each test files corresponds to exactly one source file
+  * All build/ directories are ignored, so if your tests generate something the output is not committed by accident.
 
 #### Running tests.
 
+If you have not already, please link all your local npm packages
+    npm run linkall
+
 To run tests quickly, please use:
 
-    npm test # all tests
-    npm runt unit # only unit tests
-    npm runt lint # only linter
+    npm test     # all tests
+    npm run unit # only unit tests
+    npm run lint # only linter
 
 If you want a quick coverage report of files and classes we already wrote tests, you can run:
 
