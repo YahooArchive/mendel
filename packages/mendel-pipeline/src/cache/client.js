@@ -13,7 +13,7 @@ class CacheClient extends EventEmitter {
     constructor({cachePort, environment}) {
         super();
 
-        this.cache = [];
+        this.cache = new Map();
         this.environment = environment;
         // this.initCache();
 
@@ -33,26 +33,21 @@ class CacheClient extends EventEmitter {
             switch (data.type) {
                 case 'addEntry':
                     {
-                        const position = this.cache.findIndex(entry => {
-                            return entry.id === data.id;
-                        });
-                        if (position !== -1) {
-                            this.cache.splice(position, 1);
-                        }
-                        this.cache.push(data.entry);
-                        verbose('got', data.entry);
+                        this.cache.set(data.entry.id, data.entry);
+                        verbose('got', data.entry.id);
                         break;
                     }
                 case 'removeEntry':
                     {
-                        const position = this.cache.findIndex(entry => {
-                            return entry.id === data.id;
-                        });
-                        this.cache.splice(position, 1);
+                        this.cache.delete(data.entry.id);
                         break;
                     }
                 default:
-                    return;
+                    break;
+            }
+
+            if (typeof data.totalEntries === 'number') {
+                this.checkStatus(data.totalEntries);
             }
         });
 
@@ -69,6 +64,13 @@ class CacheClient extends EventEmitter {
             type: 'bootstrap',
             environment: this.environment,
         });
+    }
+
+    checkStatus(total) {
+        if (this.cache.size === total) {
+            this.emit('done');
+            debug('DONE');
+        }
     }
 
 }

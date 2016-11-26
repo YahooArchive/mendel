@@ -46,24 +46,25 @@ class Entry {
         this.dependents.push(dependent);
     }
 
+    getTypeForConfig(config) {
+        const id = this.id;
+        if (isNodeModule(id)) return 'node_modules';
+
+        const type = config.types.find(({glob}) => {
+            return glob.filter(({negate}) => !negate).some(g => g.match(id)) &&
+                glob.filter(({negate}) => negate).every(g => g.match(id));
+        });
+
+        return type ? type.name : 'others';
+    }
+
     getDependency(transformIds) {
-        return this.sourceVersions.get(transformIds.join('_')).deps;
+        return this.sourceVersions.get(transformIds.join('_')).deps || [];
     }
 
     reset() {
         this.sourceVersions.clear();
         this.dependents = [];
-    }
-
-    serialize() {
-        return {
-            id: this.id,
-            normalizedId: this.normalizedId,
-            variation: this.variation,
-            type: this.type,
-            dependents: this.dependents,
-            done: this.done,
-        };
     }
 
     // For debugging purposes
@@ -76,6 +77,10 @@ class Entry {
             dependents: this.dependents,
         };
     }
+}
+
+function isNodeModule(id) {
+    return id.indexOf('node_modules') >= 0;
 }
 
 module.exports = Entry;
