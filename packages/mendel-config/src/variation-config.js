@@ -15,7 +15,8 @@ function VariationConfig(config) {
         id: config.baseConfig.id,
         chain: [config.baseConfig.dir],
     };
-    variations.push(baseVariation);
+    // base variation must come first in order to variationMatches to work
+    variations.unshift(baseVariation);
 
     const allDirs = getAllDirs(variations);
     const variationConfig = {
