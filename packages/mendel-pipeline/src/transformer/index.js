@@ -81,7 +81,7 @@ function singleMode(transforms, {filename, source}) {
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
-class TrasnformManager {
+class TransformManager {
     constructor({transforms}) {
         this._transforms = new Map();
         transforms.forEach(transform => {
@@ -105,4 +105,4 @@ class TrasnformManager {
     }
 }
 
-module.exports = TrasnformManager;
+module.exports = TransformManager;

@@ -126,7 +126,7 @@ The main goal for Mendel is to be sustainable. Sustainability comes from being a
 
 ## Why is it called "Mendel"?
 
-[Gregor Mendel](https://en.wikipedia.org/wiki/Gregor_Mendel) is considered one of the pioneers in genetics. His famous experiments include identifying phenotypes such as seed shape, flower color, seed coat tint, pod shape, unripe pod color, flower location, and plant height on different breeds of pea plants. We find that in many ways, we are doing similar experiments with our software applications. We want to know what "application phenotypes" will be most fitting for the relationship between our products and our users, hence the homage to George Mendel.
+[Gregor Mendel](https://en.wikipedia.org/wiki/Gregor_Mendel) is considered one of the pioneers in genetics. His famous experiments include identifying phenotypes such as seed shape, flower color, seed coat tint, pod shape, unripe pod color, flower location, and plant height on different breeds of pea plants. We find that in many ways, we are doing similar experiments with our software applications. We want to know what "application phenotypes" will be most fitting for the relationship between our products and our users, hence the homage to Gregor Mendel.
 
 ### Developing Mendel and Contributions
 
