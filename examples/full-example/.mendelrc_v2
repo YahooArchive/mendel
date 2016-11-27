@@ -62,34 +62,29 @@ env:
           - uglyfy
 
 # needs to be array because order is relevant
-# if extract-bundles comes first, we can generage lazy bundle specific css
-# if atomic-css comes first, mail-css includes rules from files on lazy bundles
-# if node-modules is last, we can use lazy-bundle as optional input (see below)
+# if extract-bundles comes first, some node_modules that
+#     only lazy bundle needs will be part of the lazy bundle
+# if node-modules first, extract-bundles will operate on source files only
 generators: # AKA graph transforms - or graph operations
   - id: extract-bundles
-    plugin: mendel-extract-bundles
+    plugin: mendel-generator-extract
   - id: node-modules-generator
-    plugin: mendel-extract-node-modules
+    plugin: mendel-generator-node-modules
 
 # "outfile" is optional and only needed for single layer generation
 bundles:
-  vendor:
-    outfile: vendor.js
-    require:
-      - react
-      - react-dom
   main:
     outfile: main.js
     entries:
-      - ./isomorphic/base/main.js
-    external:
-      - react
-      - react-dom
-      - ./isomorphic/base/components/lazy.js
+      - ./main
+  vendor:
+    outfile: vendor.js
+    generator: node-modules-generator
+    all-bundles: true # expects only 1 bundle to apply this generator, or throws
+                      # look for node_modules in every other bundle
   lazy:
-    outfile: main_lazy.js
-    require:
-      - ./isomorphic/base/components/lazy.js
-    external:
-      - react
-      - react-dom
+    outfile: lazy.js
+    generator: extract-bundles
+    extract-from: main
+    extract-entries:
+      - ./components/lazy

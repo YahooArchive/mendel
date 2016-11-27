@@ -11,6 +11,7 @@ const defaultConfig = require('./defaults');
 const TransformConfig = require('./transform-config');
 const BundleConfig = require('./bundle-config');
 const VariationConfig = require('./variation-config');
+const GeneratorConfig = require('./generator-config');
 const BaseConfig = require('./base-config');
 const TypesConfig = require('./types-config');
 
@@ -40,6 +41,9 @@ module.exports = function(rawConfig) {
     });
     config.bundles = Object.keys(config.bundles).map(function(bundleId) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
+    });
+    config.generators = config.generators.map(g => {
+        return new GeneratorConfig(g, config)
     });
 
     validateTypesAndTransforms(config);

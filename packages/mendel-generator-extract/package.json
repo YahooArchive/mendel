@@ -1,0 +1,23 @@
+{
+  "name": "mendel-generator-extract",
+  "version": "1.0.0-beta",
+  "private": true,
+  "description": "Mendel Generator to create sub-bundles from a main bundle following extractify algorithm.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "main": "generator-extract.js",
+  "keywords": [
+    "mendel",
+    "extractify",
+    "generator"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
+  "dependencies": {
+  }
+}

@@ -1,4 +1,4 @@
-var createValidator = require('./validator');
+const createValidator = require('./validator');
 
 function BundleConfig(id, options) {
     this.id = id;
@@ -8,7 +8,10 @@ function BundleConfig(id, options) {
     this.require = flattenArrays(options.require || []);
     this.external = flattenArrays(options.external || []);
 
-    this.options = without(options, ['generator', 'outfile', 'entries', 'require', 'external']);
+    this.options = without(
+        options,
+        ['generator', 'outfile', 'entries', 'require', 'external']
+    );
 
     BundleConfig.validate(this);
 }
@@ -26,11 +29,13 @@ function flattenArrays(inArray) {
 }
 
 function without(obj, withouts) {
-    var cloned = JSON.parse(JSON.stringify(obj));
+    const cloned = JSON.parse(JSON.stringify(obj));
 
     withouts.forEach(function(property) {
         delete cloned[property];
     });
+
+    return cloned;
 }
 
 module.exports = BundleConfig;
