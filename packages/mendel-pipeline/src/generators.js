@@ -1,9 +1,10 @@
 const Bundle = require('./bundles/bundle');
+const DefaultGenerator = require('./bundles/default-generator');
 const debug = require('debug')('mendel:generators');
 
 class MendelGenerators {
-    constructor(options, cache) {
-        this.cache = cache;
+    constructor(options, registry) {
+        this.registry = registry;
 
         this.generators = options.generators.map(generator => {
             generator.plugin = require(generator.plugin);
@@ -11,23 +12,18 @@ class MendelGenerators {
         });
         this.generators.unshift({
             id: 'default',
-            plugin: this.defaultGenerator,
+            plugin: DefaultGenerator,
         });
 
         this.bundles = options.bundles.map(opts => new Bundle(opts));
         this.plan();
     }
 
-    // TODO: make a module out of this
-    defaultGenerator(bundle, doneBundles, registry) {
-        console.log('defaultGenerator', bundle.id);
-    }
-
     plan() {
         let plan = [];
         this.generators.forEach(generator => {
             plan = plan.concat(this.bundles.filter(bundle => {
-                return bundle.generator === generator.id;
+                return bundle.options.generator === generator.id;
             }));
         });
         debug('plan', plan);
@@ -38,10 +34,18 @@ class MendelGenerators {
         const doneBundles = [];
         this.plan.forEach(bundle => {
             const plugin = this.generators.find(gen => {
-                return gen.id === bundle.generator;
+                return gen.id === bundle.options.generator;
             }).plugin;
-            plugin(bundle, doneBundles, this.cache);
+            const resultBundle = plugin(bundle, doneBundles, this.registry);
+            // TODO: real bundle validation, to be implemented in the Bundle
+            // class, or alternativelly refactor bundle to POJO and use
+            // validator right here instead.
+            if (resultBundle && resultBundle.entries) {
+                debug(resultBundle.entries.size);
+                doneBundles.push(resultBundle);
+            }
         });
+        this.doneBundles = doneBundles;
     }
 }
 

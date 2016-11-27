@@ -10,12 +10,11 @@ const error = require('debug')('mendel:net:client:error');
 const verbose = require('debug')('verbose:mendel:net:client');
 
 class CacheClient extends EventEmitter {
-    constructor({cachePort, environment}, cache) {
+    constructor({cachePort, environment}, registry) {
         super();
 
-        this.cache = cache;
+        this.registry = registry;
         this.environment = environment;
-        // this.initCache();
 
         this.connection = network.getClient(cachePort);
         this.initClient();
@@ -33,7 +32,7 @@ class CacheClient extends EventEmitter {
             switch (data.type) {
                 case 'addEntry':
                     {
-                        this.cache.set(data.entry.id, data.entry);
+                        this.registry.addEntry(data.entry);
                         verbose('got', data.entry.id);
                         if (typeof data.totalEntries === 'number') {
                             this.checkStatus(data.totalEntries);
@@ -43,7 +42,7 @@ class CacheClient extends EventEmitter {
                 case 'removeEntry':
                     {
                         this.sync = false;
-                        this.cache.delete(data.id);
+                        this.registry.removeEntry(data.id);
                         break;
                     }
                 default:
@@ -69,10 +68,10 @@ class CacheClient extends EventEmitter {
     }
 
     checkStatus(total) {
-        if (this.cache.size === total && !this.sync) {
+        if (this.registry.size === total && !this.sync) {
             this.sync = true;
             this.emit('sync');
-            debug(`${this.cache.size} in sync with server`);
+            debug(`${this.registry.size} in sync with server`);
         }
     }
 }

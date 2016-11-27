@@ -1,7 +1,7 @@
 
 class Bundle {
     constructor(options) {
-        Object.assign(this, options); // just for now
+        this.options = options;
     }
 }
 

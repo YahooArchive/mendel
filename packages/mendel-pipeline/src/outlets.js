@@ -1,6 +1,7 @@
 const mendelConfig = require('../../mendel-config');
 const CacheClient = require('./cache/client');
 const MendelGenerators = require('./generators');
+const MendelOutletRegistry = require('./registry/outlet');
 const fs = require('fs');
 const path = require('path');
 const debug = require('debug')('mendel:outlets');
@@ -9,16 +10,15 @@ class MendelOutlets {
     constructor(options) {
         this.config = mendelConfig(options);
 
-        const cache = new Map();
-        const client = new CacheClient(this.config, cache);
-
-        const generators = new MendelGenerators(this.config, cache);
+        const registry = new MendelOutletRegistry(this.config);
+        const client = new CacheClient(this.config, registry);
+        const generators = new MendelGenerators(this.config, registry);
 
         client.on('sync', () => {
 
             generators.perform();
 
-            const manifest = this.getV1Manifest(cache);
+            const manifest = this.getV1Manifest(generators.doneBundles[0].entries);
             // TODO: mendel-config v2 not parsing output build path
             const dest = path.join(
                 this.config.projectRoot, 'build/test.manifest.json'
@@ -63,6 +63,7 @@ class MendelOutlets {
                     data: [data],
                 };
 
+                if (item.entry) newEntry.entry = item.entry;
                 manifest.bundles.push(newEntry);
                 const index = manifest.bundles.indexOf(newEntry);
 
