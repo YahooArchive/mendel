@@ -47,6 +47,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "async": "^2.1.2"
+    "async": "^2.1.2",
+    "tap": "^8.0.1"
   }
 }
