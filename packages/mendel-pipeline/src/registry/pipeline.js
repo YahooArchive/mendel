@@ -58,8 +58,7 @@ class MendelRegistry extends EventEmitter {
     // planSearchIds is in order of priority
     getClosestPlanTransformIds(entryId, planSearchIds) {
         const plan = this.getTransformPlans(entryId);
-        const foundPlan = planSearchIds.find(id => plan[id]);
-
+        const foundPlan = planSearchIds.reverse().find(id => plan[id]);
         if (!foundPlan) return [];
         return plan[foundPlan].ids;
     }
@@ -83,7 +82,7 @@ class MendelRegistry extends EventEmitter {
         // `ist.ids` can contain GST because they are mixed in declaration
         const gsts = ist.ids.filter(transformId => {
             const transform = this._transforms.find(({id}) => transformId === id);
-            return transform && transform.kind !== 'ist';
+            return transform && transform.mode !== 'ist';
         });
 
         // remove the gsts
@@ -155,49 +154,30 @@ class MendelRegistry extends EventEmitter {
     }
 
     /**
-     * If entry has plan for one of plan ids, this method will wait for
-     * transforms pertain to that plan and resolve only when all of its
-     * dependencides, which can be of different types, resolve too.
+     * @param {String} norm normalizedId
+     * @param {Function} dependencyGetter has to return correct normalizedId of dependency
+     *     based on environemnt, transform ids, and settings (browser/main).
+     * @returns {Array<Entry[]>} In case a dependency have more than one variation
+     *   the Entry[] will have length greater than 1.
      */
-    waitForGraphForPlanIds(entryId, planIds, visitedEntries=new Set()) {
-        const entry = this.getEntry(entryId);
-        visitedEntries.add(entry);
+    getDependencyGraph(norm, dependencyGetter) {
+        const visitedEntries = new Map();
+        const unvisitedNorms = [norm];
 
-        // this GST was not planned for this entry's type
-        // which means we can just move forward but with ist's result
-        const expectedTransformIds = this.getClosestPlanTransformIds(
-            entry.id,
-            planIds
-        );
-        let promise;
-
-        if (entry.hasSource(expectedTransformIds) && entry.hasDependency(expectedTransformIds)) {
-            promise = Promise.resolve();
-        } else {
-            promise = new Promise(resolve => {
-                this.on('_transformedSource', function handleTransform(id) {
-                    if (id !== entryId) return;
-                    this.removeListener('_transformedSource', handleTransform);
-                    resolve();
-                });
+        while (unvisitedNorms.length) {
+            const normId = unvisitedNorms.shift();
+            if (visitedEntries.has(normId)) continue;
+            const entryIds = this._mendelCache.getEntriesByNormId(normId);
+            const entries = entryIds.map(entryId => this.getEntry(entryId));
+            entries.forEach(entry => {
+                const depNorms = dependencyGetter(entry);
+                Array.prototype.push.apply(unvisitedNorms, depNorms);
             });
+
+            visitedEntries.set(normId, entries);
         }
 
-        return promise.then(() => {
-            const deps = entry.getDependency(expectedTransformIds);
-            const depIds = Object.keys(deps)
-                .map(depLiteral => deps[depLiteral].main);
-                // TODO below should be correct when the deps use normId
-                // .reduce((reduced, depNormId) => {
-                //     return reduced.concat(
-                //         this._mendelCache.getEntriesByNormId(depNormId)
-                //     );
-                // }, []);
-            const waitForDeps = depIds.map(dep => {
-                return this.waitForGraphForPlanIds(dep, planIds, visitedEntries);
-            });
-            return Promise.all(waitForDeps).then(() => Array.from(visitedEntries.keys()));
-        });
+        return Array.from(visitedEntries.values());
     }
 }
 

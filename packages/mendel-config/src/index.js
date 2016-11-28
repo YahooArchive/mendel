@@ -26,6 +26,7 @@ module.exports = function(rawConfig) {
         defaultEnvConfig = deepMerge(fullConfig, envOverrides);
     }
 
+    // In YAML syntax, we use dash instead of camel case. Normalize it.
     const config = undashConfig(defaultEnvConfig);
     config.variationConfig = undashConfig(config.variationConfig);
 

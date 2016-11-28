@@ -38,6 +38,8 @@
     "karma-spec-reporter": "0.0.26",
     "mendel": "*",
     "mendel-development-middleware": "*",
+    "mendel-generator-extract": "*",
+    "mendel-generator-node-modules": "*",
     "mendel-manifest-extract-bundles": "*",
     "mendel-manifest-uglify": "*",
     "mendel-parser-json": "*",

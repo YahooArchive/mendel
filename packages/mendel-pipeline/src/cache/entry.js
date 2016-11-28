@@ -1,7 +1,11 @@
 class Entry {
     constructor(id) {
         this.id = id;
+
+        // property is filled by cache where they have more context
         this.normalizedId;
+        this.variation;
+
         this.sourceVersions = new Map();
         this.dependents = [];
         this.done = []; // environments array

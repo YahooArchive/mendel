@@ -7,6 +7,7 @@ const Reader = require('./step/fs-reader');
 const IST = require('./step/ist');
 const End = require('./step/end');
 const GST = require('./step/gst');
+const Waiter = require('./step/waiter');
 
 const EventEmitter = require('events').EventEmitter;
 
@@ -28,17 +29,19 @@ module.exports = class MendelPipeline extends EventEmitter {
 
         // Pipeline steps
         const initializer = new Initialize(toolset, options);
+        const waiter = new Waiter(toolset, options);
         const reader = new Reader(toolset, options);
         const ist = new IST(toolset, options);
         const end = new End(toolset, options);
         const gst = new GST(toolset, options);
-        const steps = [initializer, reader, ist, gst, end];
+        const steps = [initializer, reader, ist, waiter, gst, end];
 
         steps.forEach((curStep, i) => {
             const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
             curStep.on('done', function({entryId}) {
                 const entry = registry.getEntry(entryId);
                 if (!nextStep) return;
+
                 try {
                     nextStep.perform.apply(
                         nextStep,
