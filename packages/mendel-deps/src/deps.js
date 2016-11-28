@@ -16,14 +16,18 @@ function _depFinder(ast) {
             const node = nodePath.value;
 
             // cjs require syntax support
-            if (node.callee.type === 'Identifier' && node.callee.name === 'require' && node.arguments[0].type === 'Literal') {
+            if (
+                node.callee.type === 'Identifier' &&
+                node.callee.name === 'require' &&
+                node.arguments[0].type === 'Literal'
+            ) {
                 imports[node.arguments[0].value] = true;
             }
 
-            return false;
+            return this.traverse(nodePath);
         },
-        visitExportNamedDeclaration(node) {
-            node = node.value;
+        visitExportNamedDeclaration(nodePath) {
+            const node = nodePath.value;
 
             let exportName = '';
 
@@ -35,7 +39,8 @@ function _depFinder(ast) {
                 if (node.declaration.type === 'FunctionDeclaration') {
                     exportName = node.declaration.id.name;
                 } else if (node.declaration.type === 'VariableDeclaration') {
-                    const declarator = node.declaration.declarations.find(({type}) => type === 'VariableDeclarator');
+                    const declarator = node.declaration.declarations
+                        .find(({type}) => type === 'VariableDeclarator');
                     exportName = declarator && declarator.id.name;
                 }
 
@@ -44,12 +49,12 @@ function _depFinder(ast) {
                 }
             }
 
-            return false;
+            return this.traverse(nodePath);
         },
-        visitExportDefaultDeclaration() {
+        visitExportDefaultDeclaration(nodePath) {
             exports.default = [];
 
-            return false;
+            return this.traverse(nodePath);
         },
     });
 
@@ -58,7 +63,6 @@ function _depFinder(ast) {
         exports: Object.keys(exports),
     };
 }
-
 
 /**
  * Returns a map of imports in a file.
