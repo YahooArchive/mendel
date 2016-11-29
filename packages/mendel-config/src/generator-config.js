@@ -2,7 +2,6 @@ var createValidator = require('./validator');
 var moduleResolveSync = require('resolve').sync;
 
 function GeneratorConfig({id, plugin}, {projectRoot}) {
-    console.log(arguments[0]);
     this.id = id;
     this.plugin = moduleResolveSync(plugin, {basedir: projectRoot});
 

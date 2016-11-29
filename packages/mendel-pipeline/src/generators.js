@@ -7,9 +7,11 @@ class MendelGenerators {
         this.registry = registry;
 
         this.generators = options.generators.map(generator => {
-            generator.plugin = require(generator.plugin);
-            return generator;
+            return Object.assign({}, generator, {
+                plugin: require(generator.plugin);
+            });
         });
+
         this.generators.unshift({
             id: 'default',
             plugin: DefaultGenerator,
