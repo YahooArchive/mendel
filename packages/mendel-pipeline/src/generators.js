@@ -8,7 +8,7 @@ class MendelGenerators {
 
         this.generators = options.generators.map(generator => {
             return Object.assign({}, generator, {
-                plugin: require(generator.plugin);
+                plugin: require(generator.plugin),
             });
         });
 
