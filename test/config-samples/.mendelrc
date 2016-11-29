@@ -64,11 +64,11 @@ env:
         transform:
           - testify
       test:
-          entries:
-            - foo.js
-            - bar.js
+        entries:
+          - foo.js
+          - bar.js
   staging:
     bundles:
       test:
-          entries:
-            - bar.js
+        entries:
+          - bar.js
