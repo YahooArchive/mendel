@@ -25,19 +25,20 @@ module.exports = function(config) {
     }
 
     function variationsForDir(vars, variationRoot) {
-        return Object.keys(vars).map(function(dir) {
-            if(dir === '_') return;
-            if (Array.isArray(vars[dir] && vars[dir]._)) {
-                vars[dir] = vars[dir]._;
+        return Object.keys(vars).map(function(varId) {
+            if(varId === '_') return;
+            if (Array.isArray(vars[varId] && vars[varId]._)) {
+                vars[varId] = vars[varId]._;
             }
 
-            var chain = [dir]
-                        .concat(Array.isArray(vars[dir]) ? vars[dir] : [])
+            var chain = [varId]
+                        .concat(Array.isArray(vars[varId]) ? vars[varId] : [])
                         .map(relativeRoot)
                         .filter(existsInProjectRoot);
 
             return {
-                id: dir,
+                id: varId,
+                dir: path.join(variationRoot, varId),
                 chain: chain.concat(baseVariationDir || projectRoot),
             };
         }).filter(function(variation) {
@@ -57,4 +58,3 @@ module.exports = function(config) {
         return fs.existsSync(path.join(projectRoot, dir));
     }
 };
-

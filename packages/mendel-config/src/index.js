@@ -26,6 +26,7 @@ module.exports = function(rawConfig) {
         defaultEnvConfig = deepMerge(fullConfig, envOverrides);
     }
 
+    // In YAML syntax, we use dash instead of camel case. Normalize it.
     const config = undashConfig(defaultEnvConfig);
     config.variationConfig = undashConfig(config.variationConfig);
 
@@ -43,7 +44,7 @@ module.exports = function(rawConfig) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
     config.generators = config.generators.map(g => {
-        return new GeneratorConfig(g, config)
+        return new GeneratorConfig(g, config);
     });
 
     validateTypesAndTransforms(config);

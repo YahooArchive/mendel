@@ -1,6 +1,5 @@
 const BaseStep = require('./step');
 const debug = require('debug')('mendel:ist');
-const path = require('path');
 
 class IndependentSourceTransform extends BaseStep {
     /**
@@ -23,7 +22,6 @@ class IndependentSourceTransform extends BaseStep {
 
         const {transformIds: closestTransformIds, source} = entry.getClosestSource(transformIds);
         const prunedTransformIds = transformIds.slice(closestTransformIds.length);
-
         let promise = Promise.resolve({source});
         if (prunedTransformIds.length) {
             promise = promise.then(() => this._transformer.transform(filePath, prunedTransformIds, source));
@@ -31,7 +29,7 @@ class IndependentSourceTransform extends BaseStep {
 
         promise
         .then(({source}) => {
-            return this._depsResolver.detect(entry, source).then(({deps}) => {
+            return this._depsResolver.detect(entry.id, source).then(({deps}) => {
                 Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
                     // In case the entry is missing for dependency, time to add them into our pipeline.
                     if (!this._registry.hasEntry(browser)) this._registry.addToPipeline(browser);

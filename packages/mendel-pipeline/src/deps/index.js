@@ -1,5 +1,5 @@
 const analyticsCollector = require('../helpers/analytics/analytics-collector');
-const analytics = require('../helpers/analytics/analytics')('ipc');
+const ipcAnalytics = require('../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:deps:master');
 const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
@@ -12,7 +12,8 @@ class DepsManager {
     /**
      * @param {String} config.projectRoot
      */
-    constructor({projectRoot, baseConfig, variationConfig}) {
+    constructor({projectRoot, baseConfig, variationConfig}, mendelCache) {
+        this._mendelCache = mendelCache;
         this._projectRoot = projectRoot;
         this._baseConfig = baseConfig;
         this._variationConfig = variationConfig;
@@ -25,19 +26,19 @@ class DepsManager {
         });
     }
 
-    detect(entry, source) {
+    detect(entryId, source) {
         setImmediate(() => this.next());
 
         // Acorn used in deps can only parse js and jsx types.
-        if (['.js', '.jsx'].indexOf(path.extname(entry.id)) < 0) {
+        if (['.js', '.jsx'].indexOf(path.extname(entryId)) < 0) {
             // there are no dependency
-            return Promise.resolve({id: entry.id, deps: {}});
+            return Promise.resolve({id: entryId, deps: {}});
         }
 
         return new Promise((resolve, reject) => {
             this._queue.push({
                 resolve, reject,
-                filePath: entry.id,
+                filePath: entryId,
                 source: source,
             });
         });
@@ -60,6 +61,15 @@ class DepsManager {
                 self._idleWorkerQueue.push(workerProcess.pid);
                 debug(filePath, deps);
                 resolve({id: filePath, deps});
+            } else if (type === 'has') {
+                const value = self._mendelCache.hasEntry(filePath);
+                ipcAnalytics.tic('deps');
+                workerProcess.send({
+                    type: 'has',
+                    value,
+                    filePath,
+                });
+                ipcAnalytics.toc('deps');
             }
 
             if (type === 'error' || type === 'done') {
@@ -70,7 +80,7 @@ class DepsManager {
             self.next();
         });
 
-        analytics.tic('deps');
+        ipcAnalytics.tic('deps');
         workerProcess.send({
             type: 'start',
             // entry properties
@@ -81,7 +91,7 @@ class DepsManager {
             baseConfig: this._baseConfig,
             variationConfig: this._variationConfig,
         });
-        analytics.toc('deps');
+        ipcAnalytics.toc('deps');
         this.next();
     }
 }

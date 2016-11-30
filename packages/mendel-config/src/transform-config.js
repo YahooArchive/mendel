@@ -5,7 +5,7 @@ function TransformConfig(id, transform, {projectRoot}) {
     this.id = id;
 
     this.plugin = moduleResolveSync(transform.plugin, {basedir: projectRoot});
-    this.kind = require(this.plugin).kind || 'ist';
+    this.mode = require(this.plugin).mode || 'ist';
 
     this.options = transform.options;
 
@@ -15,7 +15,7 @@ function TransformConfig(id, transform, {projectRoot}) {
 TransformConfig.validate = createValidator({
     id: {required: true},
     plugin: {required: true},
-    kind: {required: true},
+    mode: {required: true},
 });
 
 module.exports = TransformConfig;

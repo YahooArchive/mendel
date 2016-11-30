@@ -10,10 +10,10 @@ const validate = createValidator({
 function VariationConfig(config) {
     const variations = parseVariations(config);
     const allVariationDirs = getAllDirs(variations);
-
     const baseVariation = {
         id: config.baseConfig.id,
         chain: [config.baseConfig.dir],
+        dir: config.baseConfig.dir
     };
     // base variation must come first in order to variationMatches to work
     variations.unshift(baseVariation);

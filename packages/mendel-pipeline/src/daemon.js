@@ -21,7 +21,8 @@ module.exports = class MendelPipelineDaemon {
 
         this.cache = new MendelCache(config);
         this.transformer = new Transformer(config);
-        this.depsResolver = new DepResolver(config);
+        // Dependency resolver consults with cache
+        this.depsResolver = new DepResolver(config, this.cache);
 
         this.server = new CacheServer(config, this.cache);
         this.watcher = new Watcher(config, this.cache);

@@ -55,6 +55,14 @@ class MendelRegistry extends EventEmitter {
         return type.transforms.concat([type.parser]);
     }
 
+    // planSearchIds is in order of priority
+    getClosestPlanTransformIds(entryId, planSearchIds) {
+        const plan = this.getTransformPlans(entryId);
+        const foundPlan = planSearchIds.reverse().find(id => plan[id]);
+        if (!foundPlan) return [];
+        return plan[foundPlan].ids;
+    }
+
     getTransformPlans(entryId) {
         // do ist first
         const type = this.getType(entryId);
@@ -64,6 +72,7 @@ class MendelRegistry extends EventEmitter {
         };
         const gst = {};
 
+        // If there is a parser, do type conversion
         while (this._parserTypeConversion.has(ist.type)) {
             const newType = this._parserTypeConversion.get(ist.type);
             ist.type = newType;
@@ -73,7 +82,7 @@ class MendelRegistry extends EventEmitter {
         // `ist.ids` can contain GST because they are mixed in declaration
         const gsts = ist.ids.filter(transformId => {
             const transform = this._transforms.find(({id}) => transformId === id);
-            return transform && transform.kind !== 'ist';
+            return transform && transform.mode !== 'ist';
         });
 
         // remove the gsts
@@ -89,10 +98,7 @@ class MendelRegistry extends EventEmitter {
             prevPlan = gst[gstId];
         });
 
-        return {
-            ist,
-            gst,
-        };
+        return Object.assign(gst, {ist});
     }
 
     addToPipeline(filePath) {
@@ -101,7 +107,6 @@ class MendelRegistry extends EventEmitter {
 
     addEntry(filePath) {
         this._mendelCache.addEntry(filePath);
-        this.emit('entryAdded', filePath);
     }
 
     addRawSource(filePath, source) {
@@ -111,14 +116,10 @@ class MendelRegistry extends EventEmitter {
 
     addTransformedSource({filePath, transformIds, source, deps}) {
         if (!this._mendelCache.hasEntry(filePath)) {
-            const msg = `Adding a source to a file that is unknown.
-                              This should be not possible: ${filePath}`;
-            error(msg);
             this._mendelCache.addEntry(filePath);
         }
 
         this._mendelCache.setSource(filePath, transformIds, source, deps);
-
         this.emit('_transformedSource', filePath);
     }
 
@@ -149,45 +150,31 @@ class MendelRegistry extends EventEmitter {
         return this._mendelCache.hasEntry(filePath);
     }
 
-    waitForGraphForGst(entryId, gstId, visitedEntries=new Set()) {
-        const entry = this.getEntry(entryId);
-        const {gst, ist} = this.getTransformPlans(entryId);
-        visitedEntries.add(entry);
+    /**
+     * @param {String} norm normalizedId
+     * @param {Function} dependencyGetter has to return correct normalizedId of dependency
+     *     based on environemnt, transform ids, and settings (browser/main).
+     * @returns {Array<Entry[]>} In case a dependency have more than one variation
+     *   the Entry[] will have length greater than 1.
+     */
+    getDependencyGraph(norm, dependencyGetter) {
+        const visitedEntries = new Map();
+        const unvisitedNorms = [norm];
 
-        // this GST was not planned for this entry's type
-        // which means we can just move forward but with ist's result
-        const expectedTransformIds = gst[gstId] && gst[gstId].ids.length ?
-            gst[gstId].ids : ist.ids;
-        let promise;
-        if (entry.hasSource(expectedTransformIds)) {
-            promise = Promise.resolve();
-        } else {
-            promise = new Promise(resolve => {
-                this.on('_transformedSource', function handleTransform(id) {
-                    if (id !== entryId) return;
-                    resolve();
-
-                    this.removeListener('_transformedSource', handleTransform);
-                });
+        while (unvisitedNorms.length) {
+            const normId = unvisitedNorms.shift();
+            if (visitedEntries.has(normId)) continue;
+            const entryIds = this._mendelCache.getEntriesByNormId(normId);
+            const entries = entryIds.map(entryId => this.getEntry(entryId));
+            entries.forEach(entry => {
+                const depNorms = dependencyGetter(entry);
+                Array.prototype.push.apply(unvisitedNorms, depNorms);
             });
+
+            visitedEntries.set(normId, entries);
         }
 
-        return promise.then(() => {
-            const deps = entry.getDependency(expectedTransformIds);
-            const depIds = Object.keys(deps)
-                .map(depLiteral => deps[depLiteral].main);
-                // TODO below should be correct when the deps use normId
-                // .reduce((reduced, depNormId) => {
-                //     return reduced.concat(
-                //         this._mendelCache.getEntriesByNormId(depNormId)
-                //     );
-                // }, []);
-            const waitForDeps = depIds.map(dep => {
-                return this.waitForGraphForGst(dep, gstId, visitedEntries);
-            });
-            return Promise.all(waitForDeps)
-                .then(() => Array.from(visitedEntries.keys()));
-        });
+        return Array.from(visitedEntries.values());
     }
 }
 
