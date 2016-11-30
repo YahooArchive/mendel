@@ -19,7 +19,6 @@ class IndependentSourceTransform extends BaseStep {
         const filePath = entry.id;
         const buildPlan = this._registry.getTransformPlans(entry.id);
         const transformIds = buildPlan.ist.ids;
-
         const {transformIds: closestTransformIds, source} = entry.getClosestSource(transformIds);
         const prunedTransformIds = transformIds.slice(closestTransformIds.length);
         let promise = Promise.resolve({source});

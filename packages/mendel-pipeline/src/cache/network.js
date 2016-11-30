@@ -37,8 +37,12 @@ net.Socket.prototype.emit = function(name, content) {
 module.exports = {
     getServer(port) {
         const server = net.createServer().listen({port: port});
+        process.on('SIGINT', () => {
+            // If you listen to the SIGINT, it will ignore "ctrl+c"'s default behavior
+            // Send graceful exit so we close the server above
+            process.exit(0);
+        });
         process.on('exit', () => server.close());
-        process.on('SIGINT', () => server.close());
         server.on('connection', socket => socket.setEncoding('utf8'));
         return server;
     },

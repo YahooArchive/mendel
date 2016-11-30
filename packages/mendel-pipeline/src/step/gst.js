@@ -44,7 +44,6 @@ class GraphSourceTransform extends BaseStep {
         this._depsResolver.detect(id, source)
         .then(({deps}) => {
             this._virtual.delete(id);
-            console.log(id, source, deps);
             this._registry.addTransformedSource({
                 filePath: id,
                 transformIds: transformIds,

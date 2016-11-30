@@ -68,28 +68,27 @@ class MendelRegistry extends EventEmitter {
         const type = this.getType(entryId);
         const ist = {
             type: this.getType(entryId),
-            ids: ['raw'].concat(this.getTransformIdsByType(type)),
+            ids: [],
         };
         const gst = {};
+        let xformIds = ['raw'].concat(this.getTransformIdsByType(type));
 
         // If there is a parser, do type conversion
         while (this._parserTypeConversion.has(ist.type)) {
             const newType = this._parserTypeConversion.get(ist.type);
             ist.type = newType;
-            ist.ids = ist.ids.concat(this.getTransformIdsByType(ist.type));
+            xformIds = xformIds.concat(this.getTransformIdsByType(ist.type));
         }
 
-        // `ist.ids` can contain GST because they are mixed in declaration
-        const gsts = ist.ids.filter(transformId => {
-            const transform = this._transforms.find(({id}) => transformId === id);
-            return transform && transform.mode !== 'ist';
-        });
+        const xforms = xformIds
+        .map(transformId => this._transforms.find(({id}) => transformId === id))
+        .filter(Boolean);
 
-        // remove the gsts
-        ist.ids = ist.ids.slice(0, ist.ids.length - gsts.length);
+        ist.ids = xforms.filter(xform => xform.mode === 'ist').map(xform => xform.id);
+        const gstIds = xforms.filter(xform => xform.mode === 'gst').map(xform => xform.id);
 
         let prevPlan = ist;
-        gsts.forEach(gstId => {
+        gstIds.forEach(gstId => {
             gst[gstId] = {
                 // can there be a type conversion with a gst?
                 type: ist.type,

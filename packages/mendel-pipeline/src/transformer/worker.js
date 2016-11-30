@@ -19,6 +19,11 @@ process.on('message', ({type, transforms, source, filename}) => {
             .then(analytics.tic.bind(analytics, transform.id))
             .then(({source}) => {
                 const xform = require(transform.plugin);
+
+                if (typeof xform !== 'function') {
+                    throw new Error(`Transform ${transform.id} is incompatible with Mendel.`);
+                }
+
                 return xform({filename, source}, transform.options);
             })
             .then(analytics.toc.bind(analytics, transform.id))
