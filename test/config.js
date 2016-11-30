@@ -108,7 +108,7 @@ t.match(config(where), {
 
 process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));
 t.match(config(), {
-    base: 'testbase'
+    base: 'testbase',
 }, "merge package.json env configs");
 
 delete process.env.MENDEL_ENV;
@@ -119,11 +119,14 @@ t.match(config(where), {
     bundles: [
         {id: 'vendor'},
         {id: 'main'},
-        {id: 'test', entries: ['bar.js']}
-    ]
+        {id: 'test', entries: ['bar.js']},
+    ],
 }, 'staging environment');
 
 where = './config-samples/4/';
+function fakeModule(mod) {
+    return path.join(__dirname, where, 'node_modules', mod, 'index.js');
+}
 process.env.NODE_ENV = 'development';
 t.match(config(where), {
     baseConfig: {
@@ -137,13 +140,12 @@ t.match(config(where), {
                 plugin: 'mendel-bundle-browser-pack',
             },
             transforms: ['envify-dev'],
-            extensions: ['.js', '.json', '.jsx'],
         },
     ],
     transforms: [
         {
             id: 'babelify-prod',
-            plugin: 'mendel-babelify',
+            plugin: fakeModule('mendel-babelify'),
             options: {
                 plugins: ['react-intl-remove-description',
                 'transform-react-remove-prop-types'],
@@ -151,14 +153,14 @@ t.match(config(where), {
         },
         {
             id: 'envify-dev',
-            plugin: 'mendel-envify',
+            plugin: fakeModule('mendel-envify'),
             options: {
                 NODE_ENV: 'development',
             },
         },
         {
             id: 'envify-prod',
-            plugin: 'mendel-envify',
+            plugin: fakeModule('mendel-envify'),
             options: {
                 NODE_ENV: 'production',
             },
@@ -180,8 +182,7 @@ t.match(config(where), {
             outlet: {
                 plugin: 'mendel-bundle-rollup',
             },
-            transforms: ['envify-prod', 'babelify-dev'],
-            extensions: ['.js', '.json', '.jsx'],
+            transforms: ['envify-prod', 'babelify-prod'],
         },
     ],
 }, 'production environment');

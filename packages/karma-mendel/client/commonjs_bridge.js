@@ -1,6 +1,6 @@
 // Copyright (c) 2013 Titanium I.T. LLC. Licensed under the MIT license.
 // Forked from karma-commonjs
-/* eslint env: "browser" */
+/* eslint-env browser */
 (function() {
     "use strict";
 
@@ -84,7 +84,7 @@
 
         if (resolvedModule) {
             if (typeof resolvedModule.module === 'function') {
-                return runModule(resolvedModule.module, resolvedModule.path, requiringFile)
+                return runModule(resolvedModule.module, resolvedModule.path, requiringFile);
             } else {
                 return resolvedModule.module; //assume it is JSON
             }

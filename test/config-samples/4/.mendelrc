@@ -48,7 +48,7 @@ env:
           plugin: mendel-bundle-rollup
         transforms:
           - envify-prod
-          - babelify-dev
+          - babelify-prod
         node_modules:
           - envify-prod
 

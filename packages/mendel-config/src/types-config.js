@@ -12,6 +12,8 @@ function TypesConfig(typeName, type) {
         ].join(' '));
     }
 
+    // TODO: figure out how to test this properlly, the regular tap/match
+    //       was not working well:
     this.glob = (type.glob || ['./**/*{' + type.extensions.join(',') + '}'])
         .map(function(glob) { return new Minimatch(glob); });
 

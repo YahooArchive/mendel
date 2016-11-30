@@ -12,6 +12,7 @@ fi
 mkdir -p build
 mkdir -p build-requirify
 
-browserify app/index.js -p ../../../packages/mendel-browserify \
+../../../node_modules/.bin/browserify \
+    app/index.js -p ../../../packages/mendel-browserify \
     -p  ../../../packages/mendel-requirify \
     -o build/app.js

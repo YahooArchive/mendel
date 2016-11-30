@@ -40,7 +40,7 @@ class GraphSourceTransform extends BaseStep {
         this._virtual = new Set();
     }
 
-    addTransform({id, source, transformIds, map}) {
+    addTransform({id, source, transformIds}) {
         this._depsResolver.detect(id, source)
         .then(({deps}) => {
             this._virtual.delete(id);
@@ -56,7 +56,7 @@ class GraphSourceTransform extends BaseStep {
 
     getContext() {
         return {
-            addVirtualEntry: ({source, id, map, originatingEntry}) => {
+            addVirtualEntry: ({source, id, map}) => {
                 this._virtual.add(id);
                 // TODO make sure virtual entries can be cleaned up with changes in source entry
                 this.addTransform({
