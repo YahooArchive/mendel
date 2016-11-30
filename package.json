@@ -48,6 +48,11 @@
   "dependencies": {},
   "devDependencies": {
     "async": "^2.1.2",
-    "tap": "^8.0.1"
+    "browserify": "^13.1.1",
+    "express": "^4.14.0",
+    "mkdirp": "^0.5.1",
+    "tap": "^8.0.1",
+    "temp": "^0.8.3",
+    "tmp": "0.0.31"
   }
 }

@@ -27,6 +27,7 @@
     "mendel-development": "^1.1.2",
     "mendel-requirify": "^1.0.7",
     "mkdirp": "^0.5.1",
+    "resolve": "^1.1.7",
     "xtend": "^4.0.1"
   }
 }
