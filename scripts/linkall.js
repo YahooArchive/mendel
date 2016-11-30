@@ -40,7 +40,7 @@ npm(['install'], rootdir, function() {
                 .concat(Object.keys(pkg.devDependencies||{}));
 
             var depsToLink = deps.filter(function(dep) {
-                if (/^mendel/.test(dep) && !linkedDeps[file+':'+dep]) {
+                if (/mendel/.test(dep) && !linkedDeps[file+':'+dep]) {
                     return true;
                 }
                 return false;
