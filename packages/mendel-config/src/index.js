@@ -44,7 +44,7 @@ module.exports = function(rawConfig) {
         return new BundleConfig(bundleId, config.bundles[bundleId]);
     });
     config.generators = config.generators.map(g => {
-        return new GeneratorConfig(g, config)
+        return new GeneratorConfig(g, config);
     });
 
     validateTypesAndTransforms(config);

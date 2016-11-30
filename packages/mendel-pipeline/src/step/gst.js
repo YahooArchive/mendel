@@ -22,6 +22,7 @@ class GraphSourceTransform extends BaseStep {
 
         this._cache = cache;
         this._registry = registry;
+        this._depsResolver = depsResolver;
         this._baseVariationId = options.baseConfig.id;
         this._variations = options.variationConfig.variations;
 
@@ -36,18 +37,33 @@ class GraphSourceTransform extends BaseStep {
         });
         this._curGstIndex = 1;
         this._processed = new Set();
+        this._virtual = new Set();
+    }
+
+    addTransform({id, source, transformIds, map}) {
+        this._depsResolver.detect(id, source)
+        .then(({deps}) => {
+            this._virtual.delete(id);
+            console.log(id, source, deps);
+            this._registry.addTransformedSource({
+                filePath: id,
+                transformIds: transformIds,
+                source: source,
+                deps,
+            });
+        });
     }
 
     getContext() {
         return {
             addVirtualEntry: ({source, id, map, originatingEntry}) => {
+                this._virtual.add(id);
                 // TODO make sure virtual entries can be cleaned up with changes in source entry
-                this._registry.addEntry(id);
-                this._registry.addTransformedSource({
-                    filePath: id,
+                this.addTransform({
+                    id: id,
+                    source: source,
+                    map,
                     transformIds: ['raw'],
-                    source,
-                    deps: {}, // do deps before
                 });
             },
             removeEntry: (entry) => {
@@ -58,7 +74,7 @@ class GraphSourceTransform extends BaseStep {
 
     gstDone(entry) {
         this._processed.add(entry.id);
-        if (this._processed.size >= this._cache.size()) {
+        if (this._processed.size >= this._cache.size() + this._virtual.size) {
             this._processed.clear();
             if (++this._curGstIndex >= this._gsts.length) {
                 this._cache.entries().forEach(({id}) => {
@@ -120,11 +136,11 @@ class GraphSourceTransform extends BaseStep {
 
             if (result && result.source) {
                 if (entry.variation === variation) {
-                    this._registry.addTransformedSource({
-                        filePath: entry.id,
-                        transformIds: nextTransformIds,
+                    this.addTransform({
+                        id: entry.id,
                         source: result.source,
-                        deps: result.deps,
+                        map: result.map,
+                        transformIds: nextTransformIds,
                     });
                 } else {
                     context.addVirtualEntry({

@@ -71,7 +71,7 @@ class ModuleResolver {
         }, {}));
     }
 
-    _fileExists(filePath) {
+    fileExists(filePath) {
         return ModuleResolver.pStat(filePath).then(stat => {
             if (stat.isFile() || stat.isFIFO()) return filePath;
             throw new Error({
@@ -82,10 +82,10 @@ class ModuleResolver {
     }
 
     resolveFile(moduleName) {
-        let promise = this._fileExists(moduleName);
+        let promise = this.fileExists(moduleName);
 
         this.extensions.forEach(ext => {
-            promise = promise.catch(() => this._fileExists(moduleName + ext));
+            promise = promise.catch(() => this.fileExists(moduleName + ext));
         });
 
         return promise.then(filePath => {

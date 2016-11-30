@@ -49,6 +49,7 @@ module.exports = class MendelPipeline extends EventEmitter {
                     );
                 } catch (e) {
                     console.error('Mendel step errored', e.stack);
+                    process.exit(1);
                 }
             });
         });
