@@ -119,7 +119,6 @@ class GraphSourceTransform extends BaseStep {
                 variation
             );
 
-            if (!currentGst.predicate(proxiedMain)) return this.gstDone(main);
             const result = currentGst.transform(chainProxy, currentGstConfig, context);
 
             if (result && result.source) {
