@@ -2,8 +2,8 @@ const path = require('path');
 const chokidar = require('chokidar');
 
 class FsWatcher {
-    constructor({projectRoot, ignore}, cache) {
-        this.cache = cache;
+    constructor({projectRoot, ignore}, cacheManager) {
+        this.cacheManager = cacheManager;
         // Default ignore .dot files.
         this.ignored = (ignore || []).concat([/[\/\\]\./]);
 
@@ -19,11 +19,11 @@ class FsWatcher {
         this.watcher
         .on('change', (path) => {
             path = withPrefix(path);
-            this.cache.removeEntry(path);
-            this.cache.addEntry(path);
+            this.cacheManager.removeEntry(path);
+            this.cacheManager.addEntry(path);
         })
         .on('unlink', (path) => {
-            this.cache.removeEntry(withPrefix(path));
+            this.cacheManager.removeEntry(withPrefix(path));
         })
         .on('add', (path, stats) => {
             path = withPrefix(path);
@@ -33,7 +33,7 @@ class FsWatcher {
                     size: stats.size,
                 });
             } else {
-                this.cache.addEntry(path);
+                this.cacheManager.addEntry(path);
             }
         })
         .once('ready', () => {
@@ -43,20 +43,19 @@ class FsWatcher {
                 .sort(({size: aSize}, {size: bSize}) => bSize - aSize)
                 .sort((a, b) => packageJsonSort(b) - packageJsonSort(a))
                 .forEach(({path}) => {
-                    this.cache.addEntry(path);
+                    this.cacheManager.addEntry(path);
                 });
 
             // Cleanup the queue afterwards
             this.initialProrityQueue = [];
         });
 
-        this.cache.on('entryRequested', (path) => {
+        this.cacheManager.on('entryRequested', (path) => {
             // Adding entry upfront avoids filesystem async nature to make hard
             // to track how many files we have in the system
-            this.cache.addEntry(path);
+            this.cacheManager.addEntry(path);
             this.subscribe(path);
         });
-        this.cache.on('entryRemoved', (path) => this.unsubscribe(path));
     }
 
     subscribe(path) {

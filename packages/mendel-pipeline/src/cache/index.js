@@ -8,6 +8,7 @@ const variationMatches = require('mendel-development/variation-matches');
 class MendelCache extends EventEmitter {
     constructor(config) {
         super();
+        this.environment = config.environment;
         this._store = new Map();
         this._normalizedIdToEntryIds = new Map();
         this._baseConfig = config.baseConfig;
@@ -53,9 +54,9 @@ class MendelCache extends EventEmitter {
         }
     }
 
-    doneEntry(id, environment) {
+    doneEntry(id) {
         const entry = this.getEntry(id);
-        entry.done.push(environment);
+        entry.done = true;
         this.emit('doneEntry', entry);
     }
 

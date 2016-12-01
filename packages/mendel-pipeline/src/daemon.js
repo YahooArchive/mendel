@@ -2,7 +2,7 @@ const debug = require('debug')('mendel:daemon');
 const mendelConfig = require('../../mendel-config');
 
 const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
-
+const EventEmitter = require('events').EventEmitter;
 const MendelCache = require('./cache');
 const Watcher = require('./fs-watcher');
 const Transformer = require('./transformer');
@@ -15,17 +15,55 @@ require('./helpers/analytics/analytics-collector').setOptions({
     printer: new AnalyticsCliPrinter({enableColor: true}),
 });
 
+class CacheManager extends EventEmitter {
+    constructor() {
+        super();
+        this._caches = new Map();
+    }
+
+    addCache(env, cache) {
+        this._caches.set(env, cache);
+        cache.on('entryRequested', (path) => {
+            this.emit('entryRequested', path);
+        });
+        cache.on('doneEntry', (entry) => {
+            this.emit('doneEntry', cache, entry);
+        });
+    }
+
+    getCache(env) {
+        return this._caches.get(env);
+    }
+
+    addEntry(id) {
+        Array.from(this._caches.values())
+            .forEach(cache => cache.addEntry(id));
+    }
+
+    hasEntry(id) {
+        return Array.from(this._caches.values())
+            .some(cache => cache.hasEntry(id));
+    }
+
+    removeEntry(id) {
+        Array.from(this._caches.values())
+            .forEach(cache => cache.removeEntry(id));
+        this.emit('entryRemoved', id);
+    }
+
+}
+
 module.exports = class MendelPipelineDaemon {
     constructor(options) {
         const config = mendelConfig(options);
 
-        this.cache = new MendelCache(config);
+        this.cacheManager = new CacheManager();
         this.transformer = new Transformer(config);
         // Dependency resolver consults with cache
-        this.depsResolver = new DepResolver(config, this.cache);
+        this.depsResolver = new DepResolver(config, this.cacheManager);
 
-        this.server = new CacheServer(config, this.cache);
-        this.watcher = new Watcher(config, this.cache);
+        this.server = new CacheServer(config, this.cacheManager);
+        this.watcher = new Watcher(config, this.cacheManager);
 
         // Create environments
         this.environments = {};
@@ -66,8 +104,11 @@ module.exports = class MendelPipelineDaemon {
         if (!this.pipelines[environment]) {
             debug('init', environment);
             const envConf = this.environments[environment];
+            const cache = new MendelCache(envConf);
+
+            this.cacheManager.addCache(environment, cache);
             this.pipelines[environment] = new MendelPipeline({
-                cache: this.cache,
+                cache,
                 transformer: this.transformer,
                 depsResolver: this.depsResolver,
                 options: envConf,

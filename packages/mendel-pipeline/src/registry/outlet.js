@@ -48,17 +48,13 @@ class MendelOutletRegistry {
 
         entryVariations.forEach(entry => {
             const allDeps = Object.keys(entry.deps)
-                .reduce((allDeps, depName) => {
+                .reduce((reducedDeps, depName) => {
                     const dep = entry.deps[depName];
-                    Object.keys(dep).forEach(env => {
-                        if (-1 === allDeps.indexOf(dep[env])) {
-                            allDeps.push(dep[env]);
-                        }
-                    });
-                    return allDeps;
+                    reducedDeps.push(dep);
+                    return reducedDeps;
                 }, []);
 
-            allDeps.forEach(normId => {
+            allDeps.filter(Boolean).forEach(normId => {
                 this.walk(normId, visitorFunction);
             });
             visitorFunction(entry);
