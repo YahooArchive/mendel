@@ -16,14 +16,14 @@ class IndependentSourceTransform extends BaseStep {
     }
 
     perform(entry) {
-        const filePath = entry.id;
+        const entryId = entry.id;
         const buildPlan = this._registry.getTransformPlans(entry.id);
         const transformIds = buildPlan.ist.ids;
-        const {transformIds: closestTransformIds, source} = entry.getClosestSource(transformIds);
-        const prunedTransformIds = transformIds.slice(closestTransformIds.length);
+        const source = entry.getRawSource();
+
         let promise = Promise.resolve({source});
-        if (prunedTransformIds.length) {
-            promise = promise.then(() => this._transformer.transform(filePath, prunedTransformIds, source));
+        if (transformIds.length) {
+            promise = promise.then(() => this._transformer.transform(entryId, transformIds, source));
         }
 
         promise
@@ -35,15 +35,14 @@ class IndependentSourceTransform extends BaseStep {
                     if (!this._registry.hasEntry(main)) this._registry.addToPipeline(main);
                 });
                 this._registry.addTransformedSource({
-                    filePath,
-                    transformIds,
+                    id: entryId,
                     source,
                     deps,
                 });
             });
         })
-        .then(() => this.emit('done', {entryId: filePath}, transformIds))
-        .catch((error) => debug(`Errored while transforming ${filePath}: ${error.message}: ${error.stack}`));
+        .then(() => this.emit('done', {entryId}, transformIds))
+        .catch((error) => debug(`Errored while transforming ${entryId}: ${error.message}: ${error.stack}`));
     }
 }
 

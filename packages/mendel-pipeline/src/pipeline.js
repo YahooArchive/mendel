@@ -41,7 +41,6 @@ module.exports = class MendelPipeline extends EventEmitter {
             curStep.on('done', function({entryId}) {
                 const entry = registry.getEntry(entryId);
                 if (!nextStep) return;
-
                 try {
                     nextStep.perform.apply(
                         nextStep,

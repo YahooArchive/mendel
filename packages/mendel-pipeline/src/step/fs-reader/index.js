@@ -5,9 +5,9 @@ const analytics = require('../../helpers/analytics/analytics')('fs');
 const debugError = require('debug')('mendel:reader:error');
 
 class FileReader extends BaseStep {
-    constructor({registry}, {projectRoot, types}) {
+    constructor({registry, depsResolver}, {projectRoot, types}) {
         super();
-
+        this.depsResolver = depsResolver;
         this.projectRoot = projectRoot;
         this.registry = registry;
         this._typeMap = new Map();
@@ -17,7 +17,7 @@ class FileReader extends BaseStep {
 
     perform(entry) {
         // raw can exist without read step in case of virtual files and others.
-        if (entry.hasSource(['raw'])) {
+        if (entry.getRawSource()) {
             return this.emit('done', {entryId: entry.id});
         }
 
@@ -31,12 +31,13 @@ class FileReader extends BaseStep {
             analytics.toc('read');
             if (error) {
                 debugError(`Errored while reading ${filePath}`);
-                // TODO: uncomment line below, fix resolver
-                // throw error;
+                throw error;
             } else {
-                this.registry.addRawSource(entry.id, source);
+                this.depsResolver.detect(entry.id, source).then(({deps}) => {
+                    this.registry.addSource({id: entry.id, source, deps});
+                    this.emit('done', {entryId: entry.id});
+                });
             }
-            this.emit('done', {entryId: entry.id});
         });
     }
 }

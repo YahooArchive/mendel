@@ -103,9 +103,8 @@ class CacheServer extends EventEmitter {
 
     serializeEntry(entry) {
         const type = entry.getTypeForConfig(this.config);
-        const transformIds = this.getTransformIdsByType(type);
-        const deps = entry.getDependency(transformIds);
-        const source = entry.getSource(transformIds);
+        const deps = entry.getDependency();
+        const source = entry.getSource();
 
         let variation = this.getVariationForEntry(entry);
         if (!variation) {
@@ -116,7 +115,10 @@ class CacheServer extends EventEmitter {
         return {
             id: entry.id,
             normalizedId: entry.normalizedId,
-            variation, type, deps, source,
+            variation,
+            type,
+            deps,
+            source,
         };
     }
 

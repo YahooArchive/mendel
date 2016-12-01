@@ -1,11 +1,11 @@
 class EntryProxy {
-    static getFromEntry(entry, transformIds) {
+    static getFromEntry(entry) {
         const proxy = new EntryProxy();
         proxy.filename = entry.id;
         proxy.normalizedId = entry.normalizedId;
         proxy.map; // TODO
-        proxy.source = entry.getSource(transformIds);
-        proxy.deps = entry.getDependency(transformIds);
+        proxy.source = entry.getSource();
+        proxy.deps = entry.getDependency();
         return proxy;
     }
  }

@@ -28,6 +28,7 @@ function TypesConfig(typeName, type) {
 
 TypesConfig.validate = createValidator({
     glob: {type: 'array', minLen: 1},
+    // transforms can be empty in case of simple outlet
 });
 
 module.exports = TypesConfig;

@@ -6,47 +6,41 @@ class Entry {
         this.normalizedId;
         this.variation;
 
-        this.sourceVersions = new Map();
-        this.dependents = [];
+        this.rawSource;
+        this.source;
+        // Transform used for source
+        this.transformIds;
+        this.map;
+        // dependencies
+        this.deps;
+        this.dependents;
         this.done = []; // environments array
+
+        this.reset();
     }
 
-    setSource(transformIds, source, deps) {
-        this.sourceVersions.set(transformIds.join('_'), {source, deps});
+    // Let's store rawSource
+    setSource(source, deps) {
+        this.source = source;
+        this.deps = deps;
+
+        if (!this.rawSource) this.rawSource = source;
     }
 
-    hasSource(transformIds) {
-        return this.sourceVersions.has(transformIds.join('_'));
+    hasSource() {
+        return !!this.source;
     }
 
-    getSource(transformIds) {
-        if (!Array.isArray(transformIds)) {
-            throw new Error(`Expected "${transformIds}" to be an array.`);
-        }
-        return this.sourceVersions.get(transformIds.join('_') || 'raw').source;
+    getSource() {
+        return this.source;
     }
 
-    getClosestSource(transformIds) {
-        for (let i = transformIds.length; i >= 0; i--) {
-            const key = transformIds.slice(0, i).join('_');
-            if (this.sourceVersions.has(key)) {
-                return {
-                    transformIds: key.split('_'),
-                    source: this.sourceVersions.get(key).source,
-                };
-            }
-        }
-
-        return {
-            transformIds:['raw'],
-            source: this.sourceVersions.get('raw').source,
-        };
+    getRawSource() {
+        return this.rawSource;
     }
 
-    addDependent(dependent) {
-        if (this.dependents.indexOf(dependent) >= 0) return;
-
-        this.dependents.push(dependent);
+    getDependency() {
+        return this.deps;
     }
 
     getTypeForConfig(config) {
@@ -61,19 +55,11 @@ class Entry {
         return type ? type.name : 'others';
     }
 
-    hasDependency(transformIds) {
-        if (!this.sourceVersions.has(transformIds.join('_'))) {
-            return false;
-        }
-        return !!this.sourceVersions.get(transformIds.join('_')).deps;
-    }
-
-    getDependency(transformIds) {
-        return this.sourceVersions.get(transformIds.join('_')).deps || [];
-    }
-
     reset() {
-        this.sourceVersions.clear();
+        this.rawSource = null;
+        this.source = null;
+        this.map = null;
+        this.deps = {};
         this.dependents = [];
     }
 
@@ -84,6 +70,8 @@ class Entry {
             normalizedId: this.normalizedId,
             variation: this.variation,
             dependents: this.dependents,
+            source: this.source,
+            deps: this.deps,
         };
     }
 }

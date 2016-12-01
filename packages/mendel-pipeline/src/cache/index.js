@@ -92,19 +92,17 @@ class MendelCache extends EventEmitter {
         return this._normalizedIdToEntryIds.get(normId);
     }
 
-    setSource(id, transformIds, source, deps) {
+    setSource(id, source, deps) {
         const entry = this.getEntry(id);
         const normalizedDeps = {};
         Object.keys(deps).forEach(depLiteral => {
             const depObject = deps[depLiteral];
-            const normDep = {};
-            normalizedDeps[depLiteral] = normDep;
-            Object.keys(depObject).forEach(envName => {
-                normDep[envName] = this.getNormalizedId(depObject[envName]);
-            });
+            // Because of normalizedId, even in the package.json case, it should
+            // be sufficient to use the main. The resolver will pick the right
+            // run-time entry.
+            normalizedDeps[depLiteral] = this.getNormalizedId(depObject.main);
         });
-
-        entry.setSource(transformIds, source, normalizedDeps);
+        entry.setSource(source, normalizedDeps);
     }
 
     emit(eventName, entry) {

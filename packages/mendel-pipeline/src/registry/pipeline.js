@@ -71,7 +71,7 @@ class MendelRegistry extends EventEmitter {
             ids: [],
         };
         const gst = {};
-        let xformIds = ['raw'].concat(this.getTransformIdsByType(type));
+        let xformIds = this.getTransformIdsByType(type);
 
         // If there is a parser, do type conversion
         while (this._parserTypeConversion.has(ist.type)) {
@@ -108,18 +108,16 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache.addEntry(filePath);
     }
 
-    addRawSource(filePath, source) {
-        const entry = this._mendelCache.getEntry(filePath);
-        entry.setSource(['raw'], source);
+    addSource({id, source, deps}) {
+        if (!this._mendelCache.hasEntry(id)) {
+            this._mendelCache.addEntry(id);
+        }
+        this._mendelCache.setSource(id, source, deps);
     }
 
-    addTransformedSource({filePath, transformIds, source, deps}) {
-        if (!this._mendelCache.hasEntry(filePath)) {
-            this._mendelCache.addEntry(filePath);
-        }
-
-        this._mendelCache.setSource(filePath, transformIds, source, deps);
-        this.emit('_transformedSource', filePath);
+    addTransformedSource({id, source, deps}) {
+        this.addSource({id, source, deps});
+        this.emit('_transformedSource', id);
     }
 
     invalidateDepedencies(filePath) {
