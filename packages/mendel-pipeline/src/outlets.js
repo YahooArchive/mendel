@@ -5,6 +5,7 @@ const MendelOutletRegistry = require('./registry/outlet');
 const fs = require('fs');
 const path = require('path');
 const debug = require('debug')('mendel:outlets');
+const mkdirp = require('mkdirp');
 
 class MendelOutlets {
     constructor(options) {
@@ -23,6 +24,7 @@ class MendelOutlets {
             const dest = path.join(
                 this.config.projectRoot, 'build/test.manifest.json'
             );
+            mkdirp.sync(path.dirname(dest));
             fs.writeFileSync(
                 dest,
                 JSON.stringify(manifest, null, 2)

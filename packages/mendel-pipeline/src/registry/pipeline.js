@@ -12,7 +12,7 @@ class MendelRegistry extends EventEmitter {
         this._parserTypeConversion = new Map();
 
         const {types, transforms} = config;
-        this._transforms = transforms;
+        this._transforms = [{id: 'raw', mode: 'ist'}].concat(transforms);
         this._types = types;
         this._types.forEach(type => {
             if (!type.parser || !type.parserToType) return;

@@ -46,8 +46,8 @@ class GraphSourceTransform extends BaseStep {
             this._virtual.delete(id);
             this._registry.addTransformedSource({
                 filePath: id,
-                transformIds: transformIds,
-                source: source,
+                transformIds,
+                source,
                 deps,
             });
         });
@@ -103,6 +103,12 @@ class GraphSourceTransform extends BaseStep {
         // If no GST is planned for this type, abort.
         // If plugin doesn't want to deal with it, abort.
         if (this._processed.has(entry.id) || !nextTransformIds.length || !currentGst.predicate(proxy)) {
+            this._registry.addTransformedSource({
+                filePath: entry.id,
+                source: entry.getSource(prevTransformIds),
+                deps: entry.getDependency(prevTransformIds),
+                transformIds: nextTransformIds,
+            });
             return this.gstDone(entry);
         }
 
@@ -125,32 +131,34 @@ class GraphSourceTransform extends BaseStep {
                 const transformIds = this._registry.getClosestPlanTransformIds(dep.id, prevExec);
                 return EntryProxy.getFromEntry(dep, transformIds);
             });
-            const result = currentGst.transform(chainProxy, currentGstConfig, context);
             const [proxiedMain] = chainProxy;
-            proxiedMain.id = convertVariationalPath(
+            proxiedMain.filename = convertVariationalPath(
                 this._variations,
                 main.id,
                 variation
             );
 
+            if (!currentGst.predicate(proxiedMain)) return this.gstDone(main);
+            const result = currentGst.transform(chainProxy, currentGstConfig, context);
+
             if (result && result.source) {
-                if (entry.variation === variation) {
+                if (main.variation === variation) {
                     this.addTransform({
-                        id: entry.id,
+                        id: proxiedMain.filename,
                         source: result.source,
                         map: result.map,
                         transformIds: nextTransformIds,
                     });
                 } else {
                     context.addVirtualEntry({
-                        id: proxiedMain.id,
+                        id: proxiedMain.filename,
                         originatingEntry: entry,
                         source: result.source,
                         deps: result.deps,
                     });
                 }
             }
-            this.gstDone(entry);
+            this.gstDone(main);
         });
     }
 
