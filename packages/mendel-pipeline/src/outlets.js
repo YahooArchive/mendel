@@ -38,10 +38,8 @@ class MendelOutlets {
     dataFromItem(item) {
         return {
             id: item.normalizedId,
-            deps: Object.keys(item.deps).reduce((newDeps, key) => {
-                newDeps[key] = item.deps[key].browser;
-                return newDeps;
-            }, {}),
+            deps: item.deps,
+            file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
             source: item.source,
         };
@@ -59,9 +57,9 @@ class MendelOutlets {
             if (!manifest.indexes[id]) {
                 const data = this.dataFromItem(item);
                 const newEntry = {
-                    variations: [data.variation],
-                    file: item.id,
                     id: item.normalizedId,
+                    index: null,
+                    variations: [data.variation],
                     data: [data],
                 };
 
