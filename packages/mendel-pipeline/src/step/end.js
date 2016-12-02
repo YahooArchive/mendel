@@ -1,7 +1,7 @@
 const BaseStep = require('./step');
 
 class End extends BaseStep {
-    constructor({registry}, options) {
+    constructor({registry}) {
         super();
         this.registry = registry;
     }
