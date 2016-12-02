@@ -31,19 +31,6 @@ if (program.outlet) {
     daemon.watch();
 } else {
     const MendelPipelineDaemon = require('./daemon');
-    /* TODO:
-        request.get(defaultDeamonAddres + '/status', (error, response) => {
-            if (error && isConnectionRefused(error)) {
-                const daemon = new MendelPipelineDaemon(cliOptions);
-                daemon.run();
-            } else {
-                request({
-                    url: defaultDeamonAddres + '/run',
-                    query: cliOptions,
-                });
-            }
-        });
-    */
     const daemon = new MendelPipelineDaemon(program);
     daemon.run();
 }

@@ -17,7 +17,9 @@ module.exports = function() {
             'variation-dirs': [],
             variations: {},
         },
-        'cache-port': 8463,
+        'cache-connection': {
+            path: '.mendelipc',
+        },
         'environment': mendelEnv,
         'route-config': {
             variation: '/mendel/:variations/:bundle',
@@ -28,5 +30,6 @@ module.exports = function() {
         generators: {},
         env: {},
         bundles: {},
+        config: true,
     };
 };

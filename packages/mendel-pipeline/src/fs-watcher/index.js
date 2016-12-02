@@ -65,6 +65,10 @@ class FsWatcher {
     unsubscribe(path) {
         this.watcher.unwatch(path);
     }
+
+    unwatchAll() {
+        this.watcher.close();
+    }
 }
 
 function withPrefix(path) {

@@ -56,6 +56,7 @@ class CacheManager extends EventEmitter {
 module.exports = class MendelPipelineDaemon {
     constructor(options) {
         const config = mendelConfig(options);
+        this.config = config;
 
         this.cacheManager = new CacheManager();
         this.transformer = new Transformer(config);
@@ -97,7 +98,10 @@ module.exports = class MendelPipelineDaemon {
 
     run(environment=this.default) {
         const pipeline = this.getPipeline(environment);
-        pipeline.on('idle', () => process.exit(0));
+        pipeline.on('idle', () => {
+            const MendelOutlets = require('./outlets');
+            new MendelOutlets(this.config);
+        });
     }
 
     getPipeline(environment=this.default) {

@@ -10,17 +10,20 @@ const error = require('debug')('mendel:net:client:error');
 const verbose = require('debug')('verbose:mendel:net:client');
 
 class CacheClient extends EventEmitter {
-    constructor({cachePort, environment}, registry) {
+    constructor({cacheConnection, environment}, registry) {
         super();
 
         this.registry = registry;
         this.environment = environment;
 
-        this.connection = network.getClient(cachePort);
+        this.connection = network.getClient(cacheConnection);
         this.initClient();
     }
 
     initClient() {
+        this.connection.on('error', (err) => {
+            this.emit('error', err);
+        });
         this.connection.on('data', (data) => {
             try {
                 data = JSON.parse(data);

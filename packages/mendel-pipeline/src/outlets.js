@@ -9,17 +9,35 @@ const mkdirp = require('mkdirp');
 
 class MendelOutlets {
     constructor(options) {
-        this.config = mendelConfig(options);
+        if (options.config === false) {
+            this.config = options;
+        } else {
+            this.config = mendelConfig(options);
+        }
 
-        const registry = new MendelOutletRegistry(this.config);
-        const client = new CacheClient(this.config, registry);
-        const generators = new MendelGenerators(this.config, registry);
+        this.registry = new MendelOutletRegistry(this.config);
+        this.generators = new MendelGenerators(this.config, this.registry);
+        this.setupClient();
+    }
+
+    setupClient() {
+
+        const client = new CacheClient(this.config, this.registry);
+
+        client.on('error', (error) => {
+            if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
+                console.error('Please, use --outlet only when you have another'+
+                    'mendel process running on --watch mode.');
+                process.exit(1);
+            }
+        });
 
         client.on('sync', () => {
 
-            generators.perform();
+            this.generators.perform();
 
-            const manifest = this.getV1Manifest(generators.doneBundles[0].entries);
+            const manifest = this.getV1Manifest(
+                this.generators.doneBundles[0].entries);
             // TODO: mendel-config v2 not parsing output build path
             const dest = path.join(
                 this.config.projectRoot, 'build/test.manifest.json'

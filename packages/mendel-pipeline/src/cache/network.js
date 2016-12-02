@@ -35,19 +35,33 @@ net.Socket.prototype.emit = function(name, content) {
 };
 
 module.exports = {
-    getServer(port) {
-        const server = net.createServer().listen({port: port});
+    getServer(connectionOptions) {
+        const server = net.createServer().listen(connectionOptions);
+
+        // nodemon style shutdown
+        process.once('SIGUSR2', function() {
+            gracefulShutdown(function() {
+                process.kill(process.pid, 'SIGUSR2');
+            });
+        });
+        process.on('exit', gracefulShutdown);
+        server.on('connection', socket => socket.setEncoding('utf8'));
+
+        function gracefulShutdown(callback) {
+            server.close();
+            callback && callback();
+        }
+
         process.on('SIGINT', () => {
             // If you listen to the SIGINT, it will ignore "ctrl+c"'s default behavior
             // Send graceful exit so we close the server above
             process.exit(0);
         });
-        process.on('exit', () => server.close());
-        server.on('connection', socket => socket.setEncoding('utf8'));
+
         return server;
     },
-    getClient(port) {
-        const connection = net.connect({port: port});
+    getClient(connectionOptions) {
+        const connection = net.connect(connectionOptions);
         connection.setEncoding('utf8');
         process.on('exit', () => connection.end());
         return connection;
