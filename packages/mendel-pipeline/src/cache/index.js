@@ -18,7 +18,8 @@ class MendelCache extends EventEmitter {
         this._variations = config.variationConfig.variations;
     }
 
-    getNormalizedId(id) {
+    // Please, don't use this function except to calculate package.json maps
+    _getBeforePackageJSONNormalizedId(id) {
         let normalizedId = id;
 
         const match = variationMatches(this._variations, id);
@@ -31,6 +32,12 @@ class MendelCache extends EventEmitter {
                 normalizedId = './' + path.join(parts.dir, parts.name);
             }
         }
+
+        return normalizedId;
+    }
+
+    getNormalizedId(id) {
+        let normalizedId = this._getBeforePackageJSONNormalizedId(id);
 
         if (this._packageMap.has(normalizedId)) {
             const map = this._packageMap.get(normalizedId);
@@ -72,10 +79,31 @@ class MendelCache extends EventEmitter {
 
     handleAsPackageJSON(id) {
         const parts = path.parse(id);
-        const packageNormId = this.getNormalizedId(id);
+        const packageNormId = this._getBeforePackageJSONNormalizedId(id);
         const pkgPath = path.join(this.projectRoot, id);
 
         if (parts.base !== 'package.json') return;
+
+        delete require.cache[require.resolve(pkgPath)];
+        const pkg = require(pkgPath);
+
+        ['browser', 'main'].filter(key => !!pkg[key]).forEach(runtime => {
+            const targetNormId = this._getBeforePackageJSONNormalizedId(
+                './' + path.join(parts.dir, pkg[runtime])
+            );
+            this.invariantTwoPackagesSameTarget(packageNormId, targetNormId);
+            this._packageMap.set(targetNormId, {
+                mapToId: packageNormId,
+                runtime: runtime,
+            });
+        });
+
+        // This is done after invariantTwoPackagesSameTarget because both match
+        // but invariantTwoPackagesSameTarget is more useful
+        this.invariantNewPackageOldEntry(packageNormId, id);
+    }
+
+    invariantNewPackageOldEntry(packageNormId, id) {
         if (this._normalizedIdToEntryIds.has(packageNormId)) {
             /*
               This should only happen in watch mode
@@ -99,30 +127,27 @@ class MendelCache extends EventEmitter {
                 '\n',
             ].join(' '));
         }
+    }
 
-        delete require.cache[require.resolve(pkgPath)];
-        const pkg = require(pkgPath);
-
-        ['browser', 'main'].forEach(runtime => {
-            if (!pkg[runtime]) return;
-            const targetNormId = this.getNormalizedId(
-                './' + path.join(parts.dir, pkg[runtime])
-            );
-            this._packageMap.set(targetNormId, {
-                mapToId: packageNormId,
-                runtime: runtime,
-            });
-        });
+    invariantTwoPackagesSameTarget(packageNormId, targetNormId) {
+        const existing = this._packageMap.get(targetNormId);
+        if (existing && existing.mapToId !== packageNormId) {
+            throw new Error([
+                "Invariant: Found 2 `package.json` targeting same normalizedId",
+                '\n',
+                `${packageNormId} -> ${targetNormId}`,
+                `${existing.mapToId} -> ${targetNormId}`,
+                '\n',
+            ].join(' '));
+        }
     }
 
     getRuntime(id) {
-        /about/.test(id) && console.log(id);
         let runtime = 'isomorphic';
         if (this._runtimeMap.has(id)) {
             runtime = this._runtimeMap.get(id);
         }
         if (path.parse(id).base === 'package.json') runtime = 'package';
-        /about/.test(id) && console.log(runtime);
         return runtime;
     }
 
