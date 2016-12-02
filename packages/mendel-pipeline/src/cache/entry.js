@@ -5,6 +5,7 @@ class Entry {
         // property is filled by cache where they have more context
         this.normalizedId;
         this.variation;
+        this.runtime; // one of 'broser', 'server', 'package', 'isomorphic'
 
         this.rawSource;
         this.rawDeps;

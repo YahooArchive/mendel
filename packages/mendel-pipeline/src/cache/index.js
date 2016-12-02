@@ -8,14 +8,18 @@ const variationMatches = require('mendel-development/variation-matches');
 class MendelCache extends EventEmitter {
     constructor(config) {
         super();
+        this.projectRoot = config.projectRoot;
         this.environment = config.environment;
         this._store = new Map();
         this._normalizedIdToEntryIds = new Map();
+        this._packageMap = new Map();
+        this._runtimeMap = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
     }
 
-    getNormalizedId(id) {
+    // Please, don't use this function except to calculate package.json maps
+    _getBeforePackageJSONNormalizedId(id) {
         let normalizedId = id;
 
         const match = variationMatches(this._variations, id);
@@ -32,6 +36,18 @@ class MendelCache extends EventEmitter {
         return normalizedId;
     }
 
+    getNormalizedId(id) {
+        let normalizedId = this._getBeforePackageJSONNormalizedId(id);
+
+        if (this._packageMap.has(normalizedId)) {
+            const map = this._packageMap.get(normalizedId);
+            normalizedId = map.mapToId;
+            this._runtimeMap.set(id, map.runtime);
+        }
+
+        return normalizedId;
+    }
+
     getVariation(path) {
         const match = variationMatches(this._variations, path);
         if (match) return match.variation.id;
@@ -39,20 +55,103 @@ class MendelCache extends EventEmitter {
     }
 
     addEntry(id) {
-        if (!this._store.has(id)) {
-            const entry = new Entry(id);
-            entry.variation = this.getVariation(id);
-            entry.normalizedId = this.getNormalizedId(id);
+        if (this._store.has(id)) return;
 
-            if (!this._normalizedIdToEntryIds.has(entry.normalizedId)) {
-                this._normalizedIdToEntryIds.set(entry.normalizedId, []);
-            }
-            this._normalizedIdToEntryIds.get(entry.normalizedId).push(entry.id);
+        this.handleAsPackageJSON(id);
 
-            this._store.set(id, entry);
-            this.emit('entryAdded', id);
+        const entry = new Entry(id);
+
+        // normalize based on variation and environment
+        entry.variation = this.getVariation(id);
+        entry.normalizedId = this.getNormalizedId(id);
+        entry.runtime = this.getRuntime(id);
+
+        // fast lookup cache per normalized id
+        if (!this._normalizedIdToEntryIds.has(entry.normalizedId)) {
+            this._normalizedIdToEntryIds.set(entry.normalizedId, []);
+        }
+        this._normalizedIdToEntryIds.get(entry.normalizedId).push(entry.id);
+
+        // finally
+        this._store.set(id, entry);
+        this.emit('entryAdded', id);
+    }
+
+    handleAsPackageJSON(id) {
+        const parts = path.parse(id);
+        const packageNormId = this._getBeforePackageJSONNormalizedId(id);
+        const pkgPath = path.join(this.projectRoot, id);
+
+        if (parts.base !== 'package.json') return;
+
+        delete require.cache[require.resolve(pkgPath)];
+        const pkg = require(pkgPath);
+
+        ['browser', 'main'].filter(key => !!pkg[key]).forEach(runtime => {
+            const targetNormId = this._getBeforePackageJSONNormalizedId(
+                './' + path.join(parts.dir, pkg[runtime])
+            );
+            this.invariantTwoPackagesSameTarget(packageNormId, targetNormId);
+            this._packageMap.set(targetNormId, {
+                mapToId: packageNormId,
+                runtime: runtime,
+            });
+        });
+
+        // This is done after invariantTwoPackagesSameTarget because both match
+        // but invariantTwoPackagesSameTarget is more useful
+        this.invariantNewPackageOldEntry(packageNormId, id);
+    }
+
+    invariantNewPackageOldEntry(packageNormId, id) {
+        if (this._normalizedIdToEntryIds.has(packageNormId)) {
+            /*
+              This should only happen in watch mode
+
+              TODO: It is possible to not throw here.
+
+              Mutating entries is not safe, since other async pieces of the
+              pipeline might be relying on this files already.
+
+              Here are some hypothesis on how to avoid throwing:
+              1. Restart the whole process automatically when this happens
+              2. Traverse all decendants from all variations and files from
+                 this normalizedId and remove them from the pipeline and
+                 traverse all the tree again with the new package.json
+            */
+            throw new Error([
+                `can't process ${id} after the`,
+                'following files are in the system:',
+                '\n',
+                this._normalizedIdToEntryIds.get(packageNormId).join('\n'),
+                '\n',
+            ].join(' '));
         }
     }
+
+    invariantTwoPackagesSameTarget(packageNormId, targetNormId) {
+        const existing = this._packageMap.get(targetNormId);
+        if (existing && existing.mapToId !== packageNormId) {
+            throw new Error([
+                "Invariant: Found 2 `package.json` targeting same normalizedId",
+                '\n',
+                `${packageNormId} -> ${targetNormId}`,
+                `${existing.mapToId} -> ${targetNormId}`,
+                '\n',
+            ].join(' '));
+        }
+    }
+
+    getRuntime(id) {
+        let runtime = 'isomorphic';
+        if (this._runtimeMap.has(id)) {
+            runtime = this._runtimeMap.get(id);
+        }
+        if (path.parse(id).base === 'package.json') runtime = 'package';
+        return runtime;
+    }
+
+
 
     doneEntry(id) {
         const entry = this.getEntry(id);
