@@ -48,10 +48,7 @@ class CacheClient extends EventEmitter {
                 default:
                     break;
             }
-
-
         });
-
 
         this.connection.on('connect', () => this.bootstrapConnection());
         this.connection.on('end', () => {

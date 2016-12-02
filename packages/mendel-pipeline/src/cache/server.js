@@ -10,7 +10,7 @@ const error = require('debug')('mendel:net:server:error');
 const verbose = require('debug')('verbose:mendel:net:server');
 
 class CacheServer extends EventEmitter {
-    constructor(config, cache) {
+    constructor(config, cacheManager) {
         super();
 
         this.config = config;
@@ -18,7 +18,7 @@ class CacheServer extends EventEmitter {
 
         this.clients = [];
 
-        this.cache = cache;
+        this.cacheManager = cacheManager;
         this.initCache();
 
         this.server = network.getServer(config.cachePort);
@@ -63,30 +63,23 @@ class CacheServer extends EventEmitter {
     }
 
     initCache() {
-        this.cache.on('doneEntry', entry => this.sendEntry(entry));
-        this.cache.on('entryRemoved', id => this.signalRemoval(id));
+        this.cacheManager.on('doneEntry', (cache, entry) => {
+            this.clients
+                .filter(client => client.environment === cache.environment)
+                .forEach(client => this._sendEntry(client, cache.size(), entry));
+        });
+        this.cacheManager.on('entryRemoved', id => this.signalRemoval(id));
     }
 
     bootstrap(client) {
-        const entries = this.cache.entries();
-        entries.forEach(entry => this._sendEntry(client, entry));
+        const cache = this.cacheManager.getCache(client.environment);
+        const entries = cache.entries();
+        entries.forEach(entry => this._sendEntry(client, cache.size(), entry));
     }
 
-    sendEntry(entry) {
-        try {
-            this.clients.forEach(client => this._sendEntry(client, entry));
-        } catch(e) {
-            error(e);
-            this.emit('error', e);
-        }
-    }
-
-    _sendEntry(client, entry) {
-        if (-1 === entry.done.indexOf(client.environment)) {
-            return;
-        }
+    _sendEntry(client, size, entry) {
         client.send({
-            totalEntries: this.cache.size(),
+            totalEntries: size,
             type: 'addEntry',
             entry: this.serializeEntry(entry),
         });

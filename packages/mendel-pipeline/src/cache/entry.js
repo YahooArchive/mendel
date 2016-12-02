@@ -14,7 +14,7 @@ class Entry {
         // dependencies
         this.deps;
         this.dependents;
-        this.done = []; // environments array
+        this.done; // Boolean that denotes whether all ISTs & GSTs are done
 
         this.reset();
     }
@@ -61,6 +61,7 @@ class Entry {
         this.map = null;
         this.deps = {};
         this.dependents = [];
+        this.done = false;
     }
 
     // For debugging purposes
