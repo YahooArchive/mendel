@@ -24,7 +24,7 @@ class CacheServer extends EventEmitter {
         this.server = network.getServer(config.cacheConnection);
         this.initServer();
 
-        debug('listening', config.cachePort);
+        debug('listening', config.cacheConnection);
     }
 
     close() {
