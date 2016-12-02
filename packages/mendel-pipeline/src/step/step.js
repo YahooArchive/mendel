@@ -21,7 +21,7 @@ class Step extends EventEmitter {
         );
     }
 
-    emit(eventName, {entryId}) {
+    emit(eventName, {entryId = ''} = {}) {
         this.verbose(eventName, entryId);
 
         super.emit.apply(this, arguments);
