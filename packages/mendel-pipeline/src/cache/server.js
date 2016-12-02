@@ -72,7 +72,11 @@ class CacheServer extends EventEmitter {
                 .filter(client => client.environment === cache.environment)
                 .forEach(client => this._sendEntry(client, cache.size(), entry));
         });
-        this.cacheManager.on('entryRemoved', id => this.signalRemoval(id));
+        this.cacheManager.on('entryRemoved', (cache, entry) => {
+            this.clients
+                .filter(client => client.environment === cache.environment)
+                .forEach(client => this.signalRemoval(client, entry.id));
+        });
     }
 
     bootstrap(client) {
@@ -124,13 +128,13 @@ class CacheServer extends EventEmitter {
         return variations.find(({id}) => id === entry.variation);
     }
 
-    signalRemoval(id) {
+    signalRemoval(client, id) {
         try {
-            this.clients.forEach(client => client.send({
+            client.send({
                 totalEntries: this.cache.size(),
                 type: 'removeEntry',
-                id: id,
-            }));
+                id,
+            });
         } catch(e) {
             error(e);
             this.emit('error', e);

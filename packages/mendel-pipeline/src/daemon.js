@@ -19,15 +19,33 @@ class CacheManager extends EventEmitter {
     constructor() {
         super();
         this._caches = new Map();
+        this._watchedFileId = new Set();
     }
 
-    addCache(env, cache) {
+    addCache(cache) {
+        const env = cache.environment;
         this._caches.set(env, cache);
         cache.on('entryRequested', (path) => {
             this.emit('entryRequested', path);
         });
-        cache.on('doneEntry', (entry) => {
-            this.emit('doneEntry', cache, entry);
+        cache.on('doneEntry', (entry) => this.emit('doneEntry', cache, entry));
+        cache.on('entryRemoved', (entry) => this.emit('entryRemoved', cache, entry));
+    }
+
+    /**
+     * Sync is called after pipeline is initialized with event handlers and steps
+     */
+    sync(to) {
+        const caches = Array.from(this._caches.values())
+            .filter(cache => cache !== to);
+        Array.from(this._watchedFileId.keys()).forEach(id => {
+            const from = caches.find(cache => cache.hasEntry(id));
+            // TODO clean up and remove entry everywhere if no cache has this entry
+            if (!from) return;
+
+            const entry = from.getEntry(id);
+            to.addEntry(id);
+            to.getEntry(id).setSource(entry.getRawSource(), entry.getRawDeps());
         });
     }
 
@@ -36,6 +54,7 @@ class CacheManager extends EventEmitter {
     }
 
     addEntry(id) {
+        this._watchedFileId.add(id);
         Array.from(this._caches.values())
             .forEach(cache => cache.addEntry(id));
     }
@@ -46,9 +65,9 @@ class CacheManager extends EventEmitter {
     }
 
     removeEntry(id) {
+        this._watchedFileId.delete(id);
         Array.from(this._caches.values())
             .forEach(cache => cache.removeEntry(id));
-        this.emit('entryRemoved', id);
     }
 
 }
@@ -110,13 +129,14 @@ module.exports = class MendelPipelineDaemon {
             const envConf = this.environments[environment];
             const cache = new MendelCache(envConf);
 
-            this.cacheManager.addCache(environment, cache);
+            this.cacheManager.addCache(cache);
             this.pipelines[environment] = new MendelPipeline({
                 cache,
                 transformer: this.transformer,
                 depsResolver: this.depsResolver,
                 options: envConf,
             });
+            this.cacheManager.sync(cache);
             this.pipelines[environment].watch();
         }
         return this.pipelines[environment];

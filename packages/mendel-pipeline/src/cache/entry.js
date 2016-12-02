@@ -7,6 +7,7 @@ class Entry {
         this.variation;
 
         this.rawSource;
+        this.rawDeps;
         this.source;
         // Transform used for source
         this.transformIds;
@@ -24,7 +25,10 @@ class Entry {
         this.source = source;
         this.deps = deps;
 
-        if (!this.rawSource) this.rawSource = source;
+        if (!this.rawSource) {
+            this.rawSource = source;
+            this.rawDeps = deps;
+        }
     }
 
     hasSource() {
@@ -37,6 +41,10 @@ class Entry {
 
     getRawSource() {
         return this.rawSource;
+    }
+
+    getRawDeps() {
+        return this.rawDeps;
     }
 
     getDependency() {
@@ -57,6 +65,7 @@ class Entry {
 
     reset() {
         this.rawSource = null;
+        this.rawDeps = {};
         this.source = null;
         this.map = null;
         this.deps = {};
