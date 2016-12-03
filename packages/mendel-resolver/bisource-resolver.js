@@ -14,7 +14,10 @@ class BiSourceVariationalResolver extends VariationalModuleResolver {
         // If biSourceHas says no, there is an ambiguity. Check with the FS.
         return Promise.resolve()
         .then(() => this.biSourceHas(filePath))
-        .then(result => result || super.fileExists(filePath));
+        .then(result => {
+            if (result) return filePath;
+            return super.fileExists(filePath);
+        });
     }
 }
 

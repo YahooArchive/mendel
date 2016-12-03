@@ -23,6 +23,7 @@ process.on('message', (payload) => {
         analytics.tic();
         const resolver = new BiSourceVariationalResolver({
             envNames: ['main', 'browser'],
+            extensions: ['.js', '.jsx', '.json'],
             // entry related
             basedir: path.resolve(projectRoot, path.dirname(filePath)),
             // config params
@@ -45,7 +46,7 @@ process.on('message', (payload) => {
         .then((deps) => {
             Object.keys(deps).forEach(literal => {
                 Object.keys(deps[literal]).forEach(envName => {
-                    deps[literal][envName] = withPrefix(deps[literal][envName]);
+                    deps[literal][envName] = deps[literal][envName];
                 });
             });
             return deps;
@@ -59,7 +60,7 @@ process.on('message', (payload) => {
         })
         .catch(error => {
             debug(`Errored while finding dependencies: "${filePath}"`);
-            console.error(error.stack);
+            console.error(filePath, error.stack);
             process.send({type: 'error', filePath, error: error.message});
         });
     } else if (type === 'exit') {
@@ -71,10 +72,3 @@ process.on('message', (payload) => {
         pendingResolves.forEach(resolve => resolve(value));
     }
 });
-
-function withPrefix(path) {
-    if (/^\w[^:]/.test(path)) {
-        path = './'+path;
-    }
-    return path;
-}

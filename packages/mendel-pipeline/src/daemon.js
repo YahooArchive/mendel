@@ -106,7 +106,10 @@ module.exports = class MendelPipelineDaemon {
     watch(environment=this.default) {
         // this prioritizes the default env first
         const pipeline = this.getPipeline(environment);
-        pipeline.on('idle', () => this.watchAll());
+        pipeline.on('idle', () => {
+            console.log('pipeline is done');
+            this.watchAll();
+        });
     }
 
     watchAll() {

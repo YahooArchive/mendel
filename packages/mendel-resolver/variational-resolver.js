@@ -5,6 +5,7 @@ const variationMatches = require('mendel-development/variation-matches');
 class VariationalModuleResolver extends ModuleResolver {
     constructor({
         envNames,
+        extensions,
         // entry related
         basedir,
         // config params
@@ -12,7 +13,7 @@ class VariationalModuleResolver extends ModuleResolver {
         baseConfig,
         variationConfig,
     }) {
-        super({cwd: projectRoot, basedir, envNames});
+        super({cwd: projectRoot, basedir, envNames, extensions});
 
         // config params
         this.projectRoot = projectRoot;
@@ -44,14 +45,23 @@ class VariationalModuleResolver extends ModuleResolver {
         return path.resolve(modulePath).indexOf(this.baseVarDir) >= 0;
     }
 
+    isNonProjectSource(modulePath) {
+        return this.variationList.every(variation => {
+            return modulePath.indexOf(variation.dir) === -1;
+        });
+    }
+
     resolveFile(modulePath) {
-        if (this.isBasePath(modulePath) || isNodeModule(modulePath)) {
+        if (
+            this.isBasePath(modulePath) ||
+            isNodeModule(modulePath) ||
+            this.isNonProjectSource(modulePath)
+        ) {
             return super.resolveFile(modulePath);
         }
 
         let promise = Promise.reject();
         const moduleId = this.getModuleId(modulePath);
-
         this.variationChain.forEach(variation => {
             promise = promise.catch(() => super.resolveFile(path.resolve(variation, moduleId)));
         });

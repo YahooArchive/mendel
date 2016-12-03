@@ -49,7 +49,6 @@ class ModuleResolver {
      */
     resolve(moduleName) {
         let promise;
-
         if (!ModuleResolver.isNodeModule(moduleName)) {
             const moduleAbsPath = path.resolve(this.basedir, moduleName);
             promise = this.resolveFile(moduleAbsPath).catch(() => this.resolveDir(moduleAbsPath));
@@ -61,7 +60,12 @@ class ModuleResolver {
         // Post process
         .then((deps) => {
             // Make the path relative to the `basedir`.
-            Object.keys(deps).forEach((depsKey) => deps[depsKey] = path.relative(this.cwd, deps[depsKey]));
+            Object.keys(deps).forEach((depsKey) => {
+                // It can be module name without real path for default
+                // node modules (like "path")
+                if (deps[depsKey][0] !== '.') return;
+                deps[depsKey] = path.relative(this.cwd, deps[depsKey]);
+            });
             return deps;
         })
         // Fallback solution: Couldn't find anything - Return the name of the module back.
@@ -83,7 +87,6 @@ class ModuleResolver {
 
     resolveFile(moduleName) {
         let promise = this.fileExists(moduleName);
-
         this.extensions.forEach(ext => {
             promise = promise.catch(() => this.fileExists(moduleName + ext));
         });
@@ -106,12 +109,12 @@ class ModuleResolver {
             // e.g., ./package.json#main -> ./foo/package.json#main -> ./foo/bar/index.js
             // Fallback to `main` in case package.json misses the name required.
             const resolved = this.envNames.reduce((reduced, name) => {
-                reduced[name] = path.join(moduleName, (pkg[name] || pkg.main));
+                const module = typeof pkg[name] === 'string' ? pkg[name] : pkg.main;
+                reduced[name] = path.join(moduleName, module);
                 return reduced;
             }, {});
 
             if (this.recordPackageJson) resolved.packageJson = packagePath;
-
             return resolved;
         })
         .catch(() => this.resolveFile(path.join(moduleName, 'index')));
@@ -144,7 +147,8 @@ class ModuleResolver {
                     });
 
                     const moduleFullPath = path.join(nodeModulePath, moduleName);
-                    return this.resolveFile(moduleFullPath).catch(() => this.resolveDir(moduleFullPath));
+                    return this.resolveFile(moduleFullPath)
+                    .catch(() => this.resolveDir(moduleFullPath));
                 });
             });
         });

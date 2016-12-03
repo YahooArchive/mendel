@@ -25,19 +25,21 @@ class FileReader extends BaseStep {
         const entryType = this.registry.getType(entry.id);
         const isBinary = !this._typeMap.has(entryType) || this._typeMap.get(entryType).isBinary;
 
-        // TODO we need to skip for virtual files
         analytics.tic('read');
         fs.readFile(filePath, isBinary ? 'binary' : 'utf8', (error, source) => {
             analytics.toc('read');
             if (error) {
-                debugError(`Errored while reading ${filePath}`);
-                throw error;
-            } else {
-                this.depsResolver.detect(entry.id, source).then(({deps}) => {
-                    this.registry.addSource({id: entry.id, source, deps});
-                    this.emit('done', {entryId: entry.id});
-                });
+                debugError([
+                    `[WARN] while reading ${filePath}.`,
+                    'Normal for default node packages.',
+                ].join(' '));
+                return;
             }
+
+            this.depsResolver.detect(entry.id, source).then(({deps}) => {
+                this.registry.addSource({id: entry.id, source, deps});
+                this.emit('done', {entryId: entry.id});
+            });
         });
     }
 }

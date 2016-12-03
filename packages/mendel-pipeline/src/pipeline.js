@@ -11,6 +11,8 @@ const Waiter = require('./step/waiter');
 
 const EventEmitter = require('events').EventEmitter;
 
+process.title = 'Mendel';
+
 module.exports = class MendelPipeline extends EventEmitter {
     constructor ({options, cache, transformer, depsResolver}) {
         super();
