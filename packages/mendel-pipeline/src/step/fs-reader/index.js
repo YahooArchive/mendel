@@ -43,8 +43,9 @@ class FileReader extends BaseStep {
                 this.emit('done', {entryId: entry.id});
             }).catch(error => {
                 console.error([
-                    `[CRITICAL] Failed to detect dependency for "${filePath}":`,
+                    `[CRITICAL] Failed to detect dependency for "${filePath}".`,
                 ].join(' '));
+                console.log(error.stack);
                 debugError(`Error message for ${filePath}: ${error.stack}`);
                 // We failed too early. We need to abort.
                 process.exit(1);

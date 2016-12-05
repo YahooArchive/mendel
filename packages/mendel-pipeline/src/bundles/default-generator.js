@@ -5,7 +5,10 @@ function defaultGenerator(bundle, doneBundles, registry) {
     const resolvedEntries = new Map();
 
     entries.forEach(entry => {
-        registry.walk(entry, function(dep) {
+        const normalizedId = registry.hasEntry(entry) ?
+            registry.getEntry(entry).normalizedId :
+            entry;
+        registry.walk(normalizedId, function(dep) {
             if (!resolvedEntries.has(dep.id)) {
                 if (dep.normalizedId === entry) {
                     dep.entry = true;

@@ -1,5 +1,4 @@
 
-
 class MendelOutletRegistry {
     constructor() {
         this._cache = new Map();
@@ -8,6 +7,10 @@ class MendelOutletRegistry {
 
     get size() {
         return this._cache.size;
+    }
+
+    hasEntry(id) {
+        return this._cache.has(id);
     }
 
     getEntry(id) {
@@ -40,10 +43,18 @@ class MendelOutletRegistry {
         return this._normalizedIdToEntryIds.get(normId);
     }
 
-    walk(normId, visitorFunction) {
+    walk(normId, visitorFunction, _visited=new Set()) {
+        if (_visited.has(normId)) return;
+        _visited.add(normId);
+
         const entryVariations = this.getEntriesByNormId(normId);
         if (!entryVariations) {
-            throw new Error(`Entry ${normId} not found in registry`);
+            // throw new Error(`Entry ${normId} not found in registry`);
+            // TODO figure out what to do about missing packages.
+            // For instance, there is no shim for 'fs'. However,
+            // this is totally valid dependency for server-side case but
+            // not in the browser. Figure out what to do in case of missing deps.
+            return;
         }
 
         entryVariations.forEach(entry => {
@@ -55,7 +66,7 @@ class MendelOutletRegistry {
                 }, []);
 
             allDeps.filter(Boolean).forEach(normId => {
-                this.walk(normId, visitorFunction);
+                this.walk(normId, visitorFunction, _visited);
             });
             visitorFunction(entry);
         });

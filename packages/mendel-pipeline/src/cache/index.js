@@ -95,6 +95,10 @@ class MendelCache extends EventEmitter {
         const pkg = require(pkgPath);
 
         ['browser', 'main'].filter(key => !!pkg[key]).forEach(runtime => {
+            // i.e., `browser: {fromFilePath: toFilePath}` or
+            // `browser: {filePath: false}`
+            if (typeof pkg[runtime] !== 'string') return;
+
             const targetNormId = this._getBeforePackageJSONNormalizedId(
                 './' + path.join(parts.dir, pkg[runtime])
             );
