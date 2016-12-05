@@ -68,11 +68,9 @@ class ModuleResolver {
             });
             return deps;
         })
-        // Fallback solution: Couldn't find anything - Return the name of the module back.
-        .catch(() => this.envNames.reduce((reduced, name) => {
-            reduced[name] = moduleName;
-            return reduced;
-        }, {}));
+        .catch(() => {
+            throw new Error(`${moduleName} failed to resolve.`);
+        });
     }
 
     fileExists(filePath) {

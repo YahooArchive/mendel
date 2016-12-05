@@ -49,7 +49,7 @@ module.exports = {
 
         function gracefulShutdown(callback) {
             server.close();
-            callback && callback();
+            typeof callback === 'function' && callback();
         }
 
         process.on('SIGINT', () => {

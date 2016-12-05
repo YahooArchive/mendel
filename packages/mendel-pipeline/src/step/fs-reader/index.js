@@ -29,16 +29,25 @@ class FileReader extends BaseStep {
         fs.readFile(filePath, isBinary ? 'binary' : 'utf8', (error, source) => {
             analytics.toc('read');
             if (error) {
-                debugError([
-                    `[WARN] while reading ${filePath}.`,
-                    'Normal for default node packages.',
+                console.error([
+                    `[CRITICAL] while reading "${filePath}".`,
                 ].join(' '));
-                return;
+                debugError(`Error message for ${filePath}: ${error.stack}`);
+                // We need to exit in such case..
+                process.exit(1);
             }
 
-            this.depsResolver.detect(entry.id, source).then(({deps}) => {
+            this.depsResolver.detect(entry.id, source)
+            .then(({deps}) => {
                 this.registry.addSource({id: entry.id, source, deps});
                 this.emit('done', {entryId: entry.id});
+            }).catch(error => {
+                console.error([
+                    `[CRITICAL] Failed to detect dependency for "${filePath}":`,
+                ].join(' '));
+                debugError(`Error message for ${filePath}: ${error.stack}`);
+                // We failed too early. We need to abort.
+                process.exit(1);
             });
         });
     }

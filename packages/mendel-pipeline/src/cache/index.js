@@ -16,6 +16,11 @@ class MendelCache extends EventEmitter {
         this._runtimeMap = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
+        this._shimPathToId = new Map();
+        Object.keys(config.shim).forEach(shimId => {
+            this._shimPathToId.set(path.relative(this.projectRoot, config.shim[shimId]), shimId);
+            this._shimPathToId.set(shimId, shimId);
+        });
     }
 
     // Please, don't use this function except to calculate package.json maps
@@ -37,8 +42,10 @@ class MendelCache extends EventEmitter {
     }
 
     getNormalizedId(id) {
-        let normalizedId = this._getBeforePackageJSONNormalizedId(id);
+        // For node's packages and shims, normalizedId will resolve to its respective package name
+        if (this._shimPathToId.has(id)) return this._shimPathToId.get(id);
 
+        let normalizedId = this._getBeforePackageJSONNormalizedId(id);
         if (this._packageMap.has(normalizedId)) {
             const map = this._packageMap.get(normalizedId);
             normalizedId = map.mapToId;
@@ -151,8 +158,6 @@ class MendelCache extends EventEmitter {
         return runtime;
     }
 
-
-
     doneEntry(id) {
         const entry = this.getEntry(id);
         entry.done = true;
@@ -200,7 +205,8 @@ class MendelCache extends EventEmitter {
             // Because of normalizedId, even in the package.json case, it should
             // be sufficient to use the main. The resolver will pick the right
             // run-time entry.
-            normalizedDeps[depLiteral] = this.getNormalizedId(depObject.main);
+            // main is "false" when depdenecy is a node's package.
+            normalizedDeps[depLiteral] = this.getNormalizedId(depObject.main || depLiteral);
         });
         entry.setSource(source, normalizedDeps);
     }

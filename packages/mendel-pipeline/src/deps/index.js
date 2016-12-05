@@ -5,6 +5,11 @@ const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
 const path = require('path');
 
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) path = './' + path;
+    return path;
+}
+
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
@@ -12,11 +17,12 @@ class DepsManager {
     /**
      * @param {String} config.projectRoot
      */
-    constructor({projectRoot, baseConfig, variationConfig}, mendelCache) {
+    constructor({projectRoot, baseConfig, variationConfig, shim}, mendelCache) {
         this._mendelCache = mendelCache;
         this._projectRoot = projectRoot;
         this._baseConfig = baseConfig;
         this._variationConfig = variationConfig;
+        this._shim = shim;
         this._queue = [];
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
@@ -44,6 +50,38 @@ class DepsManager {
         });
     }
 
+    resolve(resolve, entryId, rawDeps) {
+        const deps = Object.assign({}, rawDeps);
+
+        // When a shim is present in one of the deps:
+        // main: false so we don't include node packages into Mendel pipeline
+        // browser: path to the shim -- this will make pipeline include such shims
+        Object.keys(deps)
+        .filter(literal => this._shim[literal])
+        .forEach(literal => {
+            deps[literal] = {
+                main: false,
+                browser: this._shim[literal],
+            };
+        });
+
+        // Noramlize the path
+        // This step is required because mendel-resolve returns absolute path
+        // instead of relative path. Since mendel-pipeline understands everything
+        // with relative path, this is needed.
+        Object.keys(deps)
+        .forEach(literal => {
+            Object.keys(deps[literal])
+            // can be false in case of shimmed one
+            .filter(runtime => deps[literal][runtime])
+            .forEach(runtime => {
+                deps[literal][runtime] = withPrefix(path.relative(this._projectRoot, deps[literal][runtime]));
+            });
+        });
+
+        resolve({id: entryId, deps});
+    }
+
     next() {
         if (!this._queue.length || !this._idleWorkerQueue.length) return;
 
@@ -60,7 +98,7 @@ class DepsManager {
             } else if (type === 'done') {
                 self._idleWorkerQueue.push(workerProcess.pid);
                 debug(filePath, deps);
-                resolve({id: filePath, deps});
+                self.resolve(resolve, filePath, deps);
             } else if (type === 'has') {
                 const value = self._mendelCache.hasEntry(filePath);
                 ipcAnalytics.tic('deps');

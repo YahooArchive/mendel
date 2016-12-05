@@ -8,6 +8,7 @@ const BiSourceVariationalResolver = require('mendel-resolver/bisource-resolver')
 debug(`[Slave ${process.pid}] online`);
 
 const pendingInquiry = new Map();
+const ENV_NAMES = ['main', 'browser'];
 
 process.on('message', (payload) => {
     const { type,
@@ -22,7 +23,7 @@ process.on('message', (payload) => {
 
         analytics.tic();
         const resolver = new BiSourceVariationalResolver({
-            envNames: ['main', 'browser'],
+            envNames: ENV_NAMES,
             extensions: ['.js', '.jsx', '.json'],
             // entry related
             basedir: path.resolve(projectRoot, path.dirname(filePath)),
@@ -43,15 +44,14 @@ process.on('message', (payload) => {
 
         debug(`Detecting dependencies for ${filePath}`);
         dep({source, resolver})
-        .then((deps) => {
-            Object.keys(deps).forEach(literal => {
-                Object.keys(deps[literal]).forEach(envName => {
-                    deps[literal][envName] = deps[literal][envName];
-                });
-            });
-            return deps;
+        // mendel-resolver throws in case nothing was found
+        .catch(() => {
+            return ENV_NAMES.reduce((reduced, name) => {
+                reduced[name] = false;
+                return reduced;
+            }, {});
         })
-        .then((deps) => {
+        .then(deps => {
             analytics.toc();
             debug(`Dependencies for ${filePath} found!`);
             analyticsIpc.tic('deps');

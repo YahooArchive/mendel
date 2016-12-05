@@ -6,13 +6,16 @@ const fs = require('fs');
 const path = require('path');
 const debug = require('debug')('mendel:outlets');
 const mkdirp = require('mkdirp');
+const DefaultShims = require('./default-shim');
 
 class MendelOutlets {
     constructor(options) {
         if (options.config === false) {
             this.config = options;
         } else {
-            this.config = mendelConfig(options);
+            this.config = mendelConfig(
+                Object.assign({defaultShim: DefaultShims}, options)
+            );
         }
 
         this.registry = new MendelOutletRegistry(this.config);

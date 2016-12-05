@@ -29,11 +29,6 @@ class IndependentSourceTransform extends BaseStep {
         promise
         .then(({source}) => {
             return this._depsResolver.detect(entry.id, source).then(({deps}) => {
-                Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
-                    // In case the entry is missing for dependency, time to add them into our pipeline.
-                    if (!this._registry.hasEntry(browser)) this._registry.addToPipeline(browser);
-                    if (!this._registry.hasEntry(main)) this._registry.addToPipeline(main);
-                });
                 this._registry.addTransformedSource({
                     id: entryId,
                     source,

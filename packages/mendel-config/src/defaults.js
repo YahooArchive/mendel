@@ -31,5 +31,7 @@ module.exports = function() {
         env: {},
         bundles: {},
         config: true,
+        shim: {},
+        defaultShim: {},
     };
 };

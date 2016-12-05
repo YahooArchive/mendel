@@ -15,7 +15,8 @@ class Waiter extends BaseStep {
         this.emit('wait', {entryId: entry.id});
         if (this.cache.size() > this.waitCount) return;
         // TODO: Once type refactor is done and plan is part of entry instance,
-        // it will be safe to add optimization here to emit entries without GST right away before wait condition is met
+        // it will be safe to add optimization here to emit entries without GST
+        // right away before wait condition is met
         this.cache.entries().forEach(({id}) => this.emit('done', {entryId: id}));
     }
 }

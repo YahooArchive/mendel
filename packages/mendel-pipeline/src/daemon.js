@@ -10,6 +10,7 @@ const DepResolver = require('./deps');
 
 const MendelPipeline = require('./pipeline');
 const CacheServer = require('./cache/server');
+const DefaultShims = require('./default-shim');
 
 require('./helpers/analytics/analytics-collector').setOptions({
     printer: new AnalyticsCliPrinter({enableColor: true}),
@@ -74,6 +75,7 @@ class CacheManager extends EventEmitter {
 
 module.exports = class MendelPipelineDaemon {
     constructor(options) {
+        options = Object.assign({defaultShim: DefaultShims}, options);
         const config = mendelConfig(options);
         this.config = config;
 

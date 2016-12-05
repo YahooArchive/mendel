@@ -87,7 +87,11 @@ module.exports = function deps({resolver, source}) {
         });
         // TODO do something useful with the `exports`
         const {imports} = _depFinder(ast);
-        return Promise.all(imports.map(importLiteral => resolver.resolve(importLiteral)))
+        const promises = imports.map(importLiteral => {
+            return resolver.resolve(importLiteral).catch(() => false);
+        });
+
+        return Promise.all(promises)
         .then((resolvedImports) => {
             const importMap = {};
             resolvedImports.forEach((resolvedImport, index) => {
