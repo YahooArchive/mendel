@@ -5,11 +5,6 @@ const {fork} = require('child_process');
 const numCPUs = require('os').cpus().length;
 const path = require('path');
 
-function withPrefix(path) {
-    if (/^\w[^:]/.test(path)) path = './' + path;
-    return path;
-}
-
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
@@ -64,21 +59,6 @@ class DepsManager {
                 browser: this._shim[literal],
             };
         });
-
-        // Noramlize the path
-        // This step is required because mendel-resolve returns absolute path
-        // instead of relative path. Since mendel-pipeline understands everything
-        // with relative path, this is needed.
-        Object.keys(deps)
-        .forEach(literal => {
-            Object.keys(deps[literal])
-            // can be false in case of shimmed one
-            .filter(runtime => deps[literal][runtime])
-            .forEach(runtime => {
-                deps[literal][runtime] = withPrefix(path.relative(this._projectRoot, deps[literal][runtime]));
-            });
-        });
-
         resolve({id: entryId, deps});
     }
 

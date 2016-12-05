@@ -63,9 +63,10 @@ class ModuleResolver {
             Object.keys(deps).forEach((depsKey) => {
                 // It can be module name without real path for default
                 // node modules (like "path")
-                if (deps[depsKey][0] !== '.') return;
+                if (deps[depsKey].indexOf('/') < 0) return;
                 deps[depsKey] = path.relative(this.cwd, deps[depsKey]);
             });
+
             return deps;
         })
         .catch(() => {
@@ -111,9 +112,11 @@ class ModuleResolver {
                 reduced[name] = path.join(moduleName, module);
                 return reduced;
             }, {});
-
-            if (this.recordPackageJson) resolved.packageJson = packagePath;
-            return resolved;
+            return Promise.all(this.envNames.map(runtime => this.fileExists(resolved[runtime])))
+            .then(() => {
+                if (this.recordPackageJson) resolved.packageJson = packagePath;
+                return resolved;
+            });
         })
         .catch(() => this.resolveFile(path.join(moduleName, 'index')));
     }

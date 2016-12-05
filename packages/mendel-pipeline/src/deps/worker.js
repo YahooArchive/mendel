@@ -44,6 +44,14 @@ process.on('message', (payload) => {
 
         debug(`Detecting dependencies for ${filePath}`);
         dep({source, resolver})
+        .then((deps) => {
+            Object.keys(deps).forEach(literal => {
+                Object.keys(deps[literal]).forEach(envName => {
+                    deps[literal][envName] = withPrefix(deps[literal][envName]);
+                });
+            });
+            return deps;
+        })
         // mendel-resolver throws in case nothing was found
         .catch(() => {
             return ENV_NAMES.reduce((reduced, name) => {
@@ -72,3 +80,8 @@ process.on('message', (payload) => {
         pendingResolves.forEach(resolve => resolve(value));
     }
 });
+
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) path = './' + path;
+    return path;
+}
