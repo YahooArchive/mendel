@@ -61,7 +61,7 @@ class CliPrinter extends BasePrinter {
                 // Example: <pid> (groupNameA+groupNameB+groupNameC+etc…)
                 const set = new Set();
                 dataPart.forEach(p => set.add(p.name.split(':')[1]));
-                const groupNames = Array.from(set.keys()).slice(0, 3).join('+') + (set.size > 3 ? '+etc…' : '');
+                const groupNames = Array.from(set.keys()).sort().slice(0, 3).join('+') + (set.size > 3 ? '+etc…' : '');
                 groupedName += ` (${groupNames})`;
             }
             const aggregate = dataPart.reduce((reduced, point) => reduced + point.after - point.before, 0);
