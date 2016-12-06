@@ -10,7 +10,7 @@ const DepResolver = require('./deps');
 
 const MendelPipeline = require('./pipeline');
 const CacheServer = require('./cache/server');
-const DefaultShims = require('./default-shim');
+const DefaultShims = require('node-libs-browser');
 
 require('./helpers/analytics/analytics-collector').setOptions({
     printer: new AnalyticsCliPrinter({enableColor: true}),

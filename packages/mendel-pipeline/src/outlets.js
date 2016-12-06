@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const debug = require('debug')('mendel:outlets');
 const mkdirp = require('mkdirp');
-const DefaultShims = require('./default-shim');
+const DefaultShims = require('node-libs-browser');
 
 class MendelOutlets {
     constructor(options) {

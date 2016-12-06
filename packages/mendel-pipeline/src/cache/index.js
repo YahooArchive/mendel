@@ -18,7 +18,7 @@ class MendelCache extends EventEmitter {
         this._variations = config.variationConfig.variations;
         this._shimPathToId = new Map();
         Object.keys(config.shim).forEach(shimId => {
-            this._shimPathToId.set(path.relative(this.projectRoot, config.shim[shimId]), shimId);
+            this._shimPathToId.set(config.shim[shimId], shimId);
             this._shimPathToId.set(shimId, shimId);
         });
     }

@@ -5,6 +5,7 @@ Below are the things we need in order to achieve the Mendel v2 milestone.
 - [ ] Implement Node module generator (creates module bundle separately from source)
 - [ ] Implement Extract/[code split](https://twitter.com/samccone/status/797528710085652480) generator
 - [ ] Manifest v1 Outlet
+- [ ] File system outlet
 - [ ] Make the Mendel development middleware communicate with cache, instead of manifest or FS, and resolve faster
 - [ ] Parallelize GST
   - Create general class for multi-process workers
