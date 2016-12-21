@@ -22,7 +22,7 @@ class FileReader extends BaseStep {
         }
 
         const filePath = path.resolve(this.projectRoot, entry.id);
-        const entryType = this.registry.getType(entry.id);
+        const entryType = entry.type;
         const isBinary = !this._typeMap.has(entryType) || this._typeMap.get(entryType).isBinary;
 
         analytics.tic('read');

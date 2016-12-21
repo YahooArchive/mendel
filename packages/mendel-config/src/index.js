@@ -12,6 +12,7 @@ const TransformConfig = require('./transform-config');
 const BundleConfig = require('./bundle-config');
 const VariationConfig = require('./variation-config');
 const GeneratorConfig = require('./generator-config');
+const OutletConfig = require('./outlet-config');
 const BaseConfig = require('./base-config');
 const TypesConfig = require('./types-config');
 const ShimConfig = require('./shim-config');
@@ -36,17 +37,21 @@ module.exports = function(rawConfig) {
     config.baseConfig = BaseConfig(config);
     config.variationConfig = VariationConfig(config);
     config.types = Object.keys(config.types).map(function(typeName) {
-        return new TypesConfig(typeName, config.types[typeName]);
+        return new TypesConfig(typeName, config.types[typeName], config);
     });
     config.transforms = Object.keys(config.transforms).map(id => {
         return new TransformConfig(id, config.transforms[id], config);
     });
     config.bundles = Object.keys(config.bundles).map(function(bundleId) {
-        return new BundleConfig(bundleId, config.bundles[bundleId]);
+        return new BundleConfig(bundleId, config.bundles[bundleId], config);
     });
     config.generators = config.generators.map(g => {
         return new GeneratorConfig(g, config);
     });
+    config.outlets = config.outlets.map(o => {
+        return new OutletConfig(o, config);
+    });
+
     config.shim = ShimConfig(config);
 
     validateTypesAndTransforms(config);

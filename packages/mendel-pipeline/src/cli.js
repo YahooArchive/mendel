@@ -23,16 +23,15 @@ program
 
 
 if (program.outlet) {
-    const MendelOutlets = require('./outlets');
-    new MendelOutlets(program);
+    const MendelOutlets = require('./main/outlets');
+    const outlets = new MendelOutlets(program);
+    outlets.run();
 } else if (program.watch) {
-    const MendelPipelineDaemon = require('./daemon');
+    const MendelPipelineDaemon = require('./main/daemon');
     const daemon = new MendelPipelineDaemon(program);
     daemon.watch();
 } else {
-    const MendelPipelineDaemon = require('./daemon');
+    const MendelPipelineDaemon = require('./main/daemon');
     const daemon = new MendelPipelineDaemon(program);
     daemon.run();
 }
-
-

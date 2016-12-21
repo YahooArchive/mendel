@@ -1,7 +1,8 @@
 var createValidator = require('./validator');
 var Minimatch = require('minimatch').Minimatch;
+var moduleResolveSync = require('resolve').sync;
 
-function TypesConfig(typeName, type) {
+function TypesConfig(typeName, type, {projectRoot}) {
     this.name = typeName;
 
     // We ignore extensions if type declaration has both extensions and glob
@@ -28,7 +29,6 @@ function TypesConfig(typeName, type) {
     this.parser = type.parser;
     this.parserToType = type['parser-to-type'];
     this.transforms = type.transforms || [];
-    this.outlet = type.outlet;
 
     TypesConfig.validate(this);
 }

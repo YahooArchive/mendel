@@ -21,6 +21,7 @@ class MendelCache extends EventEmitter {
             this._shimPathToId.set(config.shim[shimId], shimId);
             this._shimPathToId.set(shimId, shimId);
         });
+        this._types = config.types;
     }
 
     // Please, don't use this function except to calculate package.json maps
@@ -39,6 +40,18 @@ class MendelCache extends EventEmitter {
         }
 
         return normalizedId;
+    }
+
+    // Get Type only based on the entryId. IST can convert the types.
+    getInitialType(id) {
+        if (isNodeModule(id)) return 'node_modules';
+
+        const type = this._types.find(({glob}) => {
+            return glob.filter(({negate}) => !negate).some(g => g.match(id)) &&
+                glob.filter(({negate}) => negate).every(g => g.match(id));
+        });
+
+        return type ? type.name : 'others';
     }
 
     getNormalizedId(id) {
@@ -72,6 +85,7 @@ class MendelCache extends EventEmitter {
         entry.variation = this.getVariation(id);
         entry.normalizedId = this.getNormalizedId(id);
         entry.runtime = this.getRuntime(id);
+        entry.type = this.getInitialType(id);
 
         // fast lookup cache per normalized id
         if (!this._normalizedIdToEntryIds.has(entry.normalizedId)) {
@@ -199,6 +213,12 @@ class MendelCache extends EventEmitter {
 
     getEntriesByNormId(normId) {
         return this._normalizedIdToEntryIds.get(normId);
+    }
+
+    setEntryType(id, newType) {
+        if (!this._store.has(id)) return;
+        const entry = this.getEntry(id);
+        entry.type = newType;
     }
 
     setSource(id, source, deps) {

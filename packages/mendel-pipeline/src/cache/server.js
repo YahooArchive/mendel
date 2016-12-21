@@ -94,14 +94,6 @@ class CacheServer extends EventEmitter {
         verbose('sent', entry.id);
     }
 
-    // TODO: duplicate of registry/index.js
-    getTransformIdsByType(typeName) {
-        const type = this._types.find(({name}) => typeName === name);
-        if (!type) return ['raw'];
-
-        return ['raw'].concat(type.transforms);
-    }
-
     serializeEntry(entry) {
         const type = entry.getTypeForConfig(this.config);
         const deps = entry.getDependency();

@@ -1,59 +1,31 @@
-const mendelConfig = require('../../mendel-config');
-const CacheClient = require('./cache/client');
-const MendelGenerators = require('./generators');
-const MendelOutletRegistry = require('./registry/outlet');
+const debug = require('debug')('mendel:outlet:manifest');
 const fs = require('fs');
-const path = require('path');
-const debug = require('debug')('mendel:outlets');
 const mkdirp = require('mkdirp');
-const DefaultShims = require('node-libs-browser');
+const path = require('path');
 
-class MendelOutlets {
+module.exports = class ManifestOutlet {
     constructor(options) {
-        if (options.config === false) {
-            this.config = options;
-        } else {
-            this.config = mendelConfig(
-                Object.assign({defaultShim: DefaultShims}, options)
-            );
-        }
-
-        this.registry = new MendelOutletRegistry(this.config);
-        this.generators = new MendelGenerators(this.config, this.registry);
-        this.setupClient();
+        this.config = options;
     }
 
-    setupClient() {
+    perform({entries, options}) {
+        const manifest = this.getV1Manifest(entries);
+        const outfileObject = path.parse(options.outfile);
 
-        const client = new CacheClient(this.config, this.registry);
+        outfileObject.base = null;
+        outfileObject.name = outfileObject.name.endsWith('.manifest') ?
+            outfileObject.name :
+            outfileObject.name + '.manifest';
+        outfileObject.ext = '.json';
 
-        client.on('error', (error) => {
-            if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
-                console.error('Please, use --outlet only when you have another'+
-                    'mendel process running on --watch mode.');
-                process.exit(1);
-            }
-        });
+        const manifestFileName = path.format(outfileObject);
+        mkdirp.sync(path.dirname(manifestFileName));
+        fs.writeFileSync(
+            manifestFileName,
+            JSON.stringify(manifest, null, 2)
+        );
 
-        client.on('sync', () => {
-
-            this.generators.perform();
-
-            const manifest = this.getV1Manifest(
-                this.generators.doneBundles[0].entries);
-            // TODO: mendel-config v2 not parsing output build path
-            const dest = path.join(
-                this.config.projectRoot, 'build/test.manifest.json'
-            );
-            mkdirp.sync(path.dirname(dest));
-            fs.writeFileSync(
-                dest,
-                JSON.stringify(manifest, null, 2)
-            );
-
-            process.exit(0);
-
-        });
+        debug(`Outputted: ${manifestFileName}`);
     }
 
     dataFromItem(item) {
@@ -109,6 +81,4 @@ class MendelOutlets {
 
         return manifest;
     }
-}
-
-module.exports = MendelOutlets;
+};

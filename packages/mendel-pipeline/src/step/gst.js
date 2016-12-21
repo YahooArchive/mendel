@@ -26,7 +26,7 @@ class GraphSourceTransform extends BaseStep {
         this._baseVariationId = options.baseConfig.id;
         this._variations = options.variationConfig.variations;
 
-        this._gsts = ['ist'];
+        this._gsts = [];
         this._transforms = options.transforms;
         options.types.forEach(type => {
             const gsts = type.transforms.filter((transformId) => {
@@ -35,7 +35,7 @@ class GraphSourceTransform extends BaseStep {
             });
             this._gsts = this._gsts.concat(gsts);
         });
-        this._curGstIndex = 1;
+        this._curGstIndex = 0;
         this._processed = new Set();
         this._virtual = new Set();
     }

@@ -1,5 +1,5 @@
-const Bundle = require('./bundles/bundle');
-const DefaultGenerator = require('./bundles/default-generator');
+const Bundle = require('../../bundles/bundle');
+const DefaultGenerator = require('../../bundles/default-generator');
 const debug = require('debug')('mendel:generators');
 
 class MendelGenerators {
@@ -47,7 +47,7 @@ class MendelGenerators {
                 doneBundles.push(resultBundle);
             }
         });
-        this.doneBundles = doneBundles;
+        return this.doneBundles = doneBundles;
     }
 }
 

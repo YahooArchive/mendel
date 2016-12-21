@@ -1,18 +1,18 @@
 const debug = require('debug')('mendel:daemon');
-const mendelConfig = require('../../mendel-config');
+const mendelConfig = require('../../../mendel-config');
 
-const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
+const AnalyticsCliPrinter = require('../helpers/analytics/cli-printer');
 const EventEmitter = require('events').EventEmitter;
-const MendelCache = require('./cache');
-const Watcher = require('./fs-watcher');
-const Transformer = require('./transformer');
-const DepResolver = require('./deps');
+const MendelCache = require('../cache');
+const Watcher = require('../fs-watcher');
+const Transformer = require('../transformer');
+const DepResolver = require('../deps');
 
-const MendelPipeline = require('./pipeline');
-const CacheServer = require('./cache/server');
+const MendelPipeline = require('../pipeline');
+const CacheServer = require('../cache/server');
 const DefaultShims = require('node-libs-browser');
 
-require('./helpers/analytics/analytics-collector').setOptions({
+require('../helpers/analytics/analytics-collector').setOptions({
     printer: new AnalyticsCliPrinter({enableColor: true}),
 });
 
@@ -109,7 +109,6 @@ module.exports = class MendelPipelineDaemon {
         // this prioritizes the default env first
         const pipeline = this.getPipeline(environment);
         pipeline.on('idle', () => {
-            console.log('pipeline is done');
             this.watchAll();
         });
     }

@@ -33,73 +33,6 @@ class MendelRegistry extends EventEmitter {
         super.emit.apply(this, arguments);
     }
 
-    // ⚠️ TODO This can change based on environment
-    getType(id) {
-        if (isNodeModule(id)) return 'node_modules';
-
-        const type = this._types.find(({glob}) => {
-            return glob.filter(({negate}) => !negate).some(g => g.match(id)) &&
-                glob.filter(({negate}) => negate).every(g => g.match(id));
-        });
-
-        return type ? type.name : 'others';
-    }
-
-    getTransformIdsByType(typeName) {
-        const type = this._types.find(({name}) => typeName === name);
-        if (!type) return [];
-        if (!this._parserTypeConversion.has(typeName)) {
-            return type.transforms;
-        }
-
-        return type.transforms.concat([type.parser]);
-    }
-
-    // planSearchIds is in order of priority
-    getClosestPlanTransformIds(entryId, planSearchIds) {
-        const plan = this.getTransformPlans(entryId);
-        const foundPlan = planSearchIds.reverse().find(id => plan[id]);
-        if (!foundPlan) return [];
-        return plan[foundPlan].ids;
-    }
-
-    getTransformPlans(entryId) {
-        // do ist first
-        const type = this.getType(entryId);
-        const ist = {
-            type: this.getType(entryId),
-            ids: [],
-        };
-        const gst = {};
-        let xformIds = this.getTransformIdsByType(type);
-
-        // If there is a parser, do type conversion
-        while (this._parserTypeConversion.has(ist.type)) {
-            const newType = this._parserTypeConversion.get(ist.type);
-            ist.type = newType;
-            xformIds = xformIds.concat(this.getTransformIdsByType(ist.type));
-        }
-
-        const xforms = xformIds
-        .map(transformId => this._transforms.find(({id}) => transformId === id))
-        .filter(Boolean);
-
-        ist.ids = xforms.filter(xform => xform.mode === 'ist').map(xform => xform.id);
-        const gstIds = xforms.filter(xform => xform.mode === 'gst').map(xform => xform.id);
-
-        let prevPlan = ist;
-        gstIds.forEach(gstId => {
-            gst[gstId] = {
-                // can there be a type conversion with a gst?
-                type: ist.type,
-                ids: prevPlan.ids.concat([gstId]),
-            };
-            prevPlan = gst[gstId];
-        });
-
-        return Object.assign(gst, {ist});
-    }
-
     addToPipeline(filePath) {
         this._mendelCache.requestEntry(filePath);
     }
@@ -154,6 +87,10 @@ class MendelRegistry extends EventEmitter {
         return this._mendelCache.hasEntry(filePath);
     }
 
+    setEntryType(entryId, newType) {
+        return this._mendelCache.setEntryType(entryId, newType);
+    }
+
     /**
      * @param {String} norm normalizedId
      * @param {Function} dependencyGetter has to return correct normalizedId of dependency
@@ -180,10 +117,6 @@ class MendelRegistry extends EventEmitter {
 
         return Array.from(visitedEntries.values());
     }
-}
-
-function isNodeModule(id) {
-    return id.indexOf('node_modules') >= 0;
 }
 
 module.exports = MendelRegistry;

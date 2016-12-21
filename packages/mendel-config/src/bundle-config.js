@@ -1,12 +1,14 @@
 const createValidator = require('./validator');
+const path = require('path');
 
-function BundleConfig(id, options) {
+function BundleConfig(id, options, config) {
     this.id = id;
     this.generator = options.generator || 'default';
-    this.outfile = options.outfile;
+    this.outfile = path.resolve(config.baseConfig.outdir, options.outfile);
     this.entries = flattenArrays(options.entries || []);
     this.require = flattenArrays(options.require || []);
     this.external = flattenArrays(options.external || []);
+    this.outlet = options.outlet;
 
     this.options = without(
         options,

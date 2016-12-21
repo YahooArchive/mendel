@@ -45,6 +45,7 @@
     "mendel-parser-json": "*",
     "mendel-pipeline": "*",
     "mendel-transform-babel": "*",
+    "mendel-outlet-manifest": "*",
     "nodemon": "^1.9.2",
     "react-addons-test-utils": "^0.14.8",
     "watchify": "^3.7.0"

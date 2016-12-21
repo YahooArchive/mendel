@@ -1,6 +1,7 @@
 base-config:
   id: base
   dir: ./isomorphic/base
+  outdir: ./build
 
 variation-config:
   variation-dirs:
@@ -61,6 +62,10 @@ env:
         node_modules:
           - uglyfy
 
+outlets:
+  - id: manifest
+    plugin: mendel-outlet-manifest
+
 # needs to be array because order is relevant
 # if extract-bundles comes first, some node_modules that
 #     only lazy bundle needs will be part of the lazy bundle
@@ -74,15 +79,18 @@ generators: # AKA graph transforms - or graph operations
 # "outfile" is optional and only needed for single layer generation
 bundles:
   main:
+    outlet: manifest
     outfile: main.js
     entries:
       - ./main
   vendor:
+    outlet: manifest
     outfile: vendor.js
     generator: node-modules-generator
     all-bundles: true # expects only 1 bundle to apply this generator, or throws
                       # look for node_modules in every other bundle
   lazy:
+    outlet: manifest
     outfile: lazy.js
     generator: extract-bundles
     extract-from: main

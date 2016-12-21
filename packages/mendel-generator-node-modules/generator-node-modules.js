@@ -1,4 +1,4 @@
 
 module.exports = function() {
-  console.log(__dirname);
+    console.log('FIXME', __filename);
 };
