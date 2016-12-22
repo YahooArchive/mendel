@@ -1,5 +1,3 @@
-Mendel is an open source project. Although it has been no secret that there has been a work on v2, we were as transparent with our progress and tasks to be done.
-
 Below are the things we need in order to achieve the Mendel v2 milestone.
 - [ ] Finalize Outlet API for pluggability/extendability
 - [ ] Sourcemap support
