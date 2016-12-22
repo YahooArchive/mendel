@@ -2,6 +2,7 @@ Mendel is an open source project. Although it has been no secret that there has 
 
 Below are the things we need in order to achieve the Mendel v2 milestone.
 - [ ] Finalize Outlet API for pluggability/extendability
+- [ ] Sourcemap support
 - [ ] Implement Node module generator (creates module bundle separately from source)
 - [ ] Implement Extract/[code split](https://twitter.com/samccone/status/797528710085652480) generator
 - [ ] Manifest v1 Outlet
