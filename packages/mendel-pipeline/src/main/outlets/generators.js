@@ -18,26 +18,24 @@ class MendelGenerators {
         });
 
         this.bundles = options.bundles.map(opts => new Bundle(opts));
-        this.plan();
-    }
 
-    plan() {
-        let plan = [];
-        this.generators.forEach(generator => {
-            plan = plan.concat(this.bundles.filter(bundle => {
+        // This orders generators to run in order of "generators" declaration
+        // in the mendelrc
+        this.plan = this.generators.map(generator => {
+            return this.bundles.find(bundle => {
                 return bundle.options.generator === generator.id;
-            }));
-        });
-        debug('plan', plan);
-        this.plan = plan;
+            });
+        }).filter(Boolean);
+
+        debug('plan', this.plan);
     }
 
     perform() {
         const doneBundles = [];
         this.plan.forEach(bundle => {
-            const plugin = this.generators.find(gen => {
+            const {plugin} = this.generators.find(gen => {
                 return gen.id === bundle.options.generator;
-            }).plugin;
+            });
             const resultBundle = plugin(bundle, doneBundles, this.registry);
             // TODO: real bundle validation, to be implemented in the Bundle
             // class, or alternativelly refactor bundle to POJO and use

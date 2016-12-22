@@ -1,4 +1,3 @@
-
 module.exports = defaultGenerator;
 function defaultGenerator(bundle, doneBundles, registry) {
     const entries = bundle.options.entries;
