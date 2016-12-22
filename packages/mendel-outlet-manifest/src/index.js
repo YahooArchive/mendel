@@ -29,13 +29,17 @@ module.exports = class ManifestOutlet {
     }
 
     dataFromItem(item) {
-        return {
+        const data = {
             id: item.normalizedId,
             deps: item.deps,
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
             source: item.source,
         };
+
+        if (item.expose) data.expose = item.expose;
+        if (item.entry) data.entry = item.entry;
+        return data;
     }
 
     getV1Manifest(entries) {

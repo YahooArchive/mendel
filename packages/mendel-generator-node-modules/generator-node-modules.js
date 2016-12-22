@@ -16,9 +16,24 @@ module.exports = function generatorNodeModule(bundle, doneBundles) {
                 entries.delete(entry.id);
                 // and add it to the node module bundle;
                 nodeModules.set(entry.id, entry);
-                // TODO entry or expose are browserify concepts. Want to keep that?
-                entry.expose = true;
             });
+
+        Array.from(entries.values())
+        .forEach(entry => {
+            const {deps} = entry;
+            Object.keys(deps)
+            .forEach(depLiteral => {
+                const dep = entry.deps[depLiteral];
+                if (!nodeModules.has(dep)) return;
+
+                const depEntry = nodeModules.get(dep);
+
+                // Only node modules that are being used by main bundle
+                // should be expose or "required" in browserify sense.
+                // Unncessary but congruent to ManifestV1
+                depEntry.expose = depEntry.id;
+            });
+        });
     });
 
     return bundle;
