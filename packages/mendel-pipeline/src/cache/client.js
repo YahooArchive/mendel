@@ -1,5 +1,4 @@
-/* Copyright 2015, Yahoo Inc.
-   Designed by Stephan Lee
+/* Copyright 2015-2016, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 

@@ -8,7 +8,7 @@ const BiSourceVariationalResolver = require('mendel-resolver/bisource-resolver')
 debug(`[Slave ${process.pid}] online`);
 
 const pendingInquiry = new Map();
-const ENV_NAMES = ['main', 'browser'];
+const RUNTIME = ['main', 'browser'];
 
 process.on('message', (payload) => {
     const { type,
@@ -23,7 +23,7 @@ process.on('message', (payload) => {
 
         analytics.tic();
         const resolver = new BiSourceVariationalResolver({
-            envNames: ENV_NAMES,
+            runtimes: RUNTIME,
             extensions: ['.js', '.jsx', '.json'],
             // entry related
             basedir: path.resolve(projectRoot, path.dirname(filePath)),
@@ -46,8 +46,8 @@ process.on('message', (payload) => {
         dep({source, resolver})
         .then((deps) => {
             Object.keys(deps).forEach(literal => {
-                Object.keys(deps[literal]).forEach(envName => {
-                    deps[literal][envName] = withPrefix(deps[literal][envName]);
+                Object.keys(deps[literal]).forEach(runtime => {
+                    deps[literal][runtime] = withPrefix(deps[literal][runtime]);
                 });
             });
             return deps;

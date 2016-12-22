@@ -4,7 +4,7 @@ const variationMatches = require('mendel-development/variation-matches');
 
 class VariationalModuleResolver extends ModuleResolver {
     constructor({
-        envNames,
+        runtimes,
         extensions,
         // entry related
         basedir,
@@ -13,7 +13,7 @@ class VariationalModuleResolver extends ModuleResolver {
         baseConfig,
         variationConfig,
     }) {
-        super({cwd: projectRoot, basedir, envNames, extensions});
+        super({cwd: projectRoot, basedir, runtimes, extensions});
 
         // config params
         this.projectRoot = projectRoot;
@@ -72,7 +72,7 @@ class VariationalModuleResolver extends ModuleResolver {
         // Easy case: package.json was present in the variational directory
         // we won't merge base's and variation's package.json so this package.json
         // MUST contain complete information that resolves perfectly.
-        const resolveFiles = this.envNames
+        const resolveFiles = this.runtimes
             .filter(name => pkg[name])
             .map(name => {
                 return this.resolveFile(path.join(moduleName, pkg[name]))
@@ -88,7 +88,7 @@ class VariationalModuleResolver extends ModuleResolver {
             resolves.filter(Boolean).forEach(({name, path}) => {
                 resolved[name] = path;
             });
-            this.envNames.filter(name => !resolved[name]).forEach(name => resolved[name] = resolved.main);
+            this.runtimes.filter(name => !resolved[name]).forEach(name => resolved[name] = resolved.main);
             return resolved;
         });
     }

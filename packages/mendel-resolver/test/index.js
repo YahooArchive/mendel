@@ -12,7 +12,7 @@ const basePath = path.resolve(__dirname, './fixtures');
     test('resolve ' + dir, function(t) {
         const config = {
             extensions: ['.js'],
-            envNames: ['main', 'browser'],
+            runtimes: ['main', 'browser'],
             basedir: dirPath,
             cwd: __dirname,
         };
@@ -37,7 +37,7 @@ test('resolve node-modules', function(t) {
     const dirPath = path.resolve(basePath, dir);
     const config = {
         extensions: ['.js'],
-        envNames: ['main', 'browser'],
+        runtimes: ['main', 'browser'],
         basedir: dirPath,
         cwd: __dirname,
     };
@@ -61,7 +61,7 @@ test('resolve node-modules', function(t) {
         const dirPath = path.resolve(basePath, dir);
         const config = {
             extensions: ['.js'],
-            envNames: ['main', 'browser'],
+            runtimes: ['main', 'browser'],
             basedir: dirPath,
             cwd: __dirname,
         };

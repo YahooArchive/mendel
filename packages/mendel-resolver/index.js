@@ -5,20 +5,20 @@ class ModuleResolver {
     /**
      * @param {Object} options
      * @param {String} options.basedir
-     * @param {String[]} options.envNames
+     * @param {String[]} options.runtimes
      */
     constructor({
         cwd=process.cwd(),
         basedir=process.cwd(),
         extensions=['.js'],
-        envNames=['main'],
+        runtimes=['main'],
         recordPackageJson=false,
     } = {}) {
         this.extensions = extensions;
         this.cwd = cwd;
         // in case basedir is relative, we want to make it relative to the cwd.
         this.basedir = path.resolve(this.cwd, basedir);
-        this.envNames = envNames;
+        this.runtimes = runtimes;
         this.recordPackageJson = recordPackageJson;
     }
 
@@ -91,7 +91,7 @@ class ModuleResolver {
         });
 
         return promise.then(filePath => {
-            const reduced = this.envNames.reduce((reduced, name) => {
+            const reduced = this.runtimes.reduce((reduced, name) => {
                 reduced[name] = filePath;
                 return reduced;
             }, {});
@@ -107,12 +107,12 @@ class ModuleResolver {
             // Nested package.json is not supported.
             // e.g., ./package.json#main -> ./foo/package.json#main -> ./foo/bar/index.js
             // Fallback to `main` in case package.json misses the name required.
-            const resolved = this.envNames.reduce((reduced, name) => {
+            const resolved = this.runtimes.reduce((reduced, name) => {
                 const module = typeof pkg[name] === 'string' ? pkg[name] : pkg.main;
                 reduced[name] = path.join(moduleName, module);
                 return reduced;
             }, {});
-            return Promise.all(this.envNames.map(runtime => this.fileExists(resolved[runtime])))
+            return Promise.all(this.runtimes.map(runtime => this.fileExists(resolved[runtime])))
             .then(() => {
                 if (this.recordPackageJson) resolved.packageJson = packagePath;
                 return resolved;
