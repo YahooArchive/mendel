@@ -13,11 +13,8 @@ function BaseConfig(config) {
     const baseConfig = {
         id: input.id,
         dir: path.relative(config.projectRoot, input.dir),
+        outdir: path.resolve(config.projectRoot, input.outdir),
     };
-
-    if (input.outdir) {
-        baseConfig.outdir = path.resolve(config.projectRoot, input.outdir);
-    }
 
     return baseConfig;
 }
