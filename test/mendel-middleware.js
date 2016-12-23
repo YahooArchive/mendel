@@ -7,7 +7,9 @@ var express = require('express');
 var request = require('request');
 var path = require('path');
 var async = require('async');
-var exec = require('child_process').exec;
+// Without sync, rest of the test that relies on built app
+// should not execute.
+var exec = require('child_process').execSync;
 
 var appPath = path.join(__dirname, './app-samples/1/');
 var host = 'http://localhost:1337';
@@ -15,23 +17,28 @@ var appBundle = '/mendel/bWVuZGVsAQEA_wUAbddjTtQONPBGmb28yZdfmFFI58c/app.js';
 
 var sut = require('../packages/mendel-middleware');
 
+// Before creating an application using the mendel-middleware, create a manifest
+// by building first.
+tap.test('run build first', function (t) {
+    t.plan(1);
+
+    try {
+        exec('./run.sh', { cwd: appPath });
+        t.pass();
+    } catch (error) {
+        t.bailout('should create manifest but failed', error);
+    }
+});
+
 var app = express();
+
 app.use(sut({
-    basedir: appPath
+    basedir: appPath,
 }));
 
 var server = app.listen('1337');
 tap.tearDown(function() {
     server.close(process.exit);
-});
-
-tap.test('run build first', function (t) {
-    t.plan(1);
-
-    exec('./run.sh', { cwd: appPath }, function(error) {
-        if (error) return t.bailout('should create manifest but failed', error);
-        t.pass();
-    });
 });
 
 app.get('/getURL_testA', function(req, res) {
@@ -196,7 +203,6 @@ app.get('/getBundleCacheLoop', function(req, res) {
         }
     });
 });
-
 
 tap.test('getBundle cached per request', function(t) {
     t.plan(1);

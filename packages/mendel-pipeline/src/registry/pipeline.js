@@ -1,5 +1,4 @@
 const EventEmitter = require('events').EventEmitter;
-// const error = require('debug')('mendel:registry:error');
 const verbose = require('debug')('verbose:mendel:registry');
 
 class MendelRegistry extends EventEmitter {

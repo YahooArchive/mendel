@@ -5,6 +5,7 @@
 var t = require('tap');
 var path = require('path');
 var mkdirp = require('mkdirp');
+var fs = require('fs');
 
 var config = require('../packages/mendel-config');
 var origEnv = process.env.NODE_ENV;
@@ -124,9 +125,36 @@ t.match(config(where), {
 }, 'staging environment');
 
 where = './config-samples/4/';
-function fakeModule(mod) {
-    return path.join(__dirname, where, 'node_modules', mod, 'index.js');
+
+function fakeModules(modules) {
+    var paths = modules.map(function(moduleName) {
+        return path.join(
+            __dirname,
+            where,
+            'node_modules',
+            moduleName,
+            'index.js'
+        );
+    });
+
+    paths.forEach(function(modulePath) {
+        mkdirp.sync(path.dirname(modulePath));
+        fs.writeFileSync(modulePath, '');
+    });
+    var moduleNameToPath = {};
+    paths.forEach(function(modulePath, index) {
+        moduleNameToPath[modules[index]] = modulePath;
+    });
+    return moduleNameToPath;
 }
+
+var fakes = fakeModules([
+    'mendel-babelify',
+    'mendel-envify',
+    'mendel-extract-bundles',
+    'mendel-extract-node-modules',
+]);
+
 process.env.NODE_ENV = 'development';
 t.match(config(where), {
     baseConfig: {
@@ -136,16 +164,13 @@ t.match(config(where), {
     types: [
         {
             name: 'js',
-            outlet: {
-                plugin: 'mendel-bundle-browser-pack',
-            },
             transforms: ['envify-dev'],
         },
     ],
     transforms: [
         {
             id: 'babelify-prod',
-            plugin: fakeModule('mendel-babelify'),
+            plugin: fakes['mendel-babelify'],
             options: {
                 plugins: ['react-intl-remove-description',
                 'transform-react-remove-prop-types'],
@@ -153,14 +178,14 @@ t.match(config(where), {
         },
         {
             id: 'envify-dev',
-            plugin: fakeModule('mendel-envify'),
+            plugin: fakes['mendel-envify'],
             options: {
                 NODE_ENV: 'development',
             },
         },
         {
             id: 'envify-prod',
-            plugin: fakeModule('mendel-envify'),
+            plugin: fakes['mendel-envify'],
             options: {
                 NODE_ENV: 'production',
             },
@@ -179,9 +204,6 @@ t.match(config(where), {
             name: 'js',
             isBinary: false,
             parser: null,
-            outlet: {
-                plugin: 'mendel-bundle-rollup',
-            },
             transforms: ['envify-prod', 'babelify-prod'],
         },
     ],

@@ -28,7 +28,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "scripts": {
-    "test": "DEBUG='' npm run unit && npm run lint",
+    "test": "DEBUG='' rimraf test/**/build* && npm run unit && npm run lint",
     "lint": "eslint .",
     "unit": "DEBUG='' tap test/*.js",
     "unit-file": "DEBUG='' tap",
@@ -53,6 +53,7 @@
     "browserify": "^13.1.1",
     "express": "^4.14.0",
     "mkdirp": "^0.5.1",
+    "rimraf": "^2.5.4",
     "tap": "^8.0.1",
     "temp": "^0.8.3",
     "tmp": "0.0.31"

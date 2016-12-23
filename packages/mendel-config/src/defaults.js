@@ -11,6 +11,7 @@ module.exports = function() {
         'base-config': {
             id: 'base',
             dir: process.cwd(),
+            outdir: process.cwd(),
         },
         'build-dir': 'build',
         'variation-config': {
