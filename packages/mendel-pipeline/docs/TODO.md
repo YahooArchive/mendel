@@ -10,4 +10,5 @@ Below are the things we need in order to achieve the Mendel v2 milestone.
   - Create general class for multi-process workers
 - [ ] CSS outlet with PostCSS support
 - [ ] Improve test coverage (find the most effective way of testing; can be fully black box integrational test)
+- [ ] Validator: finding out misconfiguration as early as possible is good for user experience. Don't want to fail after launching application
 - More...
