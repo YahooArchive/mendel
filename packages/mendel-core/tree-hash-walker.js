@@ -43,7 +43,7 @@ MendelHashWalker.prototype._resolveBranch = function(module) {
     this.pathCount++;
     return {
         index: nextPath,
-        resolved: resolved || {}
+        resolved: resolved || {},
     };
 };
 
@@ -62,6 +62,6 @@ MendelHashWalker.prototype.found = function() {
     }
 
     return xtend(this._result, {
-        error: this.error
+        error: this.error,
     });
 };

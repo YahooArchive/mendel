@@ -9,7 +9,7 @@ var variationMatches = require('./variation-matches');
 
 var wrapper = [
     'module.exports = function(__mendel_require__, module, exports) {\n',
-    '\n};\nmodule.exports.__mendel_module__ = true;\n'
+    '\n};\nmodule.exports.__mendel_module__ = true;\n',
 ];
 
 function _wrap(src) {
@@ -19,7 +19,7 @@ function _wrap(src) {
 function replaceRequiresOnSource (destinationPath, src, dirs, wrap) {
     var opts = {
         ecmaVersion: 6,
-        allowReturnOutsideFunction: true
+        allowReturnOutsideFunction: true,
     };
     var _src = falafel(src, opts, function (node) {
         if (isRequire(node)) {

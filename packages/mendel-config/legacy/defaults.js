@@ -15,6 +15,6 @@ module.exports = function() {
         bundles: {},
         variations: {},
         env: {},
-        environment: 'development'
+        environment: 'development',
     };
 };

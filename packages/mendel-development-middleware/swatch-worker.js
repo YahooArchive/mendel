@@ -34,7 +34,7 @@ function start() {
                 'changed',
                 'removed',
                 'ready',
-                'error'
+                'error',
             ];
             events.forEach(notifyParent);
 
@@ -59,7 +59,7 @@ module.exports.fork = function(opts) {
     opts = opts || {};
 
     var worker = fork(__filename, {
-        env: xtend({}, process.env, {MENDEL_SWATCH_WORKER_ID: ids++})
+        env: xtend({}, process.env, {MENDEL_SWATCH_WORKER_ID: ids++}),
     });
 
     var workerEvents = new EventEmitter();
@@ -95,6 +95,6 @@ module.exports.fork = function(opts) {
         stop: function() {
             worker.send({cmd: 'stop'});
             worker.kill();
-        }
+        },
     };
 };

@@ -83,7 +83,7 @@ function runMendelBundle(mendelConfig, rawBundle, doneBundle) {
         basedir: mendelConfig.basedir,
         outfile: path.join(
             mendelConfig.bundlesoutdir, mendelConfig.base, bundleConfig.bundleName + '.js'
-        )
+        ),
     }, bundleConfig);
 
     mkdirp.sync(path.dirname(bundleConfig.outfile));
@@ -115,7 +115,7 @@ function normalizeEntries(rawConfig, entries) {
                     '[warn] paths relative to variation are deprecated',
                     'you can fix this by changing',
                     entry,
-                    'in your configuration'
+                    'in your configuration',
                 ];
                 console.log(messages.join(' '));
                 entry = path.join(rawConfig.basedir, rawConfig.basetree, entry);

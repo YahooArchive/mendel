@@ -27,14 +27,14 @@ function run(t, outDir, outFile, cb) {
     t.plan(4);
     var b = browserify({
         basedir: srcDir,
-        entries: [path.join(srcDir, entry)]
+        entries: [path.join(srcDir, entry)],
     });
     b.transform(treenherit, {
-        dirs: variationDirs
+        dirs: variationDirs,
     });
     b.plugin(requirify, {
         outdir: outDir,
-        dirs: variationDirs
+        dirs: variationDirs,
     });
     b.bundle(function (err) {
         if (err) {

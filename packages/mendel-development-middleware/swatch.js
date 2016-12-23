@@ -35,14 +35,14 @@ function Swatch(opts) {
 
     self.config = xtend(config, {
         verbose: false,
-        silent: false
+        silent: false,
     });
 
     var base = config.base || 'base';
 
     self.variations = validVariations(config).concat({
         id: base,
-        chain: [config.basetree || 'base']
+        chain: [config.basetree || 'base'],
     });
 
     self.bundlers = {};
@@ -81,7 +81,7 @@ Swatch.prototype._handleDepsChange = function(bundle, variation, srcFiles) {
     var changes = {
         bundle: bundle,
         variation: variation,
-        files: []
+        files: [],
     };
 
     srcFiles.forEach(function (src) {
@@ -103,7 +103,7 @@ Swatch.prototype._handleFileRemoved = function(srcFile) {
         if (err) {
             return self.emit('error', err, {
                 src: srcFile,
-                dest: destFile
+                dest: destFile,
             });
         }
         self.emit('removed', srcFile, destFile);
@@ -146,11 +146,11 @@ Swatch.prototype.watch = function() {
             watch.createMonitor(wdir, {
                 ignoreDotFiles: true,
                 interval: 500,
-                filter: fileIsInOutdir
+                filter: fileIsInOutdir,
             }, function(monitor) {
                 self.monitors.push({
                     dir: wdir,
-                    monitor: monitor
+                    monitor: monitor,
                 });
                 /*
                  * File deletions are handled by the watch monitor.
@@ -169,7 +169,7 @@ Swatch.prototype.watch = function() {
 
     var sharedWatchifyCache = {
         cache: {},
-        packageCache: {}
+        packageCache: {},
     };
 
     config.bundles.forEach(function(bundle) {
@@ -190,7 +190,7 @@ Swatch.prototype.watch = function() {
             function bundleError(err) {
                 self.emit('error', err, {
                     bundle: bundleId,
-                    variation: variationId
+                    variation: variationId,
                 });
             }
 
@@ -213,10 +213,10 @@ Swatch.prototype.watch = function() {
             bundler.transform(treenherit, { dirs: variation.chain });
             bundler.plugin(watchify);
             bundler.plugin(mendelify, {
-                variations: [variation]
+                variations: [variation],
             });
             bundler.plugin(requirify, {
-                outdir: outdir
+                outdir: outdir,
             });
             applyExtraOptions(bundler, bundleConfig); // must happen after all plugins that have "proxy"
             bundler.on('update', function(srcFiles) {
@@ -261,14 +261,14 @@ function formatChanges(changes) {
     var files = changes.files.map(function (file) {
         return [
             '    - src:  ' + file.src,
-            '      dest: ' + file.dest
+            '      dest: ' + file.dest,
         ].join('\n');
     });
     var header = [
         'Changed:',
         '  bundle: ' + changes.bundle,
         '  variation: ' + changes.variation,
-        '  files:'
+        '  files:',
     ];
 
     return header.concat(files).join('\n');

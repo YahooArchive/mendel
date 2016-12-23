@@ -19,7 +19,7 @@ Iface.prototype = {
     },
     filteredMethod: function() {
         return this.name + ' filteredMethod';
-    }
+    },
 };
 
 function spy(obj, methods) {
@@ -30,7 +30,7 @@ function spy(obj, methods) {
             var val = o.apply(obj, args);
             this[m].calls.push({
                 args: args,
-                returns: val
+                returns: val,
             });
             this[m].callCount++;
             return val;
@@ -54,7 +54,7 @@ var dest = new Iface('dest');
 
 proxy(Iface, src, dest, {
     filters: [onlyPublicMethods],
-    exclude: ['filteredMethod']
+    exclude: ['filteredMethod'],
 });
 
 spy(src, allMethods);

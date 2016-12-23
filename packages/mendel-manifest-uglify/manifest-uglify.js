@@ -15,7 +15,7 @@ function manifestUglify(manifests, options, next) {
         compress: true,
         mangle: true,
     }, options.uglifyOptions, {
-        fromString: true
+        fromString: true,
     });
 
     function whichManifests(manifest) {

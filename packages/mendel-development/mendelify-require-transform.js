@@ -10,7 +10,7 @@ var regexExt = /(\.js|\.coffee|\.coffee.md|\.litcoffee|\.jsx|\.es|\.es6)$/;
 function mendelifyRequireTransform(filename, src, transformerFn) {
     var opts = {
         ecmaVersion: 6,
-        allowReturnOutsideFunction: true
+        allowReturnOutsideFunction: true,
     };
     if (!regexExt.test(filename)) {
         return src;

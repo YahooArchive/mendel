@@ -29,7 +29,7 @@ test('mendel-manifest-uglify compress', function (t) {
         outdir: copySamples,
         bundles: [{
             bundleName: 'uncompressed',
-            manifest: 'one-file.manifest.json'
+            manifest: 'one-file.manifest.json',
         }],
     }, function(error) {
         t.error(error);
@@ -52,14 +52,14 @@ test('mendel-manifest-uglify skips based on bundle id', function (t) {
         // verbose: true, // remember to use this for debug
         manifestProcessors:[
             [uglify, {
-                bundles: ['no-bundle-has-this-name']
+                bundles: ['no-bundle-has-this-name'],
             }],
         ],
         basedir: realSamples,
         outdir: copySamples,
         bundles: [{
             bundleName: 'uncompressed',
-            manifest: 'one-file.manifest.json'
+            manifest: 'one-file.manifest.json',
         }],
     }, function(error) {
         t.error(error);
@@ -85,10 +85,10 @@ test('mendel-manifest-uglify compress with options', function (t) {
                 uglifyOptions: {
                     mangle: {
                         eval: true,
-                        toplevel: true
+                        toplevel: true,
                     },
-                    mangleProperties: true
-                }
+                    mangleProperties: true,
+                },
             }],
         ],
         basedir: realSamples,
@@ -96,7 +96,7 @@ test('mendel-manifest-uglify compress with options', function (t) {
         bundles: [{
             // just re-using, important part is that are some files there
             bundleName: 'uncompressed',
-            manifest: 'one-file.manifest.json'
+            manifest: 'one-file.manifest.json',
         }],
     }, function(error) {
         t.error(error);

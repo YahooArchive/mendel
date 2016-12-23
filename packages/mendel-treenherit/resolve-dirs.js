@@ -18,7 +18,7 @@ function resolveInDirs(file, dirs, base, parent, callback) {
         var opts = {
             filename: parentInsideIterateeDir,
             extensions: [ ".js", ".coffee", ".coffee.md", ".litcoffee",
-                            ".jsx", ".es", ".es6"]
+                            ".jsx", ".es", ".es6"],
         };
         resolve(file, opts, function(err, path) {
             if (!err) {

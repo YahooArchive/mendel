@@ -10,12 +10,12 @@ var expected = {
     "decoded": {
         "branches": [
             0,
-            2
+            2,
         ],
         "files": 2,
         "hash": '0b0ca69d74be872c914b06e8bdee677917e8e9f2',
         "name": "mendel",
-        "version": 1
+        "version": 1,
     },
     "error": null,
 };

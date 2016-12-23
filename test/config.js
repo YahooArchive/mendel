@@ -28,8 +28,8 @@ t.match(config(), {
     outdir: path.resolve(__dirname, './config-samples/2/mendel'),
     variations: {
        "json_A": null,
-       "json_B": ["folder_B"]
-    }
+       "json_B": ["folder_B"],
+    },
 }, "find package.json, and match some variations");
 
 
@@ -41,37 +41,37 @@ t.match(config(where), {basedir: path.resolve(where)},
 
 t.match(config({
     basedir: path.resolve(where),
-    config: false
+    config: false,
 }), {
-    bundles: []
+    bundles: [],
 }, "skip file config option for CLI use");
 
 t.match(config({
     basedir: path.resolve(where),
     outdir: path.resolve(where, 'myoutdir'),
     bundlesoutdir: path.resolve(where, 'myoutdir/le-bundles'),
-    serveroutdir: path.resolve(where, 'myoutdir/le-node')
+    serveroutdir: path.resolve(where, 'myoutdir/le-node'),
 }), {
     basedir: path.resolve(where),
     outdir: path.resolve(where, 'myoutdir'),
     bundlesoutdir: path.resolve(where, 'myoutdir/le-bundles'),
-    serveroutdir: path.resolve(where, 'myoutdir/le-node')
+    serveroutdir: path.resolve(where, 'myoutdir/le-node'),
 }, "leaves absolite paths untouched");
 
 where = './config-samples/3/';
 t.match(config(where), {
     basedir: path.resolve(__dirname),
-    outdir: path.resolve(__dirname, 'config-samples/mendel')
+    outdir: path.resolve(__dirname, 'config-samples/mendel'),
 }, "ignores package.json that don't contain 'mendel' entry");
 
 opts = {
     outdir: '../build',
-    bundleName: 'testBundle'
+    bundleName: 'testBundle',
 };
 t.match(config(opts), {
     basedir: path.resolve(__dirname),
     outdir: path.resolve(__dirname, '../build'),
-    bundleName: 'testBundle'
+    bundleName: 'testBundle',
 }, "custom bundleName and outdir");
 
 where = './config-samples';
@@ -79,7 +79,7 @@ t.match(config(where), {
     bundles: [
         {id: 'vendor'},
         {id: 'main'},
-    ]
+    ],
 }, 'default environment');
 
 t.match(config(where), {
@@ -88,9 +88,9 @@ t.match(config(where), {
         { id: 'main',  external: [
             'react',
             'react-dom',
-            './foo.js'
-        ]}
-    ]
+            './foo.js',
+        ]},
+    ],
 }, 'flattens arrays if externals');
 
 process.env.MENDEL_ENV = 'test';
@@ -98,13 +98,13 @@ t.match(config(where), {
     bundles: [
         {id: 'vendor'},
         {id: 'main', transform: ['testify']},
-        {id: 'test', entries: ['foo.js', 'bar.js']}
-    ]
+        {id: 'test', entries: ['foo.js', 'bar.js']},
+    ],
 }, 'test environment');
 
 t.match(config(where), {
     bundlesoutdir: path.resolve(__dirname,
-        './config-samples/mendel-build/client-test')
+        './config-samples/mendel-build/client-test'),
 }, "merge env config options");
 
 process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));

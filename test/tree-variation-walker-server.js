@@ -15,8 +15,8 @@ var stub1 = {
     data: [
         {id:'a', sha:'ba', variation: 'a'},
         {id:'b', variation: 'b'},
-        {id:'special', 'variation': 'special'}
-    ]
+        {id:'special', 'variation': 'special'},
+    ],
 };
 
 var walker = MendelServerVariationWalker([['a'],['special']], 'special');

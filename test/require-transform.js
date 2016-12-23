@@ -11,7 +11,7 @@ var src = [
     "var foo = require('foo');",
     "var bar = require('some/dir/variation1/bar');",
     "var baz = require('some/dir/variation2/baz');",
-    "var qux = require('some/dir/base/qux');"
+    "var qux = require('some/dir/base/qux');",
 ].join('\n');
 
 var mendelifiedModules = ['bar', 'baz', 'qux'];

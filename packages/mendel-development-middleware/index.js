@@ -51,7 +51,7 @@ function MendelMiddleware(opts) {
 
     return function(req, res, next) {
         req.mendel = req.mendel || {
-            variations: false
+            variations: false,
         };
 
         req.mendel.getBundleEntries = function() {
@@ -150,7 +150,7 @@ function MendelMiddleware(opts) {
         bundleConfig = xtend(config, bundleConfig, {
             debug: true,
             cache: {},
-            packageCache: {}
+            packageCache: {},
         });
 
         cachedStreamBundle(bundleConfig, dirs, function(bundleStream) {
@@ -226,7 +226,7 @@ function getCachedWatchfy(id, bundleConfig, dirs, cb) {
     if (bundleConfig.serveroutdir && bundleConfig.entries.length) {
         bundler.plugin(requirify, {
             dirs: dirs,
-            outdir: bundleConfig.serveroutdir
+            outdir: bundleConfig.serveroutdir,
         });
     }
 
@@ -243,7 +243,7 @@ function normalizeEntries(entries, config) {
                     '[warn] paths relative to variation are deprecated',
                     'you can fix this by changing',
                     entry,
-                    'in your configuration'
+                    'in your configuration',
                 ];
                 console.log(messages.join(' '));
                 entry = path.join(config.basedir, config.basetree, entry);

@@ -106,11 +106,11 @@ function MendelBrowserify(baseBundle, pluginOptions) {
 
         proxy(browserify, baseBundle, variationBundle, {
             filters: [onlyPublicMethods],
-            exclude: ['bundle']
+            exclude: ['bundle'],
         });
 
         proxy(pipeline, baseBundle.pipeline, variationBundle.pipeline, {
-            filters: [onlyPublicMethods]
+            filters: [onlyPublicMethods],
         });
 
         baseBundle.on('bundle', function onBaseBundleStart() {
@@ -190,7 +190,7 @@ MendelBrowserify.prototype.addPipelineDebug = function(bundle) {
         var dirs = [
             self.pluginOptions.basetree,
             self.pluginOptions.variationsdir,
-            'node_modules'
+            'node_modules',
         ];
         var look = new RegExp("/("+dirs.join('|')+")/");
         var parts = row.file.split(look);
@@ -359,7 +359,7 @@ function addTransform(bundle) {
         transform: require("mendel-treenherit"),
         options: {
             dirs: bundle.variation.chain,
-        }
+        },
     };
 
     process.nextTick(function resolved () {

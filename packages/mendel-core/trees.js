@@ -21,7 +21,7 @@ function MendelTrees(opts) {
     var variations = parseVariations(config);
     variations.push({
         'id': config.base,
-        chain: [config.basetree]
+        chain: [config.basetree],
     });
 
     this.config = config;
@@ -117,7 +117,7 @@ MendelTrees.prototype.variationsAndChains = function(lookFor) {
     lookupChains.push([this.config.basetree]);
     return {
         lookupChains: lookupChains,
-        matchingVariations: matchingVariations
+        matchingVariations: matchingVariations,
     };
 };
 

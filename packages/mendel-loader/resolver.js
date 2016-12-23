@@ -14,7 +14,7 @@ var NativeModule = {
     exists: function(name) {
         return natives[name] === true;
     },
-    require: require
+    require: require,
 };
 
 function MendelResolver(parentModule, variations, outdir) {
@@ -69,7 +69,7 @@ MendelResolver.prototype.require = function (name) {
         var mendelMod = {
             parent: parent,
             exports: {},
-            require: that.require.bind(that)
+            require: that.require.bind(that),
         };
 
         // this is the 'incomplete' module to avoid infinite loops on circular dependencies

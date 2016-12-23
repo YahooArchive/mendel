@@ -13,7 +13,7 @@ function VariationConfig(config) {
     const baseVariation = {
         id: config.baseConfig.id,
         chain: [config.baseConfig.dir],
-        dir: config.baseConfig.dir
+        dir: config.baseConfig.dir,
     };
     // base variation must come first in order to variationMatches to work
     variations.unshift(baseVariation);

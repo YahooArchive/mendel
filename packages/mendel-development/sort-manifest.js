@@ -7,7 +7,7 @@ module.exports = sortManifest;
 function sortManifest(inputIndexes, inputBundles) {
     var sortedManifest = {
         indexes: {},
-        bundles: []
+        bundles: [],
     };
 
     Object.keys(inputIndexes).sort().forEach(function(file) {

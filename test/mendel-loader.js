@@ -26,14 +26,14 @@ test('mendel-loader-server', function(t){
             path.join(srcDir, 'app/throws.js'),
         ],
         outfile: path.join(buildDir, 'app.js'),
-        basedir: srcDir
+        basedir: srcDir,
     });
 
     b.plugin(mendelify, {
-        outdir: buildDir
+        outdir: buildDir,
     });
     b.plugin(requirify, {
-        outdir: mountDir
+        outdir: mountDir,
     });
 
     b.bundle(function(err) {
@@ -47,22 +47,22 @@ test('mendel-loader-server', function(t){
             var tree = new Tree({
                 basedir: srcDir,
                 outdir: buildDir,
-                serveroutdir: 'server'
+                serveroutdir: 'server',
             });
             var loader = new Loader(tree);
 
             var inputs = [{
                 variations: ['test_B'],
-                expect: 7
+                expect: 7,
             }, {
                 variations: ['test_C'],
-                expect: 11
+                expect: 11,
             }, {
                 variations: ['test_B', 'test_C'],
-                expect: 7
+                expect: 7,
             }, {
                 variations: ['test_C', 'test_B'],
-                expect: 7
+                expect: 7,
             }];
 
             inputs.forEach(function (i) {
@@ -79,7 +79,7 @@ test('mendel-loader-server', function(t){
                     var throwyFile = resolver.require('throws.js'); // eslint-disable-line no-unused-vars
                 }, {
                     name: 'Error',
-                    message: 'Intentional error'
+                    message: 'Intentional error',
                 });
             });
 
@@ -101,7 +101,7 @@ test('mendel-loader-server-syntax-error', function(t){
         var tree = new Tree({
             basedir: srcDir,
             outdir: buildDir,
-            serveroutdir: 'server'
+            serveroutdir: 'server',
         });
         // test without 'new'
         var loader = Loader(tree);
@@ -112,7 +112,7 @@ test('mendel-loader-server-syntax-error', function(t){
             resolver.require(invalidFile);
         }, {
             name: 'ReferenceError',
-            message: 'yes is not defined'
+            message: 'yes is not defined',
         });
 
         t.ok(Module._cache[invalidFile] === undefined);

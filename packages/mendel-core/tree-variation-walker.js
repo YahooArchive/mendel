@@ -51,14 +51,14 @@ MendelVariationWalker.prototype._resolveBranch = function(module) {
     }
     return {
         index: pathIndex,
-        resolved: resolved
+        resolved: resolved,
     };
 };
 
 MendelVariationWalker.prototype.found = function() {
     return xtend(MendelWalker.prototype.found.call(this), {
         conflicts: this.conflicts,
-        conflictList: this.conflictList
+        conflictList: this.conflictList,
     });
 };
 

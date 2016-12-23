@@ -47,7 +47,7 @@ app.get('/getURL_testA', function(req, res) {
     // also increase coverage meaninfully
     req.mendel.setVariations(['test_C']);
     res.json({
-        appBundle: req.mendel.getURL('app')
+        appBundle: req.mendel.getURL('app'),
     });
 });
 
@@ -56,22 +56,22 @@ tap.test('getURL returns correct hash', function(t){
 
     request({
         url: host+'/getURL_testA',
-        json:true
+        json:true,
     }, function(error, response, json) {
         if (error) t.bailout(error);
 
         t.match(response, {
-            statusCode: 200
+            statusCode: 200,
         }, 'getURL without errors');
         t.match(json, {
-            appBundle: appBundle
+            appBundle: appBundle,
         }, 'getURL correct hash');
     });
 });
 
 app.get('/getURLDeprecated', function(req, res) {
     res.json({
-        appBundle: req.mendel.getURL('app', ['test_A'])
+        appBundle: req.mendel.getURL('app', ['test_A']),
     });
 });
 
@@ -84,16 +84,16 @@ tap.test('getURL still works with variations', function(t){
 
     request({
         url: host+'/getURLDeprecated',
-        json:true
+        json:true,
     }, function(error, response, json) {
         console.warn = old;
         if (error) t.bailout(error);
 
         t.match(response, {
-            statusCode: 200
+            statusCode: 200,
         }, 'serves javascript');
         t.match(json, {
-            appBundle: appBundle
+            appBundle: appBundle,
         });
         t.contains(msg, '[DEPRECATED]', 'getURL show deprecated msg');
     });
@@ -102,7 +102,7 @@ tap.test('getURL still works with variations', function(t){
 app.get('/resolver_testA', function(req, res) {
     req.mendel.setVariations(['test_A']);
     res.json({
-        result: req.mendel.resolver(['app']).require('index.js')()
+        result: req.mendel.resolver(['app']).require('index.js')(),
     });
 });
 
@@ -111,7 +111,7 @@ tap.test('resolver require gets correct code', function(t){
 
     request({
         url: host+'/resolver_testA',
-        json: true
+        json: true,
     }, function(error, response, json) {
         if (error) t.bailout(error);
 
@@ -122,7 +122,7 @@ tap.test('resolver require gets correct code', function(t){
 
 app.get('/resolverDeprecated', function(req, res) {
     res.json({
-        result: req.mendel.resolver(['app'], ['test_A']).require('index.js')()
+        result: req.mendel.resolver(['app'], ['test_A']).require('index.js')(),
     });
 });
 
@@ -135,7 +135,7 @@ tap.test('resolver still works with variations', function(t){
 
     request({
         url: host+'/resolverDeprecated',
-        json:true
+        json:true,
     }, function(error, response, json) {
         console.warn = old;
         if (error) t.bailout(error);
@@ -152,7 +152,7 @@ app.get('/getBundleIncorrect', function(req, res) {
         req.mendel.getBundle('app'); // this line throws
     } catch (e) {
         res.status(500).json({
-            error: e.message
+            error: e.message,
         });
         return;
     }
@@ -165,15 +165,15 @@ tap.test('throws on incorrect use', function(t){
 
     request({
         url: host+'/getBundleIncorrect',
-        json:true
+        json:true,
     }, function(error, response, json) {
         if (error) t.bailout(error);
 
         t.match(response, {
-            statusCode: 500
+            statusCode: 500,
         }, 'serves javascript');
         t.match(json, {
-            error: 'Please call req.mendel.setVariations first'
+            error: 'Please call req.mendel.setVariations first',
         }, 'throws error when called in wrong order');
     });
 });
@@ -209,7 +209,7 @@ tap.test('getBundle cached per request', function(t) {
 
     request({
         url: host+'/getBundleCacheLoop',
-        json:true
+        json:true,
     }, function(error, response) {
         if (error) t.bailout(error);
 

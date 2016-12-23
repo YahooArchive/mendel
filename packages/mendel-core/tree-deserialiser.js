@@ -9,7 +9,7 @@ var URLSafeBase64 = require('urlsafe-base64');
 module.exports = deserialize;
 function deserialize(treeHash) {
     var result = {
-        error: null
+        error: null,
     };
 
     var branches = [];

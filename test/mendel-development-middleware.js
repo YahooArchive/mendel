@@ -12,7 +12,7 @@ var async = require('async');
 
 var app = express();
 app.use(sut({
-    basedir: path.join(__dirname, './app-samples/1/')
+    basedir: path.join(__dirname, './app-samples/1/'),
 }));
 
 var server = app.listen('1337');
@@ -30,7 +30,7 @@ tap.test('mendel-development-middleware serves a bundle', function(t){
 
         t.match(response, {
             statusCode: 200,
-            headers: { 'content-type': 'application/javascript' }
+            headers: { 'content-type': 'application/javascript' },
         }, 'serves javascript');
         t.contains(body, 'sourceMappingURL=data:application/json;',
             'has source maps');

@@ -21,13 +21,13 @@ function MendelMiddleware(opts) {
         return acc;
     }, {});
     var loader = new MendelLoader(trees, {
-        parentModule: module.parent
+        parentModule: module.parent,
     });
 
     return function(req, res, next) {
         req.mendel = req.mendel || {
             bundleCache: {},
-            variations: false
+            variations: false,
         };
 
         req.mendel.getBundleEntries = function() {
@@ -122,7 +122,7 @@ function MendelMiddleware(opts) {
         // Serve bundle
         res.set({
             'Content-Type': 'application/javascript',
-            'Cache-Control': 'public, max-age=31536000'
+            'Cache-Control': 'public, max-age=31536000',
         });
 
         pack.pipe(res);

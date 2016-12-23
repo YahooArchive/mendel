@@ -20,12 +20,12 @@ var config = {
     base: "test_base",
     variations: {
         folder_A: null,
-        doNotExist: null
-    }
+        doNotExist: null,
+    },
 };
 var expected = [{
     id: 'folder_A',
-    chain: ['folder_A', "test_base"]
+    chain: ['folder_A', "test_base"],
 }];
 t.match(parseVariations(config), expected,
     "makes sure folders exists, honors config.base");
@@ -52,22 +52,22 @@ config =  {
     variations: {
         _: [], // commandline compatibility
         experiment_A: {
-            _: ['folder_A'] // commandline compatibility
+            _: ['folder_A'], // commandline compatibility
         },
         experiment_B: ['folder_B'],
         experiment_C: ['folder_C'],
-        experiment_D: ['folder_C', 'folder_A']
-    }
+        experiment_D: ['folder_C', 'folder_A'],
+    },
 };
 expected = [{
     id: 'experiment_A',
-    chain: ['folder_A', "base"]
+    chain: ['folder_A', "base"],
 }, {
     id: 'experiment_C',
-    chain: ['folder_C', "base"]
+    chain: ['folder_C', "base"],
 }, {
     id: 'experiment_D',
-    chain: ['experiment_D', 'folder_C', 'folder_A', "base"]
+    chain: ['experiment_D', 'folder_C', 'folder_A', "base"],
 }];
 
 t.match(parseVariations(config), expected,
@@ -83,18 +83,18 @@ config =  {
     variations: {
         experiment_A: null,
         experiment_B: null,
-        experiment_C: ['experiment_A']
-    }
+        experiment_C: ['experiment_A'],
+    },
 };
 expected = [{
     id: 'experiment_A',
-    chain: ['experiment_A', "_default"]
+    chain: ['experiment_A', "_default"],
 }, {
     id: 'experiment_B',
-    chain: ['experiment_B', "_default"]
+    chain: ['experiment_B', "_default"],
 }, {
     id: 'experiment_C',
-    chain: ['experiment_C', 'experiment_A', "_default"]
+    chain: ['experiment_C', 'experiment_A', "_default"],
 }];
 
 t.match(parseVariations(config), expected,

@@ -22,7 +22,7 @@ test('MendelTrees initialization', function (t) {
     t.equal(MendelTrees().constructor, MendelTrees, "returns instance");
     t.match(MendelTrees().variations, [{
         id: 'base',
-        chain: ['base']
+        chain: ['base'],
     }], "fallback minimal configuration");
 
     process.chdir(appPath);
@@ -44,16 +44,16 @@ test('MendelTrees private methods', function (t) {
     trees.config.basetree = 'base-chain';
     trees.variations = [{
         id: 'a',
-        chain: ['a-chain', 'base-chain']
+        chain: ['a-chain', 'base-chain'],
     },{
         id: 'b',
-        chain: ['b-chain', 'base-chain']
+        chain: ['b-chain', 'base-chain'],
     },{
         id: 'c',
-        chain: ['c-chain', 'b-chain', 'base-chain']
+        chain: ['c-chain', 'b-chain', 'base-chain'],
     }, {
         id: 'base',
-        chain: ['base-chain']
+        chain: ['base-chain'],
     }];
 
     t.equal(
@@ -96,27 +96,27 @@ test('MendelTrees private methods', function (t) {
         foo: {
             indexes: {
                 'entry.js': 0,
-                'second.js': 1
+                'second.js': 1,
             },
             bundles: [{
                 entry: true,
                 id: 'entry.js',
                 deps: {
                     './relative_dependency.js': 'second.js',
-                    'excluded-dependency': false
-                }
+                    'excluded-dependency': false,
+                },
             }, {
                 id: 'second.js',
-                deps: {}
-            }]
-        }
+                deps: {},
+            }],
+        },
     };
     var walkedModules = [];
     trees._walkTree('foo', {
         find: function(module) {
             walkedModules.push(module);
             return module;
-        }
+        },
     });
     t.matches(trees.bundles.foo.bundles[0], walkedModules[0]);
     t.matches(trees.bundles.foo.bundles[1], walkedModules[1]);
@@ -126,21 +126,21 @@ test('MendelTrees private methods', function (t) {
         circular: {
             indexes: {
                 'a.js': 0,
-                'b.js': 1
+                'b.js': 1,
             },
             bundles: [{
                 entry: true,
                 id: 'a.js',
                 deps: {
-                    './b.js': 'b.js'
-                }
+                    './b.js': 'b.js',
+                },
             }, {
                 id: 'b.js',
                 deps: {
-                    './a.js': 'a.js'
-                }
-            }]
-        }
+                    './a.js': 'a.js',
+                },
+            }],
+        },
     };
     var circularModules = [];
     trees._walkTree('circular', {
@@ -149,7 +149,7 @@ test('MendelTrees private methods', function (t) {
                 circularModules.push(module);
             }
             return module;
-        }
+        },
     });
     t.equal(circularModules.length, 2, 'works with circular deps');
 });
@@ -193,13 +193,13 @@ test('MendelTrees valid manifest runtime', function (t) {
             'index.js': 'app',
             'math.js': 'test_A',
             'some-number.js': 'app',
-            'another-number.js': 'app'
+            'another-number.js': 'app',
         }, 'map_1 variationMap sanity check');
         t.match(map_2, {
             'index.js': 'app',
             'math.js': 'test_A',
             'some-number.js': 'test_B',
-            'another-number.js': 'app'
+            'another-number.js': 'app',
         }, 'map_2 variationMap sanity check');
         t.match(map_3, {}, 'map_3 variationMap sanity check');
         t.match(map_4, {}, 'map_4 variationMap sanity check');

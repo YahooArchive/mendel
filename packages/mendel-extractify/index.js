@@ -146,11 +146,11 @@ function MendelExtractify(baseBundle, pluginOptions) {
 
         proxy(browserify, baseBundle, childBundle, {
             filters: [onlyPublicMethods],
-            exclude: ['bundle']
+            exclude: ['bundle'],
         });
 
         proxy(pipeline, baseBundle.pipeline, childBundle.pipeline, {
-            filters: [onlyPublicMethods]
+            filters: [onlyPublicMethods],
         });
 
         // There is a chicken and egg problem, the baseBundle needs to know the

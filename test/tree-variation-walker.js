@@ -12,7 +12,7 @@ var stub1 = {
     index: 0,
     id: 'first',
     variations: ["a", "b", "special"],
-    data: [{id:'a', sha:'ba'},{id:'b'},{id:'special'}]
+    data: [{id:'a', sha:'ba'},{id:'b'},{id:'special'}],
 };
 
 var walker = MendelVariationWalker([['a'],['special']], 'special');

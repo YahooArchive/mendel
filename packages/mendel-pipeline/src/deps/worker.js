@@ -54,7 +54,7 @@ process.on('message', (payload) => {
         })
         // mendel-resolver throws in case nothing was found
         .catch(() => {
-            return ENV_NAMES.reduce((reduced, name) => {
+            return RUNTIME.reduce((reduced, name) => {
                 reduced[name] = false;
                 return reduced;
             }, {});

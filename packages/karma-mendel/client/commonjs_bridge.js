@@ -15,7 +15,7 @@
             if (existingfiles[paths[i]]) {
                 return {
                     module: existingfiles[paths[i]],
-                    path: paths[i]
+                    path: paths[i],
                 };
             }
         }
@@ -42,7 +42,7 @@
         var module = cachedModules[dependencyPath];
         if (module === undefined) {
             module = {
-                exports: {}
+                exports: {},
             };
             cachedModules[dependencyPath] = module;
             moduleFn(requireFn(dependencyPath), module, module.exports, dirname(requiringFilePath), basename(requiringFilePath));

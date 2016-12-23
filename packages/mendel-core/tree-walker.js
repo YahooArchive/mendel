@@ -43,7 +43,7 @@ MendelWalker.prototype._resolveBranch = function() {
 
 MendelWalker.prototype.found = function() {
     var found = {
-        deps: this.deps
+        deps: this.deps,
     };
     if (this.serialiser) {
         found.hash = this.serialiser.result();

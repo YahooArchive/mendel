@@ -19,11 +19,11 @@ function postProcessManifests(config, finish) {
     var resolveProcessor = processorResolver.bind(null, config);
 
     var processors = [
-        [loadManifests, config]
+        [loadManifests, config],
     ].concat(config.manifestProcessors).concat([
         [sortManifestProcessor, config],
         [validateManifestProcessor, config],
-        [writeManifest, config]
+        [writeManifest, config],
     ]).filter(Boolean);
 
     async.map(processors, resolveProcessor, function(err, processors) {
@@ -58,7 +58,7 @@ function processorResolver(config, processorIn, doneProcessor) {
     var opts = processorIn[1];
     if (typeof processor === 'string') {
         var resolveOpts = {
-            basedir: config.basedir
+            basedir: config.basedir,
         };
         resolve(processor, resolveOpts, function (err, path) {
             // istanbul ignore if

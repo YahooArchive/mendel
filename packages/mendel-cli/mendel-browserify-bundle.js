@@ -22,7 +22,7 @@ function mendelBundle(mendelConfig, bundleConfig, doneBundle) {
 
     if (mendelConfig.serveroutdir) {
         b.plugin(mendelRequirify, {
-            outdir: mendelConfig.serveroutdir
+            outdir: mendelConfig.serveroutdir,
         });
     }
 

@@ -15,8 +15,8 @@ var shallowModule = {
     index: 0,
     data: [{
         id: "stubData",
-        sha: "010203"
-    }]
+        sha: "010203",
+    }],
 };
 
 t.equals(walker.find(shallowModule).id, "stubData",
@@ -35,20 +35,20 @@ var branchModule = {
     index: 2,
     data: [{
         id: "firstItem",
-        sha: "0506FF"
+        sha: "0506FF",
     },{
         id: "secondItem",
-        sha: "0506FF"
+        sha: "0506FF",
     },{
         id: "thirdItem",
         sha: "bb06FF",
-        variation: "variationValue"
-    }]
+        variation: "variationValue",
+    }],
 };
 walker._resolveBranch = function(module) {
     return {
         resolved: module.data[1],
-        index: 1
+        index: 1,
     };
 };
 
@@ -64,7 +64,7 @@ branchModule.index = 3;
 walker._resolveBranch = function(module) {
     return {
         resolved: module.data[2],
-        index: 2
+        index: 2,
     };
 };
 
@@ -73,16 +73,16 @@ walker.find(branchModule);
 var finalResult = {
     deps: [{
         id: 'stubData',
-        sha: '010203'
+        sha: '010203',
     }, null, {
         id: 'secondItem',
-        sha: '0506FF'
+        sha: '0506FF',
     }, {
         id: 'thirdItem',
         sha: 'bb06FF',
-        variation: 'variationValue'
+        variation: 'variationValue',
     }],
-    hash: 'bWVuZGVsAQEC_wMA5EClgTUZaXjQeWopmqLqqDgWBJ4'
+    hash: 'bWVuZGVsAQEC_wMA5EClgTUZaXjQeWopmqLqqDgWBJ4',
 };
 
 t.match(walker.found(), finalResult,
