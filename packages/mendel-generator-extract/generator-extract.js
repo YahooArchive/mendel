@@ -16,6 +16,8 @@ function generatorExtract(bundle, doneBundles, registry) {
     const extractedBundle = new Map();
     const mainEntryIds = new Set();
 
+    // Collect dependencies of main as if lazy was not there
+    // Collect dependencies of lazy bundle
     fromBundle.options.entries.forEach(entry => {
         const normalizedId = registry.hasEntry(entry) ?
             registry.getEntry(entry).normalizedId :
@@ -32,6 +34,7 @@ function generatorExtract(bundle, doneBundles, registry) {
         });
     });
 
+    // From the main entry, now, we pick and shift things around.
     fromBundle.entries.forEach(entry => {
         const {id} = entry;
         // case when entry only exist in the lazy bundle
@@ -47,6 +50,5 @@ function generatorExtract(bundle, doneBundles, registry) {
     bundle.entries = extractedBundle;
     return bundle;
 }
-
 
 module.exports = generatorExtract;
