@@ -25,7 +25,10 @@ program
 if (program.outlet) {
     const MendelOutlets = require('./main/outlets');
     const outlets = new MendelOutlets(program);
-    outlets.run();
+    outlets.run((error) => {
+        if (error) process.exit(1);
+        process.exit(0);
+    });
 } else if (program.watch) {
     const MendelPipelineDaemon = require('./main/daemon');
     const daemon = new MendelPipelineDaemon(program);
@@ -33,5 +36,8 @@ if (program.outlet) {
 } else {
     const MendelPipelineDaemon = require('./main/daemon');
     const daemon = new MendelPipelineDaemon(program);
-    daemon.run();
+    daemon.run((error) => {
+        if (error) process.exit(1);
+        process.exit(0);
+    });
 }

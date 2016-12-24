@@ -52,7 +52,7 @@ class CacheClient extends EventEmitter {
             }
         });
 
-        this.connection.on('connect', () => this.bootstrapConnection());
+        this.connection.on('connect', () => this.connected = true);
         this.connection.on('end', () => {
             debug('Disconnected from the master');
         });
@@ -72,6 +72,11 @@ class CacheClient extends EventEmitter {
             this.emit('sync');
             debug(`${this.registry.size} in sync with server`);
         }
+    }
+
+    start() {
+        if (this.connected) this.bootstrapConnection();
+        else this.connection.once('connect', () => this.bootstrapConnection());
     }
 }
 

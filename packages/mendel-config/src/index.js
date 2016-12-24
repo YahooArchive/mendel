@@ -6,6 +6,7 @@
 const path = require('path');
 const inspect = require('util').inspect;
 const debug = require('debug')('mendel:config');
+const {undash} = require('./util');
 
 const defaultConfig = require('./defaults');
 const TransformConfig = require('./transform-config');
@@ -29,8 +30,8 @@ module.exports = function(rawConfig) {
     }
 
     // In YAML syntax, we use dash instead of camel case. Normalize it.
-    const config = undashConfig(defaultEnvConfig);
-    config.variationConfig = undashConfig(config.variationConfig);
+    const config = undash(defaultEnvConfig);
+    config.variationConfig = undash(config.variationConfig);
 
     // Use absolute path for path configs
     config.projectRoot = path.resolve(config.projectRoot);
@@ -63,22 +64,6 @@ module.exports = function(rawConfig) {
 
     return config;
 };
-
-function undashConfig(dashedConfig) {
-    return Object.keys(dashedConfig).reduce((config, key) => {
-        const dashRegexp = /\-([a-z])/i;
-        if (dashRegexp.test(key)) {
-            const newKey = key.replace(dashRegexp, (dash, letter) => {
-                return letter.toUpperCase();
-            });
-            config[newKey] = dashedConfig[key];
-        } else {
-            config[key] = dashedConfig[key];
-        }
-        return config;
-    }, {});
-}
-
 
 function onlyKeys(oldObj, whitelist) {
     return whitelist.reduce((newObj, key) => {

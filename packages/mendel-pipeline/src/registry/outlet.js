@@ -57,7 +57,12 @@ class MendelOutletRegistry {
             return;
         }
 
-        entryVariations.forEach(entry => {
+        Array.from(entryVariations.values()).some(entry => {
+            const isContinue = visitorFunction(entry);
+
+            // If visitor function returns false, stop walking
+            if (isContinue === false) return true;
+
             const allDeps = Object.keys(entry.deps)
                 .reduce((reducedDeps, depName) => {
                     const dep = entry.deps[depName];
@@ -68,9 +73,7 @@ class MendelOutletRegistry {
             allDeps.filter(Boolean).forEach(normId => {
                 this.walk(normId, visitorFunction, _visited);
             });
-            visitorFunction(entry);
         });
-
     }
 }
 

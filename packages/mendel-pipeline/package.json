@@ -2,7 +2,7 @@
   "name": "mendel-pipeline",
   "version": "1.0.0",
   "description": "Coordenates all async operations for Mendel",
-  "main": "src/pipeline.js",
+  "main": "src/main/daemon.js",
   "bin": "src/cli.js",
   "scripts": {
     "test": "tap test/*.js",

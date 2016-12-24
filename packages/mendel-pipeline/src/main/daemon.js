@@ -119,11 +119,15 @@ module.exports = class MendelPipelineDaemon {
         });
     }
 
-    run(environment=this.default) {
+    run(callback, environment=this.default) {
         const pipeline = this.getPipeline(environment);
         pipeline.on('idle', () => {
             const MendelOutlets = require('./outlets');
-            new MendelOutlets(this.config);
+            const outlet = new MendelOutlets(this.config);
+            outlet.run(() => {
+                this.server.close();
+                callback();
+            });
         });
     }
 

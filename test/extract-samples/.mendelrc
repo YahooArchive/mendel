@@ -1,0 +1,53 @@
+base-config:
+  id: base
+  dir: ./app
+  outdir: ./build
+
+variation-config:
+  variation-dirs:
+    - ./variations
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    test_A:
+      - test_A
+
+route-config:
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
+
+types:
+  js:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    extensions:
+      - .js
+
+outlets:
+  - id: manifest
+    plugin: mendel-outlet-manifest
+
+generators: # AKA graph transforms - or graph operations
+  - id: extract-bundles
+    plugin: mendel-generator-extract
+
+# "outfile" is optional and only needed for single layer generation
+bundles:
+  main:
+    outlet: manifest
+    outfile: main.js
+    entries:
+      - ./
+  lazy:
+    outlet: manifest
+    outfile: lazy.js
+    generator: extract-bundles
+    extract-from: main
+    extract-entries:
+      # This file requires different files in a variation.
+      #   - util.js
+      #   + third-number.js
+      - ./number-list
+      - ./another-number
+      # This file is not required in the main app.
+      # Should result in noop.
+      - ./throws

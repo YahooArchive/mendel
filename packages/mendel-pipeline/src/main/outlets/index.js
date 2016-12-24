@@ -21,14 +21,10 @@ class MendelOutlets {
         this.setupClient();
     }
 
-    run() {
-        // nothing
-    }
-
     setupClient() {
-        const client = new CacheClient(this.config, this.registry);
+        this.client = new CacheClient(this.config, this.registry);
 
-        client.on('error', (error) => {
+        this.client.on('error', (error) => {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
                 console.error('Please, use --outlet only when you have another'+
                     'mendel process running on --watch mode.');
@@ -36,13 +32,16 @@ class MendelOutlets {
             }
         });
 
-        client.on('sync', () => {
+        this.client.on('sync', () => {
             const bundles = this.generators.perform();
             this.outlets.perform(bundles);
-
-            // Terminate gracefully
-            process.exit(0);
         });
+    }
+
+    run(callback=()=>{}) {
+        this.client.once('sync', callback);
+        this.client.once('error', callback);
+        this.client.start();
     }
 }
 

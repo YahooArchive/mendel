@@ -1,5 +1,6 @@
 const createValidator = require('./validator');
 const path = require('path');
+const {undash} = require('./util');
 
 function BundleConfig(id, options, config) {
     this.id = id;
@@ -14,6 +15,7 @@ function BundleConfig(id, options, config) {
         options,
         ['generator', 'outfile', 'entries', 'require', 'external']
     );
+    this.options = undash(this.options);
 
     BundleConfig.validate(this);
 }
