@@ -5,7 +5,7 @@ class AnalyticsCollector {
 
         global.analytics = this;
         process.on('message', () => this.record());
-        process.on('exit', (code) => {
+        process.on('mendelExit', (code) => {
             if (code === 0 && this.options.printer) {
                 this.options.printer.print(this.data);
             }

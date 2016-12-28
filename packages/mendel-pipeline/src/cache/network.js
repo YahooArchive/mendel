@@ -6,46 +6,51 @@
 // Can use Websocket!
 const net = require('net');
 
-// Consistent API as WS or others this way.
-const realWrite = net.Socket.prototype.write;
-const realEmit = net.Socket.prototype.emit;
-const CONTENT_DELIMITER = '\u0004';
-let buffer = '';
-net.Socket.prototype.send = function(str) {
-    if (typeof str === 'object') str = JSON.stringify(str);
-    this.write(str);
-};
+function patchSocket(socket) {
+    // Consistent API as WS or others this way.
+    const realWrite = net.Socket.prototype.write;
+    const realEmit = net.Socket.prototype.emit;
+    const CONTENT_DELIMITER = '\u0004';
+    let buffer = '';
+    socket.send = function(str) {
+        if (typeof str === 'object') str = JSON.stringify(str);
+        this.write(str);
+    };
 
-net.Socket.prototype.write = function(str) {
-    // end of transmission
-    realWrite.call(this, str + CONTENT_DELIMITER);
-};
+    socket.write = function(str) {
+        // end of transmission
+        realWrite.call(this, str + CONTENT_DELIMITER);
+    };
 
-net.Socket.prototype.emit = function(name, content) {
-    if (name !== 'data') return realEmit.apply(this, arguments);
+    socket.emit = function(name, content) {
+        if (name !== 'data') return realEmit.apply(this, arguments);
 
-    let delimitInd;
-    while ((delimitInd = content.indexOf(CONTENT_DELIMITER)) >= 0) {
-        realEmit.call(this, 'data', buffer + content.slice(0, delimitInd));
-        content = content.slice(delimitInd + CONTENT_DELIMITER.length);
-        buffer = '';
-    }
+        let delimitInd;
+        while ((delimitInd = content.indexOf(CONTENT_DELIMITER)) >= 0) {
+            realEmit.call(this, 'data', buffer + content.slice(0, delimitInd));
+            content = content.slice(delimitInd + CONTENT_DELIMITER.length);
+            buffer = '';
+        }
 
-    buffer += content;
-};
+        buffer += content;
+    };
+}
 
 module.exports = {
     getServer(connectionOptions) {
         const server = net.createServer().listen(connectionOptions);
 
-        // nodemon style shutdown
+        // // nodemon style shutdown
         process.once('SIGUSR2', function() {
             gracefulShutdown(function() {
                 process.kill(process.pid, 'SIGUSR2');
             });
         });
-        process.on('exit', gracefulShutdown);
-        server.on('connection', socket => socket.setEncoding('utf8'));
+        process.on('mendelExit', gracefulShutdown);
+        server.on('connection', socket => {
+            patchSocket(socket);
+            socket.setEncoding('utf8');
+        });
 
         function gracefulShutdown(callback) {
             server.close();
@@ -62,8 +67,9 @@ module.exports = {
     },
     getClient(connectionOptions) {
         const connection = net.connect(connectionOptions);
+        patchSocket(connection);
         connection.setEncoding('utf8');
-        process.on('exit', () => connection.end());
+        process.on('mendelExit', () => connection.end());
         return connection;
     },
 };

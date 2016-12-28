@@ -22,7 +22,7 @@ class DepsManager {
         this._workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
         this._workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
         this._idleWorkerQueue = this._workerProcesses.map(({pid}) => pid);
-        process.on('exit', () => {
+        process.on('mendelExit', () => {
             this._workerProcesses.forEach(workerProcess => workerProcess.kill());
         });
     }
@@ -64,11 +64,12 @@ class DepsManager {
 
     next() {
         if (!this._queue.length || !this._idleWorkerQueue.length) return;
-
         const self = this;
         const {filePath, source, resolve, reject} = this._queue.shift();
         const workerId = this._idleWorkerQueue.shift();
         const workerProcess = this._workerProcesses.find(({pid}) => workerId === pid);
+
+        if (!workerProcess.connected) return;
 
         workerProcess.on('message', function onMessage({error, type, filePath, deps}) {
             if (type === 'error') {

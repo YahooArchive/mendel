@@ -1,16 +1,21 @@
-const test = require('tap').test;
+const tap = require('tap');
 const path = require('path');
 const appPath = path.resolve(__dirname, './extract-samples');
 const appBuildPath = path.join(appPath, 'build');
+
 const MendelV2 = require('../packages/mendel-pipeline');
 const rimraf = require('rimraf');
 
-test('Build the extraction app', function(t) {
+process.env.MENDELRC = '.extract.mendelrc';
+
+tap.test('Build the extraction app', function(t) {
     t.plan(2);
     rimraf.sync(appBuildPath);
+    rimraf.sync(path.join(appPath, '**/*/.mendelipc'));
     process.chdir(appPath);
 
     const mendel = new MendelV2();
+
     mendel.run((error) => {
         if (error) return t.bailout('should create manifest but failed', error);
 

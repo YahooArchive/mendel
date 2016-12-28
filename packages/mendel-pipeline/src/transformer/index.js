@@ -6,7 +6,7 @@ const analytics = require('../helpers/analytics/analytics')('ipc');
 const debug = require('debug')('mendel:transformer:master');
 const {fork} = require('child_process');
 
-const parallelMode = (function() {
+function createParallelTransformer() {
     const numCPUs = require('os').cpus().length;
     const workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
     workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
@@ -39,7 +39,7 @@ const parallelMode = (function() {
         next();
     }
 
-    process.on('exit', () => {
+    process.once('mendelExit', () => {
         workerProcesses.forEach(workerProcess => workerProcess.kill());
     });
 
@@ -63,7 +63,7 @@ const parallelMode = (function() {
             next();
         });
     };
-})();
+}
 
 function singleMode(transforms, {filename, source}) {
     let promise = Promise.resolve();
@@ -87,6 +87,7 @@ class TransformManager {
         transforms.forEach(transform => {
             this._transforms.set(transform.id, transform);
         });
+        this._parallelMode = createParallelTransformer();
     }
 
     transform(filename, transformIds, source) {
@@ -95,7 +96,7 @@ class TransformManager {
 
         let mode;
         if (transformIds.every(transformId => typeof this._transforms.get(transformId).plugin === 'string')) {
-            mode = parallelMode;
+            mode = this._parallelMode;
         } else {
             console.log('[MENDEL][deopt] The transform is not a known one to Mendel and we cannot parallelize it. Please contribute to IFT plugin for faster build.');
             mode = singleMode;
@@ -104,5 +105,4 @@ class TransformManager {
         return mode(transforms, {filename, source});
     }
 }
-
 module.exports = TransformManager;

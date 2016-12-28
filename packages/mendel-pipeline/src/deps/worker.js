@@ -81,6 +81,14 @@ process.on('message', (payload) => {
     }
 });
 
+process.on('exit', () => {
+    debug(`[Slave ${process.pid}] Exit`);
+});
+
+process.on('SIGTERM', () => {
+    process.exit(0);
+});
+
 function withPrefix(path) {
     if (/^\w[^:]/.test(path)) path = './' + path;
     return path;

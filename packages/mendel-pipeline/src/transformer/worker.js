@@ -42,7 +42,6 @@ process.on('message', ({type, transforms, source, filename}) => {
             analyticsIpc.toc('transform');
         })
         .catch(error => {
-            console.log(error.stack);
             debug(`[Slave ${process.pid}] Transform errored.`);
             process.send({type: 'error', filename, error: error.message});
         });
@@ -50,4 +49,8 @@ process.on('message', ({type, transforms, source, filename}) => {
         debug(`[Slave ${process.pid}] Instructed to exit.`);
         process.exit(0);
     }
+});
+
+process.on('exit', () => {
+    debug(`[Slave ${process.pid}] Exit`);
 });

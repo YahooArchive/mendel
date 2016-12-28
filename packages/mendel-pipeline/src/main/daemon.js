@@ -108,9 +108,12 @@ module.exports = class MendelPipelineDaemon {
     watch(environment=this.default) {
         // this prioritizes the default env first
         const pipeline = this.getPipeline(environment);
-        pipeline.on('idle', () => {
-            this.watchAll();
-        });
+        pipeline.on('idle', () => this.watchAll());
+
+        // process.on('exit', () => {
+        //     process.emit('mendelExit');
+        //     this.server.close();
+        // });
     }
 
     watchAll() {
@@ -125,6 +128,7 @@ module.exports = class MendelPipelineDaemon {
             const MendelOutlets = require('./outlets');
             const outlet = new MendelOutlets(this.config);
             outlet.run(() => {
+                process.emit('mendelExit');
                 this.server.close();
                 callback();
             });

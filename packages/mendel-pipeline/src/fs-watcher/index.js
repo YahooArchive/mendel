@@ -56,6 +56,8 @@ class FsWatcher {
             this.cacheManager.addEntry(path);
             this.subscribe(path);
         });
+
+        process.on('mendelExit', () => this.watcher.close());
     }
 
     subscribe(path) {
