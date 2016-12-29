@@ -57,12 +57,6 @@ module.exports = {
             typeof callback === 'function' && callback();
         }
 
-        process.on('SIGINT', () => {
-            // If you listen to the SIGINT, it will ignore "ctrl+c"'s default behavior
-            // Send graceful exit so we close the server above
-            process.exit(0);
-        });
-
         return server;
     },
     getClient(connectionOptions) {

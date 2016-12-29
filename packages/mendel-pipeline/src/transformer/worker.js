@@ -1,56 +1,33 @@
 const analytics = require('../helpers/analytics/analytics-worker')('transform');
-const analyticsIpc = require('../helpers/analytics/analytics-worker')('ipc');
-const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
-debug(`[Slave ${process.pid}] online`);
+module.exports = function() {
+    const debug = require('debug')('mendel:transformer:slave-' + process.pid);
 
-process.on('message', ({type, transforms, source, filename}) => {
-    if (type === 'start') {
-        debug(`[Slave ${process.pid}] Starting transform.`);
+    return {
+        start({source, transforms, filename}) {
+            debug(`[Slave ${process.pid}] Starting transform.`);
+            let promise = Promise.resolve({source});
 
-        if (transforms.length === 0) {
-            return Promise.reject(`${filename} was transformed with nothing.`);
-        }
+            transforms.forEach(transform => {
+                promise = promise
+                .then(analytics.tic.bind(analytics, transform.id))
+                .then(({source}) => {
+                    const xform = require(transform.plugin);
 
-        let promise = Promise.resolve({source});
+                    if (typeof xform !== 'function') {
+                        throw new Error(`Transform ${transform.id} is incompatible with Mendel.`);
+                    }
 
-        transforms.forEach(transform => {
-            promise = promise
-            .then(analytics.tic.bind(analytics, transform.id))
-            .then(({source}) => {
-                const xform = require(transform.plugin);
-
-                if (typeof xform !== 'function') {
-                    throw new Error(`Transform ${transform.id} is incompatible with Mendel.`);
-                }
-
-                return xform({filename, source}, transform.options);
-            })
-            .then(analytics.toc.bind(analytics, transform.id))
-            .then(result => {
-                debug(`[Slave ${process.pid}][${transform.id}] "${filename}" transformed`);
-                return result;
-            }).catch(err => {
-                throw err;
+                    return xform({filename, source}, transform.options);
+                })
+                .then(analytics.toc.bind(analytics, transform.id))
+                .then(result => {
+                    debug(`[Slave ${process.pid}][${transform.id}] "${filename}" transformed`);
+                    return result;
+                });
             });
-        });
 
-        promise.then(({source, map}) => {
-            debug(`[Slave ${process.pid}] Transform done.`);
-            analyticsIpc.tic('transform');
-            process.send({type: 'done', filename, source, map});
-            analyticsIpc.toc('transform');
-        })
-        .catch(error => {
-            debug(`[Slave ${process.pid}] Transform errored.`);
-            process.send({type: 'error', filename, error: error.message});
-        });
-    } else if (type === 'exit') {
-        debug(`[Slave ${process.pid}] Instructed to exit.`);
-        process.exit(0);
-    }
-});
-
-process.on('exit', () => {
-    debug(`[Slave ${process.pid}] Exit`);
-});
+            return promise;
+        },
+    };
+};

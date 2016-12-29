@@ -57,6 +57,9 @@ class Worker {
             });
 
             if (artifact instanceof Promise) {
+                if (type === Protocol.START) {
+                    artifact.then(this.dispatchDone.bind(this));
+                }
                 artifact.catch(this._onError);
             }
         } catch (e) {

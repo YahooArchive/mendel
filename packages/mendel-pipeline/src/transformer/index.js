@@ -1,108 +1,64 @@
 /**
  * Independent/Isolated file transform
  */
-const analyticsCollector = require('../helpers/analytics/analytics-collector');
-const analytics = require('../helpers/analytics/analytics')('ipc');
+const MultiProcessMaster = require('../multi-process/base-master');
+const path = require('path');
 const debug = require('debug')('mendel:transformer:master');
-const {fork} = require('child_process');
-
-function createParallelTransformer() {
-    const numCPUs = require('os').cpus().length;
-    const workerProcesses = Array.from(Array(numCPUs)).map(() => fork(`${__dirname}/worker.js`));
-    workerProcesses.forEach(cp => analyticsCollector.connectProcess(cp));
-    const _idleWorkerQueue = workerProcesses.map(({pid}) => pid);
-    const _queue = [];
-
-    function next() {
-        if (!_queue.length || !_idleWorkerQueue.length) return;
-
-        const {filename, source, transforms, resolves, rejects} = _queue.shift();
-        const idlePid = _idleWorkerQueue.shift();
-        const workerProcess = workerProcesses.find(({pid}) => idlePid === pid);
-
-        workerProcess.on('message', function onMessage({error, type, source, map}) {
-            // debug(`[Master] <- [Slave ${workerProcess.pid}]: ${type}`);
-            if (type !== 'error' && type !== 'done') return;
-            if (type === 'error') {
-                rejects.forEach(reject => reject(new Error(error)));
-            } else if (type === 'done') {
-                _idleWorkerQueue.push(workerProcess.pid);
-                resolves.forEach(resolve => resolve({source, map}));
-            }
-
-            workerProcess.removeListener('message', onMessage);
-            next();
-        });
-        analytics.tic('transform');
-        workerProcess.send({type: 'start', transforms, filename, source});
-        analytics.toc('transform');
-        next();
-    }
-
-    process.once('mendelExit', () => {
-        workerProcesses.forEach(workerProcess => workerProcess.kill());
-    });
-
-    return function queue(transforms, {source, filename}) {
-        return new Promise((resolve, reject) => {
-            const existingJob = _queue.find(queued => queued.filename === filename && queued.transforms === transforms);
-
-            if (existingJob) {
-                existingJob.resolves.push(resolve);
-                existingJob.rejects.push(reject);
-            } else {
-                _queue.push({
-                    resolves: [resolve],
-                    rejects: [reject],
-                    transforms,
-                    source,
-                    filename,
-                });
-            }
-
-            next();
-        });
-    };
-}
-
-function singleMode(transforms, {filename, source}) {
-    let promise = Promise.resolve();
-
-    transforms.forEach(transform => {
-        promise = promise.then(() => {
-            const xform = typeof transform.plugin === 'string' ? require(transform.plugin) : transform.plugin;
-            return xform({filename, source}, transform.options);
-        });
-    });
-
-    return promise;
-}
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
-class TransformManager {
+class TransformManager extends MultiProcessMaster {
     constructor({transforms}) {
+        super(path.join(__dirname, 'worker.js'), {name: 'transforms'});
+
+        this._transforming = [];
         this._transforms = new Map();
         transforms.forEach(transform => {
             this._transforms.set(transform.id, transform);
         });
-        this._parallelMode = createParallelTransformer();
+    }
+
+    /**
+     * @override
+     */
+    subscribe() {
+        return {};
     }
 
     transform(filename, transformIds, source) {
         debug(`Transforming "${filename}" with [${transformIds}]`);
         const transforms = transformIds.map(id => this._transforms.get(id));
+        const existing = this._transforming.find(exist => {
+            return filename === exist.filename &&
+                transforms.every((transform, index) => {
+                    return transform === exist.transforms[index];
+                });
+        });
 
-        let mode;
-        if (transformIds.every(transformId => typeof this._transforms.get(transformId).plugin === 'string')) {
-            mode = this._parallelMode;
-        } else {
-            console.log('[MENDEL][deopt] The transform is not a known one to Mendel and we cannot parallelize it. Please contribute to IFT plugin for faster build.');
-            mode = singleMode;
+        if (!transforms.length) return Promise.resolve({source});
+        if (existing) {
+            return new Promise((resolve, reject) => {
+                existing.additional.push({resolve, reject});
+            });
         }
 
-        return mode(transforms, {filename, source});
+        const descriptor = {filename, transforms, additional: []};
+        this._transforming.push(descriptor);
+        return this.dispatchJob({
+            transforms,
+            filename,
+            source,
+        }).then(result => {
+            descriptor.additional.forEach(({resolve}) => resolve(result));
+            return result;
+        }).catch(error => {
+            descriptor.additional.forEach(({reject}) => {
+                reject(error);
+            });
+            throw error;
+        });
     }
 }
+
 module.exports = TransformManager;

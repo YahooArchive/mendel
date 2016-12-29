@@ -1,10 +1,10 @@
 const path = require('path');
-const BaseMaster = require('../multi-process/base-master');
+const MultiProcessMaster = require('../multi-process/base-master');
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
  */
-class DepsManager extends BaseMaster {
+class DepsManager extends MultiProcessMaster {
     /**
      * @param {String} config.projectRoot
      */
@@ -29,9 +29,9 @@ class DepsManager extends BaseMaster {
             filePath: entryId,
             source,
             // config properties
-           projectRoot: this._projectRoot,
-           baseConfig: this._baseConfig,
-           variationConfig: this._variationConfig,
+            projectRoot: this._projectRoot,
+            baseConfig: this._baseConfig,
+            variationConfig: this._variationConfig,
         }).then(({filePath, deps}) => this.resolve(filePath, deps));
     }
 

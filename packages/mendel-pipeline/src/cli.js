@@ -46,3 +46,9 @@ if (program.outlet) {
         printer: new AnalyticsCliPrinter({enableColor: true}),
     });
 }
+
+process.on('SIGINT', () => {
+    // If you listen to the SIGINT, it will ignore "ctrl+c"'s default behavior
+    // Send graceful exit so we close the server above
+    process.exit(0);
+});
