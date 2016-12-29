@@ -1,8 +1,11 @@
+const Minimatch = require('minimatch').Minimatch;
+const path = require('path');
 
 class MendelOutletRegistry {
-    constructor() {
+    constructor(options) {
         this._cache = new Map();
         this._normalizedIdToEntryIds = new Map();
+        this._options = options;
     }
 
     get size() {
@@ -41,6 +44,23 @@ class MendelOutletRegistry {
 
     getEntriesByNormId(normId) {
         return this._normalizedIdToEntryIds.get(normId);
+    }
+
+    getEntriesByGlob(globStrings) {
+        const globs = globStrings.map(str => {
+            const isNegate = str[0] === '!';
+            str = isNegate ? str.slice(1) : str;
+            str = path.join(this._options.baseConfig.dir, str);
+            str = (isNegate ? '!./' : './') + str;
+            return new Minimatch(str);
+        });
+
+        return Array.from(this._cache.keys())
+        .filter(id => {
+            return globs.filter(({negate}) => !negate).some(g => g.match(id)) &&
+                globs.filter(({negate}) => negate).every(g => g.match(id));
+        })
+        .map(id => this.getEntry(id));
     }
 
     walk(normId, visitorFunction, _visited=new Set()) {

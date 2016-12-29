@@ -106,6 +106,5 @@ bundles:
     outlet: css
     outfile: main.css
     entries:
-      # needs to support glob
-      - ./css/index.css
-      - ./css/aux.css
+      - "**/*.css"
+      - "!css/reset.css"
