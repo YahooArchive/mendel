@@ -13,6 +13,8 @@ class MendelGenerators {
             });
         });
 
+        // If bundle config doesn't contain "generator" property
+        // Mendel-config puts "default" generator.
         this.generators.unshift({
             id: 'default',
             plugin: DefaultGenerator,
@@ -23,31 +25,37 @@ class MendelGenerators {
         // This orders generators to run in order of "generators" declaration
         // in the mendelrc
         this.plan = this.generators.map(generator => {
-            return this.bundles.find(bundle => {
+            return this.bundles.filter(bundle => {
                 return bundle.options.generator === generator.id;
             });
-        }).filter(Boolean);
+        }).filter(b => b.length);
 
         debug('plan', this.plan);
     }
 
     perform() {
         const doneBundles = [];
-        this.plan.forEach(bundle => {
-            const {plugin} = this.generators.find(gen => {
-                return gen.id === bundle.options.generator;
+        this.plan.forEach(bundles => {
+            bundles.forEach(bundle => {
+                const {plugin} = this.generators.find(gen => {
+                    return gen.id === bundle.options.generator;
+                });
+                const resultBundle = plugin(
+                    bundle, doneBundles,
+                    this.registry, this.options
+                );
+                // TODO: real bundle validation, to be implemented in the Bundle
+                // class, or alternativelly refactor bundle to POJO and use
+                // validator right here instead.
+                if (resultBundle && resultBundle.entries) {
+                    debug([
+                        `"${bundle.options.generator}" collected`,
+                        `${resultBundle.entries.size} entries for`,
+                        `bundle, "${bundle.options.id}"`,
+                    ].join(' '));
+                    doneBundles.push(resultBundle);
+                }
             });
-            const resultBundle = plugin(
-                bundle, doneBundles,
-                this.registry, this.options
-            );
-            // TODO: real bundle validation, to be implemented in the Bundle
-            // class, or alternativelly refactor bundle to POJO and use
-            // validator right here instead.
-            if (resultBundle && resultBundle.entries) {
-                debug(resultBundle.entries.size);
-                doneBundles.push(resultBundle);
-            }
         });
         return this.doneBundles = doneBundles;
     }

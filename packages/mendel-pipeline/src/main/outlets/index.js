@@ -1,3 +1,5 @@
+const EventEmitter = require('events').EventEmitter;
+
 const mendelConfig = require('../../../../mendel-config');
 const CacheClient = require('../../cache/client');
 const MendelGenerators = require('./generators');
@@ -5,8 +7,10 @@ const MendelOutletRegistry = require('../../registry/outlet');
 const Outlets = require('./outlets');
 const DefaultShims = require('node-libs-browser');
 
-class MendelOutlets {
+class MendelOutlets extends EventEmitter {
     constructor(options) {
+        super();
+
         if (options.config === false) {
             this.config = options;
         } else {
@@ -33,20 +37,28 @@ class MendelOutlets {
         });
 
         this.client.on('sync', () => {
-            const bundles = this.generators.perform();
-            this.outlets.perform(bundles);
+            Promise.resolve()
+            .then(() => this.generators.perform())
+            .then(bundles => this.outlets.perform(bundles))
+            .then(() => this.emit('done'))
+            .catch(e => this.emit('error', e));
         });
     }
 
     run(callback=()=>{}) {
         // This will come after the sync listener that generates and outlets
-        this.client.once('sync', () => {
+        this.once('done', () => {
             this.exit();
             callback.call(null);
         });
-        this.client.once('error', () => {
+        this.once('error', error => {
+            console.log('[SEVERE] Outlet error', error);
             this.exit();
-            callback.call(null);
+            callback.call(null, error);
+        });
+        this.client.once('error', error => {
+            this.exit();
+            callback.call(null, error);
         });
         this.client.start();
     }
