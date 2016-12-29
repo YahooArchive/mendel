@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint max-len: "off" */
 const program = require('commander');
-const chalk = require('chalk')
+const chalk = require('chalk');
 process.env.MENDELRC = process.env.MENDELRC || '.mendelrc_v2';
 
 function parseIgnores(val='', previousIgnores) {

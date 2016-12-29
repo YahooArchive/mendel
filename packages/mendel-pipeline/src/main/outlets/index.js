@@ -39,9 +39,20 @@ class MendelOutlets {
     }
 
     run(callback=()=>{}) {
-        this.client.once('sync', callback);
-        this.client.once('error', callback);
+        // This will come after the sync listener that generates and outlets
+        this.client.once('sync', () => {
+            this.exit();
+            callback.call(null);
+        });
+        this.client.once('error', () => {
+            this.exit();
+            callback.call(null);
+        });
         this.client.start();
+    }
+
+    exit() {
+        if (this.client) this.client.onExit();
     }
 }
 
