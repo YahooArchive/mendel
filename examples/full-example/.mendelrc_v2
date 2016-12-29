@@ -82,7 +82,7 @@ bundles:
     outlet: manifest
     outfile: main.js
     entries:
-      - ./main
+      - ./main.js
   vendor:
     outlet: manifest
     outfile: vendor.js

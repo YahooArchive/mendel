@@ -5,6 +5,7 @@ const debug = require('debug')('mendel:generators');
 class MendelGenerators {
     constructor(options, registry) {
         this.registry = registry;
+        this.options = options;
 
         this.generators = options.generators.map(generator => {
             return Object.assign({}, generator, {
@@ -36,7 +37,10 @@ class MendelGenerators {
             const {plugin} = this.generators.find(gen => {
                 return gen.id === bundle.options.generator;
             });
-            const resultBundle = plugin(bundle, doneBundles, this.registry);
+            const resultBundle = plugin(
+                bundle, doneBundles,
+                this.registry, this.options
+            );
             // TODO: real bundle validation, to be implemented in the Bundle
             // class, or alternativelly refactor bundle to POJO and use
             // validator right here instead.
