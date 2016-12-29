@@ -1,6 +1,4 @@
 const _debug = require('debug');
-const analyticsCollector = require('./helpers/analytics/analytics-collector');
-const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
 const MendelRegistry = require('./registry/pipeline');
 const Initialize = require('./step/initialize');
 const Reader = require('./step/fs-reader');
@@ -18,10 +16,6 @@ module.exports = class MendelPipeline extends EventEmitter {
         super();
         this.debug = _debug('mendel:pipeline:' + options.environment);
         this.cache = cache;
-
-        analyticsCollector.setOptions({
-            printer: new AnalyticsCliPrinter({enableColor: true}),
-        });
 
         const registry = this._registry = new MendelRegistry(options, cache);
         const toolset = {

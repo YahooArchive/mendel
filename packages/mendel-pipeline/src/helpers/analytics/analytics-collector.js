@@ -5,8 +5,8 @@ class AnalyticsCollector {
 
         global.analytics = this;
         process.on('message', () => this.record());
-        process.on('mendelExit', (code) => {
-            if (code === 0 && this.options.printer) {
+        process.on('mendelExit', () => {
+            if (this.options.printer && this.data.length) {
                 this.options.printer.print(this.data);
             }
         });
@@ -21,7 +21,11 @@ class AnalyticsCollector {
     }
 
     record(message) {
-        if (!message || message.type !== 'analytics') return;
+        if (
+            !this.options.printer ||
+            !message ||
+            message.type !== 'analytics'
+        ) return;
 
         const {pid, name, after, before} = message;
         this.data.push({

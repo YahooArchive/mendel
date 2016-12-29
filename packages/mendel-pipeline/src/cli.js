@@ -40,4 +40,9 @@ if (program.outlet) {
         if (error) process.exit(1);
         process.exit(0);
     });
+
+    const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
+    require('./helpers/analytics/analytics-collector').setOptions({
+        printer: new AnalyticsCliPrinter({enableColor: true}),
+    });
 }

@@ -1,7 +1,6 @@
 const debug = require('debug')('mendel:daemon');
 const mendelConfig = require('../../../mendel-config');
 
-const AnalyticsCliPrinter = require('../helpers/analytics/cli-printer');
 const EventEmitter = require('events').EventEmitter;
 const MendelCache = require('../cache');
 const Watcher = require('../fs-watcher');
@@ -11,10 +10,6 @@ const DepResolver = require('../deps');
 const MendelPipeline = require('../pipeline');
 const CacheServer = require('../cache/server');
 const DefaultShims = require('node-libs-browser');
-
-require('../helpers/analytics/analytics-collector').setOptions({
-    printer: new AnalyticsCliPrinter({enableColor: true}),
-});
 
 class CacheManager extends EventEmitter {
     constructor() {
@@ -110,10 +105,10 @@ module.exports = class MendelPipelineDaemon {
         const pipeline = this.getPipeline(environment);
         pipeline.on('idle', () => this.watchAll());
 
-        // process.on('exit', () => {
-        //     process.emit('mendelExit');
-        //     this.server.close();
-        // });
+        process.on('exit', () => {
+            process.emit('mendelExit');
+            this.server.close();
+        });
     }
 
     watchAll() {
