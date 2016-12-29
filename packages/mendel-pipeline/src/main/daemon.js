@@ -21,11 +21,9 @@ class CacheManager extends EventEmitter {
     addCache(cache) {
         const env = cache.environment;
         this._caches.set(env, cache);
-        cache.on('entryRequested', (path) => {
-            this.emit('entryRequested', path);
-        });
-        cache.on('doneEntry', (entry) => this.emit('doneEntry', cache, entry));
-        cache.on('entryRemoved', (entry) => this.emit('entryRemoved', cache, entry));
+        cache.on('entryRequested', path => this.emit('entryRequested', path));
+        cache.on('doneEntry', ent => this.emit('doneEntry', cache, ent));
+        cache.on('entryRemoved', ent => this.emit('entryRemoved', cache, ent));
     }
 
     /**
@@ -96,35 +94,42 @@ module.exports = class MendelPipelineDaemon {
             }
         });
 
-        this.server.on('environmentRequested', (env) => this.watch(env));
+        this.server.on('environmentRequested', (env) => this._watch(env));
         this.watcher.subscribe(config.variationConfig.allDirs);
     }
 
-    watch(environment=this.default) {
+    _watch(environment) {
         // this prioritizes the default env first
-        const pipeline = this.getPipeline(environment);
-        pipeline.on('idle', () => this.watchAll());
-
-        process.on('exit', () => {
-            process.emit('mendelExit');
-            this.server.close();
-        });
+        return this.getPipeline(environment);
     }
 
-    watchAll() {
-        Object.keys(this.environments).forEach(envName => {
-            this.watch(envName);
+    watch(environment=this.default) {
+        const pipeline = this._watch(environment);
+
+        // In the watch mode, after first `environment` is processed,
+        // we want to process all environments declared.
+        pipeline.once('idle', () => {
+            Object.keys(this.environments).forEach(envName => {
+                this._watch(envName);
+            });
         });
+
+        process.once('SIGINT', () => process.exit(0));
+        process.once('SIGTERM', () => process.exit(0));
+        // Above `process.exit()` results in `exit` event.
+        process.once('exit', () => this.onExit());
+        process.once('uncaughtException', () => this.onForceExit());
     }
 
     run(callback, environment=this.default) {
         const pipeline = this.getPipeline(environment);
+
         pipeline.on('idle', () => {
             const MendelOutlets = require('./outlets');
             const outlet = new MendelOutlets(this.config);
+
             outlet.run(() => {
-                process.emit('mendelExit');
-                this.server.close();
+                this.onExit();
                 callback();
             });
         });
@@ -132,7 +137,7 @@ module.exports = class MendelPipelineDaemon {
 
     getPipeline(environment=this.default) {
         if (!this.pipelines[environment]) {
-            debug('init', environment);
+            debug(`Initializing for environment: ${environment}`);
             const envConf = this.environments[environment];
             const cache = new MendelCache(envConf);
 
@@ -147,5 +152,26 @@ module.exports = class MendelPipelineDaemon {
             this.pipelines[environment].watch();
         }
         return this.pipelines[environment];
+    }
+
+    // For graceful exit
+    onExit() {
+        debug('Exiting gracefully. Cleaning up.');
+        [
+            this.cacheManager,
+            this.transformer, this.depsResolver,
+            this.server, this.watcher,
+        ].filter(tool => tool.onExit)
+        .forEach(tool => tool.onExit());
+    }
+
+    onForceExit() {
+        debug('Instructed to force exit');
+        [
+            this.cacheManager,
+            this.transformer, this.depsResolver,
+            this.server, this.watcher,
+        ].filter(tool => tool.onForceExit)
+        .forEach(tool => tool.onForceExit());
     }
 };

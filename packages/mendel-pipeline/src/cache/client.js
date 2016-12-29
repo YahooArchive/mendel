@@ -19,6 +19,19 @@ class CacheClient extends EventEmitter {
         this.initClient();
     }
 
+    start() {
+        if (this.connected) this.bootstrapConnection();
+        else this.connection.once('connect', () => this.bootstrapConnection());
+    }
+
+    onExit() {
+        this.connection.end();
+    }
+
+    onForceExit() {
+        this.connection.end();
+    }
+
     initClient() {
         this.connection.on('error', (err) => {
             this.emit('error', err);
@@ -72,11 +85,6 @@ class CacheClient extends EventEmitter {
             this.emit('sync');
             debug(`${this.registry.size} in sync with server`);
         }
-    }
-
-    start() {
-        if (this.connected) this.bootstrapConnection();
-        else this.connection.once('connect', () => this.bootstrapConnection());
     }
 }
 

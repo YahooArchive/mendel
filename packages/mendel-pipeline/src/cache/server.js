@@ -26,7 +26,11 @@ class CacheServer extends EventEmitter {
         debug('listening', config.cacheConnection);
     }
 
-    close() {
+    onExit() {
+        this.server.close();
+    }
+
+    onForceExit() {
         this.server.close();
     }
 

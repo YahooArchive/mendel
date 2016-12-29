@@ -25,10 +25,20 @@ class BaseMasterProcess {
         this._idleWorkers = this._workers.map(({pid}) => pid);
         this._jobs = [];
 
-        // Cleanup
-        process.on('mendelExit', () => this._workers.forEach(w => w.kill()));
-
+        // Get Listeners from subclass
         this._subscribers = this.subscribe();
+    }
+
+    _exit() {
+        this._workers.forEach(w => w.kill());
+    }
+
+    onExit() {
+        this._exit();
+    }
+
+    onForceExit() {
+        this._exit();
     }
 
     subscribe() {

@@ -39,31 +39,26 @@ function patchSocket(socket) {
 module.exports = {
     getServer(connectionOptions) {
         const server = net.createServer().listen(connectionOptions);
+        let isClosed = false;
+        let close = server.close;
 
-        // // nodemon style shutdown
-        process.once('SIGUSR2', function() {
-            gracefulShutdown(function() {
-                process.kill(process.pid, 'SIGUSR2');
-            });
-        });
-        process.on('mendelExit', gracefulShutdown);
         server.on('connection', socket => {
             patchSocket(socket);
             socket.setEncoding('utf8');
         });
-
-        function gracefulShutdown(callback) {
-            server.close();
-            typeof callback === 'function' && callback();
-        }
+        server.on('close', () => isClosed = true);
+        server.close = function closeHelper() {
+            if (isClosed) return;
+            close.call(server);
+        };
 
         return server;
     },
+
     getClient(connectionOptions) {
         const connection = net.connect(connectionOptions);
         patchSocket(connection);
         connection.setEncoding('utf8');
-        process.on('mendelExit', () => connection.end());
         return connection;
     },
 };

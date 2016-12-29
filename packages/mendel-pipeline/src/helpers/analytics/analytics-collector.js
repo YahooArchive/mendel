@@ -5,11 +5,12 @@ class AnalyticsCollector {
 
         global.analytics = this;
         process.on('message', () => this.record());
-        process.on('mendelExit', () => {
-            if (this.options.printer && this.data.length) {
-                this.options.printer.print(this.data);
-            }
-        });
+    }
+
+    onExit() {
+        if (this.options.printer && this.data.length) {
+            this.options.printer.print(this.data);
+        }
     }
 
     setOptions(options) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint max-len: "off" */
 const program = require('commander');
-
+const chalk = require('chalk')
 process.env.MENDELRC = process.env.MENDELRC || '.mendelrc_v2';
 
 function parseIgnores(val='', previousIgnores) {
@@ -42,13 +42,25 @@ if (program.outlet) {
     });
 
     const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');
-    require('./helpers/analytics/analytics-collector').setOptions({
+    const collector = require('./helpers/analytics/analytics-collector');
+    collector.setOptions({
         printer: new AnalyticsCliPrinter({enableColor: true}),
     });
-}
 
-process.on('SIGINT', () => {
-    // If you listen to the SIGINT, it will ignore "ctrl+c"'s default behavior
-    // Send graceful exit so we close the server above
-    process.exit(0);
-});
+    process.on('SIGINT', () => {
+        daemon.onForceExit();
+        process.exit(1);
+    });
+
+    process.on('uncaughtException', (error) => {
+        console.log([
+            `Force closing due to a critcal error:\n`,
+            chalk.red(error.stack),
+        ].join(' '));
+        daemon.onForceExit();
+        process.exit(1);
+    });
+
+    // nodemon style shutdown
+    process.once('SIGUSR2', () => process.kill(process.pid, 'SIGUSR2'));
+}
