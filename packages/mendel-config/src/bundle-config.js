@@ -5,6 +5,11 @@ const {undash} = require('./util');
 function BundleConfig(id, options, config) {
     this.id = id;
     this.generator = options.generator || 'default';
+
+    if (!options.outfile) {
+        throw new Error('Required "outfile" configuration missing');
+    }
+
     this.outfile = path.resolve(config.baseConfig.outdir, options.outfile);
     this.entries = flattenArrays(options.entries || []);
     this.require = flattenArrays(options.require || []);
@@ -13,7 +18,7 @@ function BundleConfig(id, options, config) {
 
     this.options = without(
         options,
-        ['generator', 'outfile', 'entries', 'require', 'external']
+        ['generator', 'outfile', 'outlet', 'entries', 'require', 'external']
     );
     this.options = undash(this.options);
 
