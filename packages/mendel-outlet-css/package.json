@@ -1,0 +1,11 @@
+{
+  "name": "mendel-outlet-css",
+  "version": "1.0.0",
+  "description": "Mendel Outlet for CSS. It uses cssnano to minify",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT"
+}

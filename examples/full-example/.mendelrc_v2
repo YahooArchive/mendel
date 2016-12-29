@@ -50,6 +50,10 @@ types:
     extensions:
       - .js
       - .jsx
+  css:
+    extensions:
+      - .css
+
 env:
   production:
     types:
@@ -65,6 +69,8 @@ env:
 outlets:
   - id: manifest
     plugin: mendel-outlet-manifest
+  - id: css
+    plugin: mendel-outlet-css
 
 # needs to be array because order is relevant
 # if extract-bundles comes first, some node_modules that
@@ -96,3 +102,10 @@ bundles:
     extract-from: main
     extract-entries:
       - ./components/lazy
+  css:
+    outlet: css
+    outfile: main.css
+    entries:
+      # needs to support glob
+      - ./css/index.css
+      - ./css/aux.css

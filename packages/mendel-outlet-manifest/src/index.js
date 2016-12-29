@@ -1,6 +1,5 @@
 const debug = require('debug')('mendel:outlet:manifest');
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 const path = require('path');
 
 module.exports = class ManifestOutlet {
@@ -19,7 +18,6 @@ module.exports = class ManifestOutlet {
         outfileObject.ext = '.json';
 
         const manifestFileName = path.format(outfileObject);
-        mkdirp.sync(path.dirname(manifestFileName));
         fs.writeFileSync(
             manifestFileName,
             JSON.stringify(manifest, null, 2)
