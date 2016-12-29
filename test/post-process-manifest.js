@@ -45,7 +45,7 @@ test('postProcessManifests sorts and cleans manifests', function (t) {
         t.deepEqual(result.indexes,
             { bar: 0, foo: 1, root:2, zoo: 3 }, 'reordered indexes');
         t.deepEqual(Object.keys(result.bundles[1].data[0].deps),
-            ["bar", "zoo"], 'reordered deps');
+            ['bar', 'zoo'], 'reordered deps');
     });
 });
 
@@ -61,7 +61,7 @@ test('postProcessManifests validates manifests', function (t) {
             manifest: 'bad.manifest.json',
         }],
     }, function(err) {
-        t.equal(err.code, "INVALID_MANIFEST", "should validate manifests");
+        t.equal(err.code, 'INVALID_MANIFEST', 'should validate manifests');
     });
 });
 
@@ -82,7 +82,7 @@ test('postProcessManifests applying post-processors', function (t) {
     };
     postProcessManifests({
         manifestProcessors:[
-            [passThroughProcessor, {'LMAO':"the french smiley cat"}],
+            [passThroughProcessor, {'LMAO':'the french smiley cat'}],
             path.resolve(__filename),
         ],
         outdir: copySamples,
@@ -94,7 +94,7 @@ test('postProcessManifests applying post-processors', function (t) {
         t.error(error);
         t.equals(calls.length, 2, 'calls the post-processors');
         t.equals(calls[0][1].LMAO,
-            "the french smiley cat", 'pass correct options');
+            'the french smiley cat', 'pass correct options');
         t.equals(calls[1],
             'external file', 'loads external processors');
     });

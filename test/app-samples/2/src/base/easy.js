@@ -3,5 +3,5 @@
    See the accompanying LICENSE file for terms. */
 
 module.exports = function() {
-    return "make sex";
+    return 'make sex';
 };

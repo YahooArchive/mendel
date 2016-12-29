@@ -7,17 +7,17 @@ var t = require('tap');
 var deserialize = require('../packages/mendel-core/tree-deserialiser');
 
 var expected = {
-    "decoded": {
-        "branches": [
+    'decoded': {
+        'branches': [
             0,
             2,
         ],
-        "files": 2,
-        "hash": '0b0ca69d74be872c914b06e8bdee677917e8e9f2',
-        "name": "mendel",
-        "version": 1,
+        'files': 2,
+        'hash': '0b0ca69d74be872c914b06e8bdee677917e8e9f2',
+        'name': 'mendel',
+        'version': 1,
     },
-    "error": null,
+    'error': null,
 };
 var realHash = 'bWVuZGVsAQAC_wIACwymnXS-hyyRSwbove5neRfo6fI';
 var result = deserialize(realHash);
@@ -25,7 +25,7 @@ result.decoded.hash = result.decoded.hash.toString('hex'); // Avoid Buffer
 
 t.match(result, expected, 'Decodes valid hash');
 
-var hashWitOtherBranches = "bWVuZGVsAQEDAAEDBAD_AgALDKaddL6HLJFLBui97md5F-jp8g";
+var hashWitOtherBranches = 'bWVuZGVsAQEDAAEDBAD_AgALDKaddL6HLJFLBui97md5F-jp8g';
 t.match(
     deserialize(hashWitOtherBranches).decoded.branches,
     [1,3,0,1,3,4,0], 'changing only brances changes hash');
@@ -46,7 +46,7 @@ err = deserialize(hashWithWrongVersion).error;
 t.match(err, new Error(), 'this hash is bad');
 t.match(err.message, 'version mismatch');
 
-var wrongHashSize = "bWVuZGVsAQAC_wIACwymnXS-hyyRSwbove5neRfo6";
+var wrongHashSize = 'bWVuZGVsAQAC_wIACwymnXS-hyyRSwbove5neRfo6';
 err = deserialize(wrongHashSize).error;
 t.match(err, new Error(), 'this hash is bad');
 t.match(err.message, 'short or missing sha');

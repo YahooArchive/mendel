@@ -11,7 +11,7 @@ t.equals(MendelServerVariationWalker().constructor, MendelServerVariationWalker,
 var stub1 = {
     index: 0,
     id: 'first',
-    variations: ["a", "b", "special"],
+    variations: ['a', 'b', 'special'],
     data: [
         {id:'a', sha:'ba', variation: 'a'},
         {id:'b', variation: 'b'},

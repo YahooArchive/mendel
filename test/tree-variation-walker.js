@@ -11,7 +11,7 @@ t.equals(MendelVariationWalker().constructor, MendelVariationWalker, 'constructo
 var stub1 = {
     index: 0,
     id: 'first',
-    variations: ["a", "b", "special"],
+    variations: ['a', 'b', 'special'],
     data: [{id:'a', sha:'ba'},{id:'b'},{id:'special'}],
 };
 
@@ -37,7 +37,7 @@ walker = new MendelVariationWalker([['a', 'b'],['special']], 'special');
 ret = walker._resolveBranch(stub1);
 
 t.equals(walker.conflicts, 0,
-    "Two variations on the same level don't conflict");
+    'Two variations on the same level don\'t conflict');
 
 walker = new MendelVariationWalker([['a'], ['b'],['special']], 'special');
 ret = walker.find(stub1);

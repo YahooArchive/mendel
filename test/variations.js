@@ -13,11 +13,11 @@ process.chdir(rootDir);
 
 
 t.match(parseVariations({}), [],
-    "fails gracefully without variations");
+    'fails gracefully without variations');
 
 
 var config = {
-    base: "test_base",
+    base: 'test_base',
     variations: {
         folder_A: null,
         doNotExist: null,
@@ -25,23 +25,23 @@ var config = {
 };
 var expected = [{
     id: 'folder_A',
-    chain: ['folder_A', "test_base"],
+    chain: ['folder_A', 'test_base'],
 }];
 t.match(parseVariations(config), expected,
-    "makes sure folders exists, honors config.base");
+    'makes sure folders exists, honors config.base');
 
-config.basetree = "tree1";
-expected[0].chain[1] = "tree1";
+config.basetree = 'tree1';
+expected[0].chain[1] = 'tree1';
 
 t.match(parseVariations(config), expected,
-    "config.basetree preceedes config.base");
+    'config.basetree preceedes config.base');
 
 delete config.basetree;
 delete config.base;
 expected[0].chain[1] = rootDir;
 
 t.match(parseVariations(config), expected,
-    "fallback to basedir to current dir");
+    'fallback to basedir to current dir');
 
 rootDir = path.resolve(__dirname, './variation-samples/1/');
 process.chdir(rootDir);
@@ -61,17 +61,17 @@ config =  {
 };
 expected = [{
     id: 'experiment_A',
-    chain: ['folder_A', "base"],
+    chain: ['folder_A', 'base'],
 }, {
     id: 'experiment_C',
-    chain: ['folder_C', "base"],
+    chain: ['folder_C', 'base'],
 }, {
     id: 'experiment_D',
-    chain: ['experiment_D', 'folder_C', 'folder_A', "base"],
+    chain: ['experiment_D', 'folder_C', 'folder_A', 'base'],
 }];
 
 t.match(parseVariations(config), expected,
-    "grouped variation dirs complex example");
+    'grouped variation dirs complex example');
 
 rootDir = path.resolve(__dirname, './variation-samples/2/');
 process.chdir(rootDir);
@@ -88,15 +88,15 @@ config =  {
 };
 expected = [{
     id: 'experiment_A',
-    chain: ['experiment_A', "_default"],
+    chain: ['experiment_A', '_default'],
 }, {
     id: 'experiment_B',
-    chain: ['experiment_B', "_default"],
+    chain: ['experiment_B', '_default'],
 }, {
     id: 'experiment_C',
-    chain: ['experiment_C', 'experiment_A', "_default"],
+    chain: ['experiment_C', 'experiment_A', '_default'],
 }];
 
 t.match(parseVariations(config), expected,
-    "flat directory structure example");
+    'flat directory structure example');
 

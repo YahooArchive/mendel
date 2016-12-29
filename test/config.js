@@ -18,7 +18,7 @@ mkdirp.sync('/tmp/1/2/3/');
 process.chdir('/tmp/');
 
 t.contains(config('./1/2/3/').basedir, '1/2/3',
-    "recurses and give up if no config found");
+    'recurses and give up if no config found');
 
 
 process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));
@@ -27,24 +27,24 @@ t.match(config(), {
     basedir: path.resolve(__dirname, './config-samples/2/'),
     outdir: path.resolve(__dirname, './config-samples/2/mendel'),
     variations: {
-       "json_A": null,
-       "json_B": ["folder_B"],
+       'json_A': null,
+       'json_B': ['folder_B'],
     },
-}, "find package.json, and match some variations");
+}, 'find package.json, and match some variations');
 
 
 process.chdir(path.resolve(__dirname));
 
 where = './config-samples/1/';
 t.match(config(where), {basedir: path.resolve(where)},
-    "find .mendelrc, basedir defaults to it's path");
+    'find .mendelrc, basedir defaults to it\'s path');
 
 t.match(config({
     basedir: path.resolve(where),
     config: false,
 }), {
     bundles: [],
-}, "skip file config option for CLI use");
+}, 'skip file config option for CLI use');
 
 t.match(config({
     basedir: path.resolve(where),
@@ -56,13 +56,13 @@ t.match(config({
     outdir: path.resolve(where, 'myoutdir'),
     bundlesoutdir: path.resolve(where, 'myoutdir/le-bundles'),
     serveroutdir: path.resolve(where, 'myoutdir/le-node'),
-}, "leaves absolite paths untouched");
+}, 'leaves absolite paths untouched');
 
 where = './config-samples/3/';
 t.match(config(where), {
     basedir: path.resolve(__dirname),
     outdir: path.resolve(__dirname, 'config-samples/mendel'),
-}, "ignores package.json that don't contain 'mendel' entry");
+}, 'ignores package.json that don\'t contain \'mendel\' entry');
 
 opts = {
     outdir: '../build',
@@ -72,7 +72,7 @@ t.match(config(opts), {
     basedir: path.resolve(__dirname),
     outdir: path.resolve(__dirname, '../build'),
     bundleName: 'testBundle',
-}, "custom bundleName and outdir");
+}, 'custom bundleName and outdir');
 
 where = './config-samples';
 t.match(config(where), {
@@ -105,12 +105,12 @@ t.match(config(where), {
 t.match(config(where), {
     bundlesoutdir: path.resolve(__dirname,
         './config-samples/mendel-build/client-test'),
-}, "merge env config options");
+}, 'merge env config options');
 
 process.chdir(path.resolve(__dirname, './config-samples/2/subfolder/'));
 t.match(config(), {
     base: 'testbase',
-}, "merge package.json env configs");
+}, 'merge package.json env configs');
 
 delete process.env.MENDEL_ENV;
 

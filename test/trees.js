@@ -18,12 +18,12 @@ mkdirp.sync(appBuild);
 test('MendelTrees initialization', function (t) {
     t.plan(5);
 
-    t.doesNotThrow(MendelTrees, "won't throw at init without params");
-    t.equal(MendelTrees().constructor, MendelTrees, "returns instance");
+    t.doesNotThrow(MendelTrees, 'won\'t throw at init without params');
+    t.equal(MendelTrees().constructor, MendelTrees, 'returns instance');
     t.match(MendelTrees().variations, [{
         id: 'base',
         chain: ['base'],
-    }], "fallback minimal configuration");
+    }], 'fallback minimal configuration');
 
     process.chdir(appPath);
 
@@ -69,7 +69,7 @@ test('MendelTrees private methods', function (t) {
     t.match(
         trees.variationsAndChains(['c']).lookupChains[0],
         ['c-chain', 'b-chain'],
-        "valid chains don't contain base"
+        'valid chains don\'t contain base'
     );
     t.equal(
         trees.variationsAndChains(['a-chain']).lookupChains.length,

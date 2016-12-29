@@ -24,7 +24,7 @@ module = {data:[{id:'foo'}, {id:'bar'}]};
 t.match(walker._resolveBranch(module), {
     index: undefined,
     resolved: {},
-}, "won't throw with wrong data");
+}, 'won\'t throw with wrong data');
 
 t.match(walker.error, new Error());
 t.equal(walker.error.message, 'Tree has more paths than hash',
@@ -64,7 +64,7 @@ t.notEqual(f.error.code, 'HASHMISS',  'but same error code');
 var stub1 = {
     index: 0,
     id: 'first',
-    variations: ["a", "b", "special"],
+    variations: ['a', 'b', 'special'],
     data: [{id:'a', variation:'a', sha:'ba'},{id:'b'},{id:'special'}],
 };
 validHash = 'bWVuZGVsAQD_AQAGH7IIQx23k7vTZFt6FgWKHiokEg';

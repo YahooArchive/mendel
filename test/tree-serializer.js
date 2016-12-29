@@ -24,20 +24,20 @@ t.throws(
 function() {
     sut._metadata();
 },
-"Can't re-init _metadata");
+'Can\'t re-init _metadata');
 
 t.throws(
 function() {
     sut.pushBranch(1);
 },
-"Throws if pushBranch after result");
+'Throws if pushBranch after result');
 
 t.throws(
 function() {
     sut.pushFileHash(
         new Buffer('f790b83d19df02e79d50eeb84590a32b966f8e13', 'hex'));
 },
-"Throws if pushFileHash after result");
+'Throws if pushFileHash after result');
 
 function createPredictable() {
     var sut = new TreeSerialiser();
@@ -53,7 +53,7 @@ var bogus = createPredictable();
 
 bogus.pushFileHash('not a Buffer');
 
-t.equal(sut.result(), bogus.result(), "Don't pushFileHash if it's not a Buffer");
+t.equal(sut.result(), bogus.result(), 'Don\'t pushFileHash if it\'s not a Buffer');
 
 var sut1 = createPredictable();
 var sut2 = createPredictable();

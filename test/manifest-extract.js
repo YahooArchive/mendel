@@ -23,8 +23,8 @@ test('postProcessManifests applying post-processors', function (t) {
         // verbose: true, // remember to use this for debug
         manifestProcessors:[
             [extract, {
-                from: "bad-sort",
-                external: "foo-is-children",
+                from: 'bad-sort',
+                external: 'foo-is-children',
             }],
         ],
         outdir: copySamples,
