@@ -20,7 +20,7 @@ module.exports = function(done) {
                source,
                projectRoot,
                baseConfig,
-               variationConfig
+               variationConfig,
             } = payload;
             debug(`Detecting dependencies for ${filePath}`);
 
@@ -68,13 +68,13 @@ module.exports = function(done) {
         },
 
         has(payload) {
-            const {value} = payload;
+            const {value, filePath} = payload;
             const pendingResolves = pendingInquiry.get(filePath);
             pendingResolves.forEach(resolve => resolve(value));
         },
 
         onExit() {
             // Nothing to clean
-        }
-    }
+        },
+    };
 };
