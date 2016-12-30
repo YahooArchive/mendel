@@ -21,8 +21,14 @@ function TypesConfig(typeName, type) {
 
     // TODO: figure out how to test this properlly, the regular tap/match
     //       was not working well:
-    this.glob = (type.glob || ['./**/*{' + type.extensions.join(',') + '}'])
-        .map(function(glob) { return new Minimatch(glob); });
+    const globStrings = type.glob ||
+        type.extensions.map(function(ext) {
+            return ext[0] !== '.' ? '.' + ext : ext;
+        }).map(function(ext) {
+            return './**/*' + ext;
+        });
+
+    this.glob = globStrings.map(function(glob) { return new Minimatch(glob); });
 
     this.isBinary = type.isBinary || false;
     this.parser = type.parser;

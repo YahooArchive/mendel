@@ -63,7 +63,10 @@ class MendelOutletRegistry {
         .map(id => this.getEntry(id));
     }
 
-    walk(normId, visitorFunction, _visited=new Set()) {
+    /**
+     * Walks dependency graph of a specific type
+     */
+    walk(normId, type, visitorFunction, _visited=new Set()) {
         if (_visited.has(normId)) return;
         _visited.add(normId);
 
@@ -77,7 +80,9 @@ class MendelOutletRegistry {
             return;
         }
 
-        Array.from(entryVariations.values()).some(entry => {
+        Array.from(entryVariations.values())
+        .filter(entry => type === entry.type)
+        .some(entry => {
             const isContinue = visitorFunction(entry);
 
             // If visitor function returns false, stop walking
@@ -91,7 +96,7 @@ class MendelOutletRegistry {
                 }, []);
 
             allDeps.filter(Boolean).forEach(normId => {
-                this.walk(normId, visitorFunction, _visited);
+                this.walk(normId, type, visitorFunction, _visited);
             });
         });
     }

@@ -21,14 +21,15 @@ types:
       plugin: mendel-bundle-browser-pack
     extensions:
       - .js
+  css:
+    extensions:
+      - .css
 
 outlets:
   - id: manifest
     plugin: mendel-outlet-manifest
-
-generators: # AKA graph transforms - or graph operations
-  - id: extract-bundles
-    plugin: mendel-generator-extract
+  - id: css
+    plugin: mendel-outlet-css
 
 # "outfile" is optional and only needed for single layer generation
 bundles:
@@ -37,17 +38,9 @@ bundles:
     outfile: main.js
     entries:
       - ./index.js
-  lazy:
-    outlet: manifest
-    outfile: lazy.js
-    generator: extract-bundles
-    extract-from: main
-    extract-entries:
-      # This file requires different files in a variation.
-      #   - util.js
-      #   + third-number.js
-      - ./number-list
-      - ./another-number
-      # This file is not required in the main app.
-      # Should result in noop.
-      - ./throws
+  css:
+    outlet: css
+    outfile: main.css
+    entries:
+      - "**/*.css"
+      - "!exclude.css"

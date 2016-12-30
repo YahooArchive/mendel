@@ -18,13 +18,11 @@ function generatorExtract(bundle, doneBundles, registry) {
 
     // Collect dependencies of main as if lazy was not there
     // Collect dependencies of lazy bundle
-    fromBundle.options.entries.forEach(entry => {
-        const normalizedId = registry.hasEntry(entry) ?
-            registry.getEntry(entry).normalizedId :
-            entry;
-        registry.walk(normalizedId, (dep) => {
+    registry.getEntriesByGlob(fromBundle.options.entries).forEach(entry => {
+        const {normalizedId, type} = entry;
+        registry.walk(normalizedId, type, (dep) => {
             if (extractEntries.indexOf(dep.normalizedId) >= 0) {
-                registry.walk(dep.normalizedId, function(entry) {
+                registry.walk(dep.normalizedId, dep.type, function(entry) {
                     extractedBundle.set(entry.id, entry);
                 });
                 return false;

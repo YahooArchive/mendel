@@ -1,11 +1,11 @@
 module.exports = defaultGenerator;
 function defaultGenerator(bundle, doneBundles, registry) {
     const entries = bundle.options.entries;
-    const resolvedEntries = new Map();
+    const resolvedEntries = bundle.entries || new Map();
 
     registry.getEntriesByGlob(entries).forEach(entry => {
-        const {normalizedId} = entry;
-        registry.walk(normalizedId, function(dep) {
+        const {normalizedId, type} = entry;
+        registry.walk(normalizedId, type, function(dep) {
             if (!resolvedEntries.has(dep.id)) {
                 if (dep === entry) {
                     dep.entry = true;
