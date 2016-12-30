@@ -101,7 +101,7 @@ bundles:
     generator: extract-bundles
     extract-from: main
     extract-entries:
-      - ./components/lazy
+      - ./components/lazy.js
   css:
     outlet: css
     outfile: main.css

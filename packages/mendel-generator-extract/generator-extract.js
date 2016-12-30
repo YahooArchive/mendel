@@ -2,6 +2,7 @@ const debug = require('debug')('mendel:generator:extract');
 
 function generatorExtract(bundle, doneBundles, registry) {
     const {extractFrom, extractEntries} = bundle.options.options;
+    const extracts = registry.getEntriesByGlob(extractEntries);
     const fromBundle = doneBundles.find(done => {
         return done.options.id === extractFrom;
     });
@@ -15,13 +16,12 @@ function generatorExtract(bundle, doneBundles, registry) {
 
     const extractedBundle = new Map();
     const mainEntryIds = new Set();
-
     // Collect dependencies of main as if lazy was not there
     // Collect dependencies of lazy bundle
     registry.getEntriesByGlob(fromBundle.options.entries).forEach(entry => {
         const {normalizedId, type} = entry;
         registry.walk(normalizedId, type, (dep) => {
-            if (extractEntries.indexOf(dep.normalizedId) >= 0) {
+            if (extracts.indexOf(dep) >= 0) {
                 registry.walk(dep.normalizedId, dep.type, function(entry) {
                     extractedBundle.set(entry.id, entry);
                 });

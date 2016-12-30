@@ -46,8 +46,8 @@ bundles:
       # This file requires different files in a variation.
       #   - util.js
       #   + third-number.js
-      - ./number-list
-      - ./another-number
+      - ./number-list.js
+      - ./another-number.js
       # This file is not required in the main app.
       # Should result in noop.
-      - ./throws
+      - ./throws.js
