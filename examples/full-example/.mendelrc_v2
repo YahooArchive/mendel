@@ -35,6 +35,8 @@ transforms: # a list of all available transforms for all envs and types
         - babili
   json-parse:
     plugin: mendel-parser-json
+  less-transform:
+    plugin: mendel-transform-less
 
 types:
   json:
@@ -50,6 +52,11 @@ types:
     extensions:
       - .js
       - .jsx
+  less:
+    extensions:
+      - .less
+    parser: less-transform
+    parser-to-type: css
   css:
     extensions:
       - .css
@@ -107,4 +114,5 @@ bundles:
     outfile: main.css
     entries:
       - "**/*.css"
+      - "**/*.less"
       - "!css/reset.css"

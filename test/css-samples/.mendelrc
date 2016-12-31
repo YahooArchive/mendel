@@ -15,12 +15,20 @@ route-config:
   variation: /mendel/:variations/:bundle
   hash: /mendel/:hash/:bundle
 
+transforms:
+  less-transform:
+    plugin: mendel-transform-less
 types:
   js:
     outlet:
       plugin: mendel-bundle-browser-pack
     extensions:
       - .js
+  less:
+    parser: less-transform
+    parser-to-type: css
+    extensions:
+      - .less
   css:
     extensions:
       - .css
@@ -43,4 +51,5 @@ bundles:
     outfile: main.css
     entries:
       - "**/*.css"
+      - "**/*.less"
       - "!exclude.css"

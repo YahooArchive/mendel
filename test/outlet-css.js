@@ -9,7 +9,7 @@ const buildPath = path.join(appPath, 'build');
 rimraf.sync(buildPath);
 
 test('mendel-outlet-css sanity test', function (t) {
-    t.plan(4);
+    t.plan(5);
 
     process.chdir(appPath);
     process.env.MENDELRC = '.mendelrc';
@@ -26,6 +26,8 @@ test('mendel-outlet-css sanity test', function (t) {
         t.doesNotHave(css, 'background:red');
         t.include(css, 'html{padding:0}');
         t.include(css, 'body{background:blue}');
+        // From LESS
+        t.include(css, 'html body{background:#11f}');
         t.same(substringCount(css, 'background:blue'), 1);
     });
 });
