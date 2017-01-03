@@ -38,7 +38,7 @@ if (program.outlet) {
     const daemon = new MendelPipelineDaemon(program);
     daemon.run((error) => {
         if (error) process.exit(1);
-        process.exit(0);
+        setImmediate(() => process.exit(0));
     });
 
     const AnalyticsCliPrinter = require('./helpers/analytics/cli-printer');

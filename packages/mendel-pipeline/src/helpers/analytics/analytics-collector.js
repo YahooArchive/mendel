@@ -5,6 +5,7 @@ class AnalyticsCollector {
 
         global.analytics = this;
         process.on('message', () => this.record());
+        process.on('exit', () => this.onExit());
     }
 
     onExit() {

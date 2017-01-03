@@ -1,5 +1,6 @@
 const BaseStep = require('../step');
 const EntryProxy = require('../../entry-proxy');
+const analyze = require('../../helpers/analytics/analytics')('gst');
 
 // TODO pull below out to (variation) helper
 function convertVariationalPath(variations, from, toVariationId) {
@@ -166,6 +167,7 @@ class GraphSourceTransform extends BaseStep {
             );
 
             Promise.resolve()
+            .then(analyze.tic.bind(analyze, currentGstConfig.id))
             .then(() => {
                 return currentGst.transform(
                     chainProxy,
@@ -173,6 +175,7 @@ class GraphSourceTransform extends BaseStep {
                     context
                 );
             })
+            .then(analyze.toc.bind(analyze, currentGstConfig.id))
             .then(result => {
                 if (result && result.source) {
                     if (main.variation === variation) {
