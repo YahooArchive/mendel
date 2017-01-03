@@ -1,5 +1,5 @@
-const BaseStep = require('./step');
-const EntryProxy = require('../entry-proxy');
+const BaseStep = require('../step');
+const EntryProxy = require('../../entry-proxy');
 
 // TODO pull below out to (variation) helper
 function convertVariationalPath(variations, from, toVariationId) {
@@ -40,9 +40,25 @@ class GraphSourceTransform extends BaseStep {
         this._virtual = new Set();
     }
 
-    addTransform({id, source}) {
-        this._depsResolver.detect(id, source)
-        .then(({deps}) => {
+    // FIXME map should be used
+    addTransform({id, source, map, deps}) {
+        const depPromise = !deps ?
+            this._depsResolver.detect(id, source) :
+            Promise.resolve({deps}).then(({deps}) => {
+                // Whatever returned by plugins cannot and should not conform
+                // to internal data structure. This tidies the deps returned by
+                // plugin. (Plugin returns an object of require literal to path)
+                Object.keys(deps).forEach(dep => {
+                    deps[dep] = {
+                        browser: dep,
+                        main: dep,
+                    };
+                });
+
+                return {deps};
+            });
+
+        depPromise.then(({deps}) => {
             this._virtual.delete(id);
             this._registry.addTransformedSource({id, source, deps});
         });
@@ -53,11 +69,7 @@ class GraphSourceTransform extends BaseStep {
             addVirtualEntry: ({source, id, map}) => {
                 this._virtual.add(id);
                 // TODO make sure virtual entries can be cleaned up with changes in source entry
-                this.addTransform({
-                    id: id,
-                    source: source,
-                    map,
-                });
+                this.addTransform({id, source, map});
             },
             removeEntry: (entry) => {
                 this._registry.removeEntry(entry.id);
@@ -85,6 +97,40 @@ class GraphSourceTransform extends BaseStep {
     perform(entry) {
         if (this._gsts.length <= this._curGstIndex || isNodeModule(entry.id)) return this.gstDone(entry);
         this.performHelper(entry);
+    }
+
+    explorePermutation(graph, onPermutation) {
+        const configVariations = new Set();
+        this._variations.forEach(variation => configVariations.add(variation.id));
+
+        // graph has array of arrays. First, make a pass and gather all variation info
+        const variations = new Set();
+        graph.forEach(nodes => {
+            nodes.forEach(node => {
+                variations.add(node.variation);
+            });
+        });
+
+        Array.from(variations.keys())
+        // Filter out undeclared (in config) variations
+        .filter(varKey => configVariations.has(varKey))
+        // We do not yet support multi-variation.
+        .forEach(variation => {
+            const chain = graph.map((nodes) => {
+                return nodes.find(node => node.variation === variation) ||
+                    nodes.find(node => {
+                        return node.variation === this._baseVariationId ||
+                            node.variation === false;
+                    });
+            });
+
+            // In case a new entry is introduced in variations without one
+            // in the base folder, the main file won't exist.
+            // In that case, we should not explore the permutation.
+            if (!chain[0]) return;
+
+            onPermutation(chain, variation);
+        });
     }
 
     performHelper(entry) {
@@ -119,59 +165,35 @@ class GraphSourceTransform extends BaseStep {
                 variation
             );
 
-            const result = currentGst.transform(chainProxy, currentGstConfig, context);
-
-            if (result && result.source) {
-                if (main.variation === variation) {
-                    this.addTransform({
-                        id: proxiedMain.filename,
-                        source: result.source,
-                        map: result.map,
-                    });
-                } else {
-                    context.addVirtualEntry({
-                        id: proxiedMain.filename,
-                        originatingEntry: entry,
-                        source: result.source,
-                        deps: result.deps,
-                    });
+            Promise.resolve()
+            .then(() => {
+                return currentGst.transform(
+                    chainProxy,
+                    currentGstConfig,
+                    context
+                );
+            })
+            .then(result => {
+                if (result && result.source) {
+                    if (main.variation === variation) {
+                        this.addTransform({
+                            id: proxiedMain.filename,
+                            source: result.source,
+                            map: result.map,
+                            deps: result.deps,
+                        });
+                    } else {
+                        context.addVirtualEntry({
+                            id: proxiedMain.filename,
+                            originatingEntry: entry,
+                            source: result.source,
+                            deps: result.deps,
+                        });
+                    }
                 }
-            }
-            this.gstDone(main);
-        });
-    }
-
-    explorePermutation(graph, onPermutation) {
-        const configVariations = new Set();
-        this._variations.forEach(variation => configVariations.add(variation.id));
-
-        // graph has array of arrays. First, make a pass and gather all variation info
-        const variations = new Set();
-        graph.forEach(nodes => {
-            nodes.forEach(node => {
-                variations.add(node.variation);
-            });
-        });
-
-        Array.from(variations.keys())
-        // Filter out undeclared (in config) variations
-        .filter(varKey => configVariations.has(varKey))
-        // We do not yet support multi-variation.
-        .forEach(variation => {
-            const chain = graph.map((nodes) => {
-                return nodes.find(node => node.variation === variation) ||
-                    nodes.find(node => {
-                        return node.variation === this._baseVariationId ||
-                            node.variation === false;
-                    });
-            });
-
-            // In case a new entry is introduced in variations without one
-            // in the base folder, the main file won't exist.
-            // In that case, we should not explore the permutation.
-            if (!chain[0]) return;
-
-            onPermutation(chain, variation);
+            })
+            .then(() => this.gstDone(main))
+            .catch(() => this.gstDone(main));
         });
     }
 }

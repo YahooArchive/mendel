@@ -20,9 +20,9 @@ function generatorExtract(bundle, doneBundles, registry) {
     // Collect dependencies of lazy bundle
     registry.getEntriesByGlob(fromBundle.options.entries).forEach(entry => {
         const {normalizedId, type} = entry;
-        registry.walk(normalizedId, type, (dep) => {
+        registry.walk(normalizedId, [type], (dep) => {
             if (extracts.indexOf(dep) >= 0) {
-                registry.walk(dep.normalizedId, dep.type, function(entry) {
+                registry.walk(dep.normalizedId, [dep.type], function(entry) {
                     extractedBundle.set(entry.id, entry);
                 });
                 return false;

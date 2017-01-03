@@ -52,7 +52,7 @@ class Worker {
         if (!subscriber) return;
 
         try {
-            const artifact = subscriber(args, function sender(type, args) {
+            const artifact = subscriber(args, (type, args) => {
                 this._send(type, args);
             });
 

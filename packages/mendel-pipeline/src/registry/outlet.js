@@ -66,7 +66,7 @@ class MendelOutletRegistry {
     /**
      * Walks dependency graph of a specific type
      */
-    walk(normId, type, visitorFunction, _visited=new Set()) {
+    walk(normId, types, visitorFunction, _visited=new Set()) {
         if (_visited.has(normId)) return;
         _visited.add(normId);
 
@@ -81,7 +81,7 @@ class MendelOutletRegistry {
         }
 
         Array.from(entryVariations.values())
-        .filter(entry => type === entry.type)
+        .filter(entry => types.indexOf(entry.type) >= 0)
         .some(entry => {
             const isContinue = visitorFunction(entry);
 
@@ -96,7 +96,7 @@ class MendelOutletRegistry {
                 }, []);
 
             allDeps.filter(Boolean).forEach(normId => {
-                this.walk(normId, type, visitorFunction, _visited);
+                this.walk(normId, types, visitorFunction, _visited);
             });
         });
     }

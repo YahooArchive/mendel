@@ -1,5 +1,6 @@
 const path = require('path');
 const {stat, readFile} = require('fs');
+const error = require('debug')('error:mendel-resolver');
 
 class ModuleResolver {
     /**
@@ -69,7 +70,8 @@ class ModuleResolver {
 
             return deps;
         })
-        .catch(() => {
+        .catch((e) => {
+            error(e.stack);
             throw new Error(`${moduleName} failed to resolve.`);
         });
     }
