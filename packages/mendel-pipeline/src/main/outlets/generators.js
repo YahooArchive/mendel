@@ -1,6 +1,7 @@
 const Bundle = require('../../bundles/bundle');
 const DefaultGenerator = require('../../bundles/default-generator');
 const debug = require('debug')('mendel:generators');
+const analyze = require('../../helpers/analytics/analytics')('generator');
 
 class MendelGenerators {
     constructor(options, registry) {
@@ -37,13 +38,17 @@ class MendelGenerators {
         const doneBundles = [];
         this.plan.forEach(bundles => {
             bundles.forEach(bundle => {
-                const {plugin} = this.generators.find(gen => {
+                const {id, plugin} = this.generators.find(gen => {
                     return gen.id === bundle.options.generator;
                 });
+
+                analyze.tic(id);
                 const resultBundle = plugin(
                     bundle, doneBundles,
                     this.registry, this.options
                 );
+                analyze.toc(id);
+
                 // TODO: real bundle validation, to be implemented in the Bundle
                 // class, or alternativelly refactor bundle to POJO and use
                 // validator right here instead.
