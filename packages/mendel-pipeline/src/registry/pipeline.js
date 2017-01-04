@@ -105,6 +105,8 @@ class MendelRegistry extends EventEmitter {
             const normId = unvisitedNorms.shift();
             if (visitedEntries.has(normId)) continue;
             const entryIds = this._mendelCache.getEntriesByNormId(normId);
+            if (!entryIds) continue;
+
             const entries = entryIds.map(entryId => this.getEntry(entryId));
             entries.forEach(entry => {
                 const depNorms = dependencyGetter(entry);

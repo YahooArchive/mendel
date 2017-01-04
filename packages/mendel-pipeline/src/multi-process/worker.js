@@ -60,7 +60,7 @@ class Worker {
                 if (type === Protocol.START) {
                     artifact.then(this.dispatchDone.bind(this));
                 }
-                artifact.catch(this._onError);
+                artifact.catch(this._onError.bind(this));
             }
         } catch (e) {
             this._onError(e);

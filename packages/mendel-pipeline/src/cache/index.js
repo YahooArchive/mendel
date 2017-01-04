@@ -108,11 +108,12 @@ class MendelCache extends EventEmitter {
         delete require.cache[require.resolve(pkgPath)];
         const pkg = require(pkgPath);
 
-        ['browser', 'main'].filter(key => !!pkg[key]).forEach(runtime => {
-            // i.e., `browser: {fromFilePath: toFilePath}` or
-            // `browser: {filePath: false}`
-            if (typeof pkg[runtime] !== 'string') return;
-
+        ['browser', 'main']
+        // TODO we need to support these browser declarations for compat. i.e.,
+        //   `browser: {fromFilePath: toFilePath}`
+        //   `browser: {filePath: false}`
+        .filter(key => pkg[key] === 'string')
+        .forEach(runtime => {
             const targetNormId = this._getBeforePackageJSONNormalizedId(
                 './' + path.join(parts.dir, pkg[runtime])
             );
@@ -147,9 +148,11 @@ class MendelCache extends EventEmitter {
             throw new Error([
                 `can't process ${id} after the`,
                 'following files are in the system:',
+                '\n\t',
+                this._normalizedIdToEntryIds.get(packageNormId).join('\n\t'),
                 '\n',
-                this._normalizedIdToEntryIds.get(packageNormId).join('\n'),
-                '\n',
+                'Diagnostics\n-----------\n',
+                `env: ${this.environment}`,
             ].join(' '));
         }
     }

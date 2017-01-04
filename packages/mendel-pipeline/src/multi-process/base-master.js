@@ -53,10 +53,7 @@ class BaseMasterProcess {
         return new Promise((resolve, reject) => {
             this._jobs.push({
                 args,
-                promise: {
-                    resolve,
-                    reject,
-                },
+                promise: {resolve, reject},
             });
         });
     }

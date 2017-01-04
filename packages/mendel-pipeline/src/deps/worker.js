@@ -34,7 +34,7 @@ module.exports = function(done) {
                 projectRoot,
                 baseConfig,
                 variationConfig,
-                has: (filePath) => {
+                has(filePath) {
                     return new Promise(resolve => {
                         if (!pendingInquiry.has(filePath)) pendingInquiry.set(filePath, []);
                         pendingInquiry.get(filePath).push(resolve);

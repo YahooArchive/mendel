@@ -155,7 +155,6 @@ class GraphSourceTransform extends BaseStep {
         this.explorePermutation(graph, (chain, variation) => {
             const [main] = chain;
             this._processed.add(main.id);
-
             // We need to create proxy for limiting API surface for plugin writers.
             const context = this.getContext();
             const chainProxy = chain.map(dep => EntryProxy.getFromEntry(dep));
@@ -196,7 +195,9 @@ class GraphSourceTransform extends BaseStep {
                 }
             })
             .then(() => this.gstDone(main))
-            .catch(() => this.gstDone(main));
+            .catch((e) => {
+                this.emit('error', e);
+            });
         });
     }
 }

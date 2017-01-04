@@ -38,7 +38,7 @@ module.exports = function(config) {
 
             return {
                 id: varId,
-                dir: path.join(variationRoot, varId),
+                dir: path.join(variationRoot, (vars[varId] || [varId])[0]),
                 chain: chain.concat(baseVariationDir || projectRoot),
             };
         }).filter(function(variation) {

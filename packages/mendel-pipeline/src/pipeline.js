@@ -47,6 +47,11 @@ module.exports = class MendelPipeline extends EventEmitter {
                     process.exit(1);
                 }
             });
+
+            curStep.on('error', (e) => {
+                console.error('Mendel step errored', e.stack);
+                process.exit(1);
+            });
         });
 
         this.steps = steps;

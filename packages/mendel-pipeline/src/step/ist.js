@@ -63,7 +63,9 @@ class IndependentSourceTransform extends BaseStep {
 
         let promise = Promise.resolve({source});
         if (ids.length) {
-            promise = promise.then(() => this._transformer.transform(entryId, ids, source));
+            promise = promise.then(() => {
+                return this._transformer.transform(entryId, ids, source);
+            });
         }
 
         promise
@@ -81,7 +83,11 @@ class IndependentSourceTransform extends BaseStep {
             });
         })
         .then(() => this.emit('done', {entryId}, ids))
-        .catch((error) => debug(`Errored while transforming ${entryId}: ${error.message}: ${error.stack}`));
+        .catch(error => {
+            console.error(`Errored while transforming ${entryId}:
+    ${error.message}: ${error.stack}`);
+            this.emit('error', error);
+        });
     }
 }
 
