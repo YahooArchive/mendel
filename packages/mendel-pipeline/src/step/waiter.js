@@ -6,14 +6,16 @@ class Waiter extends BaseStep {
      */
     constructor({cache}) {
         super();
-        this.waitCount = 0;
+        this.waited = new Set();
         this.cache = cache;
+
+        cache.on('entryRemoved', id => this.waited.delete(id));
     }
 
     perform(entry) {
-        this.waitCount++;
+        this.waited.add(entry.id);
         this.emit('wait', {entryId: entry.id});
-        if (this.cache.size() > this.waitCount) return;
+        if (this.cache.size() > this.waited.size) return;
         // TODO: Once type refactor is done and plan is part of entry instance,
         // it will be safe to add optimization here to emit entries without GST
         // right away before wait condition is met
