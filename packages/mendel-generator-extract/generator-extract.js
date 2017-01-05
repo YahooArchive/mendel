@@ -16,17 +16,31 @@ function generatorExtract(bundle, doneBundles, registry) {
 
     const extractedBundle = new Map();
     const mainEntryIds = new Set();
-    // Collect dependencies of main as if lazy was not there
+
     // Collect dependencies of lazy bundle
-    registry.getEntriesByGlob(fromBundle.options.entries).forEach(entry => {
-        const {normalizedId, type} = entry;
-        registry.walk(normalizedId, [type], (dep) => {
-            if (extracts.indexOf(dep) >= 0) {
-                registry.walk(dep.normalizedId, [dep.type], function(entry) {
-                    extractedBundle.set(entry.id, entry);
-                });
+    extracts.forEach(({normalizedId, type}) => {
+        registry.walk(normalizedId, [type, 'node_modules'], entry => {
+            // Returning false stops from walking further
+            // Since this code path is already visited; short circuit out of the
+            // walk. Same code path can be visited when multiple entries
+            // share the same dependencies
+            if (extractedBundle.has(entry.id)) return false;
+            extractedBundle.set(entry.id, entry);
+        });
+    });
+
+    // Collect dependencies of main as if lazy was not there
+    registry.getEntriesByGlob(fromBundle.options.entries)
+    .forEach(({normalizedId, type}) => {
+        registry.walk(normalizedId, [type, 'node_modules'], dep => {
+            // Returning false stops from walking further
+            // Since this code path is already visited; short circuit out of the
+            // walk. Same code path can be visited when multiple entries
+            // share the same dependencies
+            // If lazy is part of the dependecy chain, stop from going further
+            // to disregard that code path
+            if (mainEntryIds.has(dep.id) || extracts.indexOf(dep) >= 0)
                 return false;
-            }
 
             mainEntryIds.add(dep.id);
         });

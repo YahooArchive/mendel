@@ -54,11 +54,13 @@ class MendelOutletRegistry {
             str = (isNegate ? '!./' : './') + str;
             return new Minimatch(str);
         });
+        const positives = globs.filter(({negate}) => !negate);
+        const negatives = globs.filter(({negate}) => negate);
 
         return Array.from(this._cache.keys())
         .filter(id => {
-            return globs.filter(({negate}) => !negate).some(g => g.match(id)) &&
-                globs.filter(({negate}) => negate).every(g => g.match(id));
+            return positives.some(g => g.match(id)) &&
+                negatives.every(g => g.match(id));
         })
         .map(id => this.getEntry(id));
     }
