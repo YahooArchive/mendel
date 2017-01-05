@@ -7,6 +7,8 @@ const MendelOutletRegistry = require('../../registry/outlet');
 const Outlets = require('./outlets');
 const DefaultShims = require('node-libs-browser');
 
+process.title = 'Mendel Outlet';
+
 class MendelOutlets extends EventEmitter {
     constructor(options) {
         super();

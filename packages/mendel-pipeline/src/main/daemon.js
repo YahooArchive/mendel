@@ -11,6 +11,8 @@ const MendelPipeline = require('../pipeline');
 const CacheServer = require('../cache/server');
 const DefaultShims = require('node-libs-browser');
 
+process.title = 'Mendel Daemon';
+
 class CacheManager extends EventEmitter {
     constructor() {
         super();

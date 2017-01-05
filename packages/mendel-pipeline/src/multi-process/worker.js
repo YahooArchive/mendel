@@ -14,11 +14,10 @@ class Worker {
     constructor(name, workerModule, options) {
         this._name = name;
         this.options = options;
-        this._workerName = `${this._name}:${process.pid}`;
-        this.debug = debug(`mendel:${this._workerName}`);
+        this.debug = debug(`mendel:${this._name}:${process.pid}`);
         this.debug('Online');
 
-        process.title = this._workerName;
+        process.title = `Mendel ${this._workerName} Helper`;
         // Event binding
         process.on('message', args => this._onMessage(args));
         process.on('exit', () => {
