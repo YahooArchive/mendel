@@ -17,7 +17,7 @@ class Worker {
         this.debug = debug(`mendel:${this._name}:${process.pid}`);
         this.debug('Online');
 
-        process.title = `Mendel ${this._workerName} Helper`;
+        process.title = `Mendel ${this._name} Helper`;
         // Event binding
         process.on('message', args => this._onMessage(args));
         process.on('exit', () => {
