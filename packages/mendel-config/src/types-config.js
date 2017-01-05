@@ -27,8 +27,14 @@ function TypesConfig(typeName, type) {
         }).map(function(ext) {
             return './**/*' + ext;
         });
+    const globs = this.globs = globStrings.map(function(glob) {
+        return new Minimatch(glob);
+    });
 
-    this.glob = globStrings.map(function(glob) { return new Minimatch(glob); });
+    this.test = function(id) {
+        return globs.filter(({negate}) => !negate).some(g => g.match(id)) &&
+            globs.filter(({negate}) => negate).every(g => g.match(id));
+    };
 
     this.isBinary = type.isBinary || false;
     this.parser = type.parser;
@@ -39,7 +45,7 @@ function TypesConfig(typeName, type) {
 }
 
 TypesConfig.validate = createValidator({
-    glob: {type: 'array', minLen: 1},
+    globs: {type: 'array', minLen: 1},
     // transforms can be empty in case of simple outlet
 });
 

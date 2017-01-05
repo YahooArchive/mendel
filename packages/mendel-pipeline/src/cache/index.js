@@ -45,12 +45,7 @@ class MendelCache extends EventEmitter {
     // Get Type only based on the entryId. IST can convert the types.
     getInitialType(id) {
         if (isNodeModule(id)) return 'node_modules';
-
-        const type = this._types.find(({glob}) => {
-            return glob.filter(({negate}) => !negate).some(g => g.match(id)) &&
-                glob.filter(({negate}) => negate).every(g => g.match(id));
-        });
-
+        const type = this._types.find(type => type.test(id));
         return type ? type.name : 'others';
     }
 

@@ -56,12 +56,7 @@ class Entry {
     getTypeForConfig(config) {
         const id = this.id;
         if (isNodeModule(id)) return 'node_modules';
-
-        const type = config.types.find(({glob}) => {
-            return glob.filter(({negate}) => !negate).some(g => g.match(id)) &&
-                glob.filter(({negate}) => negate).every(g => g.match(id));
-        });
-
+        const type = config.types.find(type => type.test(id));
         return type ? type.name : 'others';
     }
 
