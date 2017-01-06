@@ -1,11 +1,9 @@
 const debug = require('debug')('mendel:generator:extract');
 
 function generatorExtract(bundle, doneBundles, registry) {
-    const {extractFrom, extractEntries} = bundle.options.options;
+    const {from, extractEntries} = bundle.options.options;
     const extracts = registry.getEntriesByGlob(extractEntries);
-    const fromBundle = doneBundles.find(done => {
-        return done.options.id === extractFrom;
-    });
+    const fromBundle = doneBundles.find(d => d.options.id === from);
 
     if (!fromBundle) {
         return debug([

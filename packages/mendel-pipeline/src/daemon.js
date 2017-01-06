@@ -1,14 +1,14 @@
 const debug = require('debug')('mendel:daemon');
-const mendelConfig = require('../../../mendel-config');
+const mendelConfig = require('../../mendel-config');
 
 const EventEmitter = require('events').EventEmitter;
-const MendelCache = require('../cache');
-const Watcher = require('../fs-watcher');
-const Transformer = require('../transformer');
-const DepResolver = require('../deps');
+const MendelCache = require('./cache');
+const Watcher = require('./fs-watcher');
+const Transformer = require('./transformer');
+const DepResolver = require('./deps');
 
-const MendelPipeline = require('../pipeline');
-const CacheServer = require('../cache/server');
+const MendelPipeline = require('./pipeline');
+const CacheServer = require('./cache/server');
 const DefaultShims = require('node-libs-browser');
 
 process.title = 'Mendel Daemon';
@@ -125,15 +125,9 @@ module.exports = class MendelPipelineDaemon {
 
     run(callback, environment=this.default) {
         const pipeline = this.getPipeline(environment);
-
         pipeline.on('idle', () => {
-            const MendelOutlets = require('./outlets');
-            const outlet = new MendelOutlets(this.config);
-
-            outlet.run(() => {
-                this.onExit();
-                callback();
-            });
+            this.onExit();
+            callback();
         });
     }
 

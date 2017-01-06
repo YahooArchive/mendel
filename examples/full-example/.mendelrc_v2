@@ -106,7 +106,7 @@ bundles:
     outlet: manifest
     outfile: lazy.js
     generator: extract-bundles
-    extract-from: main
+    from: main
     extract-entries:
       - ./components/lazy.js
   css:

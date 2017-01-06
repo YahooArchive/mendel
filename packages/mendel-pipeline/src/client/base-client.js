@@ -1,16 +1,16 @@
 const EventEmitter = require('events').EventEmitter;
 
-const mendelConfig = require('../../../../mendel-config');
-const CacheClient = require('../../cache/client');
+const mendelConfig = require('../../../mendel-config');
+const CacheClient = require('../cache/client');
 const MendelGenerators = require('./generators');
-const MendelOutletRegistry = require('../../registry/outlet');
+const MendelOutletRegistry = require('../registry/outlet');
 const Outlets = require('./outlets');
 const DefaultShims = require('node-libs-browser');
 
-process.title = 'Mendel Outlet';
+process.title = 'Mendel Client';
 
-class MendelOutlets extends EventEmitter {
-    constructor(options) {
+class BaseMendelClient extends EventEmitter {
+    constructor(options={}) {
         super();
 
         if (options.config === false) {
@@ -25,6 +25,7 @@ class MendelOutlets extends EventEmitter {
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
         this.setupClient();
+        this.synced = false;
     }
 
     setupClient() {
@@ -38,13 +39,14 @@ class MendelOutlets extends EventEmitter {
             }
         });
 
-        this.client.on('sync', () => {
-            Promise.resolve()
-            .then(() => this.generators.perform())
-            .then(bundles => this.outlets.perform(bundles))
-            .then(() => this.emit('done'))
-            .catch(e => this.emit('error', e));
-        });
+        this.client.on('sync', function() {
+            this.synced = true;
+            this.onSync.apply(this, arguments);
+        }.bind(this));
+        this.client.on('unsync', function() {
+            this.synced = false;
+            this.onUnsync.apply(this, arguments);
+        }.bind(this));
     }
 
     run(callback=()=>{}) {
@@ -68,6 +70,14 @@ class MendelOutlets extends EventEmitter {
     exit() {
         if (this.client) this.client.onExit();
     }
+
+    onUnsync(entryId) { // eslint-disable-line no-unused-vars
+
+    }
+
+    onSync() {
+        throw new Error('Please implement "onSync"');
+    }
 }
 
-module.exports = MendelOutlets;
+module.exports = BaseMendelClient;

@@ -1,6 +1,6 @@
 const mkdirp = require('mkdirp');
 const path = require('path');
-const analyze = require('../../helpers/analytics/analytics')('outlet');
+const analyze = require('../helpers/analytics/analytics')('outlet');
 
 class MendelOutlets {
     constructor(options) {
@@ -22,7 +22,8 @@ class MendelOutlets {
             return Promise.resolve()
             .then(analyze.tic.bind(analyze, outlet.id))
             .then(() => plugin.perform(bundle))
-            .then(analyze.toc.bind(analyze, outlet.id));
+            .then(analyze.toc.bind(analyze, outlet.id))
+            .then(output => bundle.output = output);
         });
         return Promise.all(promises);
     }

@@ -56,6 +56,7 @@ class CacheClient extends EventEmitter {
                     }
                 case 'removeEntry':
                     {
+                        if (this.sync) this.emit('unsync', data.id);
                         this.sync = false;
                         this.registry.removeEntry(data.id);
                         break;

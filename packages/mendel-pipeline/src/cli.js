@@ -23,19 +23,19 @@ program
 
 
 if (program.outlet) {
-    const MendelOutlets = require('./main/outlets');
-    const outlets = new MendelOutlets(program);
+    const MendelClient = require('./client/build-all');
+    const outlets = new MendelClient(program);
     outlets.run((error) => {
         if (error) process.exit(1);
         process.exit(0);
     });
 } else if (program.watch) {
-    const MendelPipelineDaemon = require('./main/daemon');
+    const MendelPipelineDaemon = require('./daemon');
     const daemon = new MendelPipelineDaemon(program);
     daemon.watch();
 } else {
-    const MendelPipelineDaemon = require('./main/daemon');
-    const daemon = new MendelPipelineDaemon(program);
+    const Mendel = require('./main');
+    const daemon = new Mendel(program);
     daemon.run((error) => {
         if (error) process.exit(1);
         setImmediate(() => process.exit(0));

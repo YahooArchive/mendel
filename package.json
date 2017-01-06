@@ -28,7 +28,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "scripts": {
-    "test": "DEBUG='' rimraf test/**/build* && npm run unit && npm run lint",
+    "test": "DEBUG='' rimraf test/**/build* && rimraf test/**/.mendelipc && npm run unit && npm run lint",
     "lint": "eslint .",
     "unit": "DEBUG='' tap test/*.js",
     "unit-file": "DEBUG='' tap",

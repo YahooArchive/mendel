@@ -183,7 +183,7 @@ bundles:
   lazy-group-1:
     outfile: lazy1.js
     generator: extract-bundles
-    extract-from: main
+    from: main
     extract-entries:
       - /apps/lazy
   deps:

@@ -41,7 +41,7 @@ bundles:
     outlet: manifest
     outfile: lazy.js
     generator: extract-bundles
-    extract-from: main
+    from: main
     extract-entries:
       # This file requires different files in a variation.
       #   - util.js
