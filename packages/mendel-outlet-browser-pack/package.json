@@ -1,5 +1,5 @@
 {
-  "name": "mendel-outlet-manifest",
+  "name": "mendel-outlet-browser-pack",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "browser-pack": "^6.0.2",
     "debug": "^2.6.0"
   }
 }

@@ -1,5 +1,6 @@
 const acorn = require('acorn-jsx/inject')(require('acorn'));
 const {visit} = require('ast-types');
+const GLOBAL_WHITELIST = ['process'];
 
 function _depFinder(ast) {
     const imports = {};
@@ -31,7 +32,8 @@ function _depFinder(ast) {
             // console.log(nodePath.parentPath.node)
             const node = nodePath.value;
             if (node.object.type === 'Identifier' &&
-                !nodePath.scope.lookup(node.object.name)) {
+                !nodePath.scope.lookup(node.object.name) &&
+                GLOBAL_WHITELIST.indexOf(node.object.name) >= 0) {
                 globals[node.object.name] = true;
             }
 

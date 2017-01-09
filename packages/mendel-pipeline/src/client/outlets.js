@@ -8,7 +8,7 @@ class MendelOutlets {
         this.outlets = options.outlets;
     }
 
-    perform(bundles) {
+    perform(bundles, variation=this.options.baseConfig.dir) {
         const promises = bundles.map(bundle => {
             const outlet = this.outlets.find(outlet => {
                 return outlet.id === bundle.options.outlet;
@@ -21,7 +21,7 @@ class MendelOutlets {
 
             return Promise.resolve()
             .then(analyze.tic.bind(analyze, outlet.id))
-            .then(() => plugin.perform(bundle))
+            .then(() => plugin.perform(bundle, variation))
             .then(analyze.toc.bind(analyze, outlet.id))
             .then(output => bundle.output = output);
         });

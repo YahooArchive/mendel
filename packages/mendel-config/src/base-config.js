@@ -13,7 +13,7 @@ function BaseConfig(config) {
     const baseConfig = {
         id: input.id,
         dir: path.relative(config.projectRoot, input.dir),
-        outdir: path.resolve(config.projectRoot, input.outdir),
+        outdir: path.resolve(config.projectRoot, input.outdir || 'build'),
     };
 
     return baseConfig;

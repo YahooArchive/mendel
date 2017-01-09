@@ -47,6 +47,10 @@ if (program.outlet) {
         printer: new AnalyticsCliPrinter({enableColor: true}),
     });
 
+    process.on('exit', (code) => {
+        if (code > 0) daemon.onForceExit();
+    });
+
     process.on('SIGINT', () => {
         daemon.onForceExit();
         process.exit(1);

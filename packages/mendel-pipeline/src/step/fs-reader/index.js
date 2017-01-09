@@ -39,9 +39,12 @@ class FileReader extends BaseStep {
 
             this.depsResolver.detect(entry.id, source)
             .then(({deps}) => {
+                if (filePath === '/Users/swl33/open/mendel/node_modules/lodash.template/index.js') {
+                    console.log(deps);
+                }
                 this.registry.addSource({id: entry.id, source, deps});
                 this.emit('done', {entryId: entry.id});
-            }).catch(error => {
+            }, error => {
                 console.error([
                     `[CRITICAL] Failed to detect dependency for "${filePath}".`,
                 ].join(' '));

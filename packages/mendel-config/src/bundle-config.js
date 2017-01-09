@@ -6,11 +6,8 @@ function BundleConfig(id, options, config) {
     this.id = id;
     this.generator = options.generator || 'default';
 
-    if (!options.outfile) {
-        throw new Error('Required "outfile" configuration missing');
-    }
-
-    this.outfile = path.resolve(config.baseConfig.outdir, options.outfile);
+    this.outfile = options.outfile ?
+        path.resolve(config.baseConfig.outdir, options.outfile) : '';
     this.entries = flattenArrays(options.entries || []);
     this.require = flattenArrays(options.require || []);
     this.external = flattenArrays(options.external || []);
@@ -27,7 +24,6 @@ function BundleConfig(id, options, config) {
 
 BundleConfig.validate = createValidator({
     id: {required: true},
-    outfile: {required: true},
 });
 
 function flattenArrays(inArray) {

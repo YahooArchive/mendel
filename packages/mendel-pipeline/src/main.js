@@ -24,6 +24,10 @@ class Mendel {
             });
         });
     }
+
+    onForceExit() {
+        this.daemon.onForceExit();
+    }
 }
 
 module.exports = Mendel;
