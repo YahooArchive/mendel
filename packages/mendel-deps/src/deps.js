@@ -4,6 +4,7 @@ const {visit} = require('ast-types');
 function _depFinder(ast) {
     const imports = {};
     const exports = {};
+    const globals = {};
 
     visit(ast, {
         /************** IMPORT/REQUIRE ***************/
@@ -22,6 +23,16 @@ function _depFinder(ast) {
                 node.arguments[0].type === 'Literal'
             ) {
                 imports[node.arguments[0].value] = true;
+            }
+
+            return this.traverse(nodePath);
+        },
+        visitMemberExpression(nodePath) {
+            // console.log(nodePath.parentPath.node)
+            const node = nodePath.value;
+            if (node.object.type === 'Identifier' &&
+                !nodePath.scope.lookup(node.object.name)) {
+                globals[node.object.name] = true;
             }
 
             return this.traverse(nodePath);
@@ -56,6 +67,10 @@ function _depFinder(ast) {
 
             return this.traverse(nodePath);
         },
+    });
+
+    Object.keys(globals).forEach(use => {
+        imports[use] = true;
     });
 
     return {

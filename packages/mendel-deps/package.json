@@ -4,7 +4,7 @@
   "description": "Depedency finder based on AST and with fs acess caching",
   "main": "src/deps.js",
   "scripts": {
-    "test": "exit 0"
+    "test": "tap test/*.js"
   },
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",

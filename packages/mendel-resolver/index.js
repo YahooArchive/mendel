@@ -45,6 +45,10 @@ class ModuleResolver {
         return !/^(?:\.\.?(?:\/|$)|\/|([A-Za-z]:)?[\\\/])/.test(name);
     }
 
+    setBaseDir(basedir) {
+        this.basedir = path.resolve(this.cwd, basedir);
+    }
+
     /**
      * @param {String} moduleName name of the module to resolve its path
      */
