@@ -37,7 +37,8 @@ class MendelGenerators {
     perform(bundle, doneBundles) {
         const {id, plugin} = this.generators.find(gen => {
             return gen.id === bundle.options.generator;
-        });
+        }) || {};
+        if (!plugin) return;
 
         analyze.tic(id);
         const resultBundle = plugin(

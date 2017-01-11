@@ -17,6 +17,7 @@ variation-config:
       - partner_C
 
 route-config:
+  # bundle does not have extension has it can be css bundle.
   variation: /mendel/:variations/:bundle
   hash: /mendel/:hash/:bundle
 
@@ -102,6 +103,7 @@ bundles:
     outlet: file
     outfile: vendor.js
     generator: node-modules-generator
+    from: main
     all-bundles: true # expects only 1 bundle to apply this generator, or throws
                       # look for node_modules in every other bundle
   lazy:

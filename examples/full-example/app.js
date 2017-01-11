@@ -1,15 +1,14 @@
 /* Copyright 2015, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
-
+process.env.MENDELRC = '.mendelrc_v2';
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
-var MendelMiddleware = require('mendel-middleware');
+var MendelMiddleware = require('mendel2-middleware');
 var cache = true;
 
 if (process.env.NODE_ENV !== 'production') {
-    MendelMiddleware = require('mendel-development-middleware');
     cache = false;
 }
 
@@ -27,7 +26,7 @@ app.get('/', function(req, res) {
     var variations = (req.query.variations||'').trim()
     .split(',').filter(Boolean);
     var serverRender = req.query.ssr !== 'false' && req.mendel.isSsrReady();
-    var optionalMarkup = "";
+    var optionalMarkup = '';
 
     // populates req.mendel.variations with validated and sorted variations
     req.mendel.setVariations(variations);
@@ -35,9 +34,7 @@ app.get('/', function(req, res) {
     if (serverRender) {
         // To improve ssr performance, you need to pass
         // array of bundle ids you only need for ssr rendering
-        var resolver = req.mendel.resolver(['main']);
-        var Main = resolver.require('main.js');
-
+        var Main = req.mendel.require('./main');
         optionalMarkup = ReactDOMServer.renderToString(Main())
     }
 
@@ -45,12 +42,13 @@ app.get('/', function(req, res) {
         '<!DOCTYPE html>',
         '<html><head></head><body>',
             '<div id="main">'+optionalMarkup+'</div>',
+            bundle(req, 'css'),
             bundle(req, 'vendor'),
             bundle(req, 'main'),
             // The full example supports on-demand loading, lazy bundle
             // is only loaded client-side when a button is clicked in the
             // application
-            entryMap(req, 'lazy'),
+            // entryMap(req, 'lazy'),
         '</body></html>'
     ].join('\n');
 
@@ -71,7 +69,11 @@ function bundle(req, bundle) {
     var key = bundle + ':' + req.mendel.variations.join(':');
     if (!cache || !bundleCache[key]) {
         var url = req.mendel.getURL(bundle);
-        bundleCache[key] = '<script src="'+url+'"></script>';
+        if (bundle === 'css') {
+            bundleCache[key] = '<link rel="stylesheet" type="text/css" href="' + url + '">'; // eslint-disable-line max-len
+        } else {
+            bundleCache[key] = '<script src="'+url+'"></script>';
+        }
     }
     return bundleCache[key];
 }

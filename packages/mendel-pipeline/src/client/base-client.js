@@ -76,7 +76,6 @@ class BaseMendelClient extends EventEmitter {
     }
 
     onSync() {
-        throw new Error('Please implement "onSync"');
     }
 }
 

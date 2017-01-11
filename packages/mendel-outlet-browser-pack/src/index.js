@@ -1,13 +1,37 @@
 const debug = require('debug')('mendel:outlet:manifest');
 const fs = require('fs');
+const {Transform} = require('stream');
+const {Buffer} = require('buffer');
 const browserpack = require('browser-pack');
+
+class PaddedStream extends Transform {
+    constructor({prelude='', appendix=''}, options) {
+        super(options);
+        this.prelude = prelude;
+        this.appendix = appendix;
+        this.started = false;
+    }
+    // Called on every chunk
+    _transform(chunk, encoding, cb) {
+        if (!this.started) {
+            this.started = true;
+            chunk = Buffer.concat([Buffer.from(this.prelude), chunk]);
+        }
+        cb(null, chunk);
+    }
+    // Called right before it wants to end
+    _flush(cb) {
+        this.push(Buffer.from(this.appendix));
+        cb();
+    }
+}
 
 module.exports = class ManifestOutlet {
     constructor(options) {
         this.config = options;
     }
 
-    perform({entries, options}, variation) {
+    perform({entries, options}, variations) {
         return new Promise((resolve, reject) => {
             // globals like, "process", handling
             const processEntries = Array.from(entries.values())
@@ -15,7 +39,7 @@ module.exports = class ManifestOutlet {
             processEntries.forEach(({id}) => entries.delete(id));
             const hasProcess = processEntries.length > 0;
 
-            const bundles = this.getV1Manifest(entries);
+            const bundles = this.getPackJSON(entries);
             const pack = browserpack(
                 Object.assign(
                     {},
@@ -27,35 +51,64 @@ module.exports = class ManifestOutlet {
                 )
             );
 
-            if (options.outfile) {
+            let prelude = '';
+            let appendix = '';
+
+            if (hasProcess) {
+                prelude = '(function(){var process={env: {}};';
+                appendix = '})();';
+            }
+
+            if (!this.config.noout && options.outfile) {
                 let source = '';
-                if (hasProcess) source = '(function(){var process={env: {}};';
                 // If `outfile` exists, output it to appropriate file
                 pack.on('error', reject);
                 pack.on('data', buf => source += buf.toString());
                 pack.on('end', () => {
-                    if (hasProcess) source += '})();';
+                    source += appendix;
                     fs.writeFileSync(options.outfile, source);
                     resolve();
                 });
             } else {
                 // Return a stream back if outfile is not declared.
                 // You can pipe it or do whatever with it.
-                setImmediate(() => resolve(pack));
+                const stream = new PaddedStream({appendix, prelude});
+                pack.pipe(stream);
+                setImmediate(() => resolve(stream));
             }
 
-            bundles.forEach(({variations, data}) => {
-                const dataInd = variations.findIndex(v => variation === v);
-                pack.write(data[dataInd]);
-            });
-            pack.end();
+            const arrData = bundles.map(({variations: vars, data}) => {
+                // Because `variations` to perform is list of vars (based on chain)
+                const dataInd = vars.findIndex(v => variations.indexOf(v) >= 0);
+                return data[dataInd];
+            }).filter(Boolean);
+            this.writeToStream(pack, arrData);
         });
+    }
+
+    writeToStream(stream, arrData) {
+        if (!arrData.length) stream.end();
+
+        // Writing null terminates the stream. It is equal to EOF for streams.
+        while (arrData.length && stream.write(arrData[0])) {
+            // If successfully written, remove written one from the arrData.
+            arrData.shift();
+        }
+        if (arrData.length) {
+            stream.once(
+                'drain',
+                this.writeToStream.bind(this, stream, arrData)
+            );
+        } else {
+            stream.end();
+        }
     }
 
     dataFromItem(item) {
         const data = {
             id: item.normalizedId,
-            deps: item.deps,
+            // Clone the object so mutating it does not mutate source entry
+            deps: Object.assign({}, item.deps),
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
             source: item.source,
@@ -66,7 +119,7 @@ module.exports = class ManifestOutlet {
         return data;
     }
 
-    getV1Manifest(entries) {
+    getPackJSON(entries) {
         const groupedByNorm = new Map();
         const depToData = new Map();
 

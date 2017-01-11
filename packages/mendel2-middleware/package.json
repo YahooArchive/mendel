@@ -1,0 +1,17 @@
+{
+  "name": "mendel2-middleware",
+  "version": "1.0.0",
+  "description": "A temporary package as it loses backwards compatibility",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "path-to-regexp": "^1.7.0",
+    "mendel-config": "*",
+    "mendel-development": "*",
+    "mendel-pipeline": "*"
+  }
+}

@@ -13,8 +13,13 @@ module.exports = class CSSOutlet {
 
         return cssnano.process(source, {})
         .then(result => {
-            fs.writeFileSync(options.outfile, result);
             debug(`Outputted: ${options.outfile}`);
+
+            if (this.config.noout !== true && options.outfile) {
+                fs.writeFileSync(options.outfile, result.css);
+            } else {
+                return result.css;
+            }
         });
     }
 };

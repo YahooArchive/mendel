@@ -17,7 +17,9 @@ class MendelOutlets {
             const Plugin = require(outlet.plugin);
             const plugin = new Plugin(this.options);
 
-            mkdirp.sync(path.dirname(bundle.options.outfile));
+            if (bundle.options.outfile) {
+                mkdirp.sync(path.dirname(bundle.options.outfile));
+            }
 
             return Promise.resolve()
             .then(analyze.tic.bind(analyze, outlet.id))

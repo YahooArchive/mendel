@@ -23,11 +23,8 @@ class Analytics {
     }
 
     record(name, before, after) {
-        if (!global.analytics) {
-            console.log('Analytics cannot be done without a collector');
-            return;
-        }
-
+        // Analytics cannot be done without a collector
+        if (!global.analytics) return;
         global.analytics.record({
             type: 'analytics',
             name: `main:${this.groupName}:${name}`,

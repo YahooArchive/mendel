@@ -35,5 +35,7 @@ module.exports = function() {
         config: true,
         shim: {},
         defaultShim: {},
+        // This controls whether outlet outputs to a file or a stream
+        noout: false,
     };
 };

@@ -1,10 +1,9 @@
 /* Copyright 2015, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
-
+import App from './components/app';
 import React from 'react'; // eslint-disable-line
 import ReactDOM from 'react-dom';
-import App from './components/app';
 
 if (typeof document !== 'undefined') {
     var main = document.querySelector('#main');

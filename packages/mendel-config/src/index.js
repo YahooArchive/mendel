@@ -32,6 +32,7 @@ module.exports = function(rawConfig) {
     // In YAML syntax, we use dash instead of camel case. Normalize it.
     const config = undash(defaultEnvConfig);
     config.variationConfig = undash(config.variationConfig);
+    config.routeConfig = config.routeConfig || {};
 
     // Use absolute path for path configs
     config.projectRoot = path.resolve(config.projectRoot);
