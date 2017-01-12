@@ -125,9 +125,10 @@ class CacheServer extends EventEmitter {
     }
 
     signalRemoval(client, id) {
+        const cache = this.cacheManager.getCache(client.environment);
         try {
             client.send({
-                totalEntries: this.cache.size(),
+                totalEntries: cache.size(),
                 type: 'removeEntry',
                 id,
             });
