@@ -17,7 +17,7 @@ class FileReader extends BaseStep {
 
     perform(entry) {
         // raw can exist without read step in case of virtual files and others.
-        if (entry.getRawSource()) {
+        if (entry.rawSource) {
             return this.emit('done', {entryId: entry.id});
         }
 

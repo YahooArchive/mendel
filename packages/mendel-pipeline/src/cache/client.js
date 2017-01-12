@@ -15,8 +15,10 @@ class CacheClient extends EventEmitter {
         this.registry = registry;
         this.environment = environment;
 
+        this.connected = false;
+        this.closeReqeusted = false;
         this.connection = network.getClient(cacheConnection);
-        this.initClient();
+        this.initClient(this.connection);
     }
 
     start() {
@@ -25,18 +27,18 @@ class CacheClient extends EventEmitter {
     }
 
     onExit() {
+        this.closeReqeusted = true;
         this.connection.end();
     }
 
     onForceExit() {
+        this.closeReqeusted = true;
         this.connection.end();
     }
 
-    initClient() {
-        this.connection.on('error', (err) => {
-            this.emit('error', err);
-        });
-        this.connection.on('data', (data) => {
+    initClient(conn) {
+        conn.on('error', (err) => this.emit('error', err));
+        conn.on('data', (data) => {
             try {
                 data = JSON.parse(data);
             } catch(e) {
@@ -56,9 +58,10 @@ class CacheClient extends EventEmitter {
                     }
                 case 'removeEntry':
                     {
-                        if (this.sync) this.emit('unsync', data.id);
+                        const unsynced = this.sync ? true : false;
                         this.sync = false;
                         this.registry.removeEntry(data.id);
+                        if (unsynced) this.emit('unsync', data.id);
                         break;
                     }
                 default:
@@ -66,9 +69,14 @@ class CacheClient extends EventEmitter {
             }
         });
 
-        this.connection.on('connect', () => this.connected = true);
-        this.connection.on('end', () => {
-            debug('Disconnected from the master');
+        conn.on('connect', () => this.connected = true);
+        conn.on('end', () => {
+            debug('Disconnected from master');
+            if (this.closeReqeusted) return;
+            console.log([
+                'Mendel Daemon was disconnected.',
+                'Please check and restart the process.',
+            ].join(' '));
         });
     }
 
@@ -82,9 +90,9 @@ class CacheClient extends EventEmitter {
 
     checkStatus(total) {
         if (this.registry.size === total && !this.sync) {
+            debug(`${this.registry.size} entries are synced with a server`);
             this.sync = true;
             this.emit('sync');
-            debug(`${this.registry.size} in sync with server`);
         }
     }
 }

@@ -74,10 +74,10 @@ class CacheServer extends EventEmitter {
                 .filter(client => client.environment === cache.environment)
                 .forEach(client => this._sendEntry(client, cache.size(), entry));
         });
-        this.cacheManager.on('entryRemoved', (cache, entry) => {
+        this.cacheManager.on('entryRemoved', (cache, entryId) => {
             this.clients
                 .filter(client => client.environment === cache.environment)
-                .forEach(client => this.signalRemoval(client, entry.id));
+                .forEach(client => this.signalRemoval(client, entryId));
         });
     }
 
@@ -98,8 +98,7 @@ class CacheServer extends EventEmitter {
 
     serializeEntry(entry) {
         const type = entry.getTypeForConfig(this.config);
-        const deps = entry.getDependency();
-        const source = entry.getSource();
+        const {deps, source} = entry;
 
         let variation = this.getVariationForEntry(entry);
         if (!variation) {

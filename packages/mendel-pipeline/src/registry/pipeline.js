@@ -56,7 +56,6 @@ class MendelRegistry extends EventEmitter {
 
     addTransformedSource({id, source, deps}) {
         this.addSource({id, source, deps});
-        this.emit('_transformedSource', id);
     }
 
     invalidateDepedencies(filePath) {

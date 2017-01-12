@@ -1,5 +1,6 @@
 const BaseClient = require('./base-client');
 const Stream = require('stream');
+const Bundle = require('../bundles/bundle');
 
 class BuildOnDemand extends BaseClient {
     constructor(options) {
@@ -44,9 +45,13 @@ class BuildOnDemand extends BaseClient {
 
     _perform() {
         if (!this._bundles) {
+            console.log(this._bundles);
             // different from `this.config.bundles` which is configurations only
             // `this._bundles` are actual bundle
-            this._bundles = this.generators.performAll();
+            // @see bundles/bundle.js
+            this._bundles = this.generators.performAll(
+                this.config.bundles.map(opts => new Bundle(opts))
+            );
         }
 
         this._requests.forEach(({id, variations, promise}) => {

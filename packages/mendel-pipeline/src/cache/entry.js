@@ -8,6 +8,9 @@ class Entry {
         this.runtime; // one of 'browser', 'server', 'package', 'isomorphic'
         this.type; // one of the ids of types defined in mendelrc.
 
+        this.istSource;
+        this.istDeps;
+        this.istMap;
         this.rawSource;
         this.rawDeps;
         this.source;
@@ -17,7 +20,6 @@ class Entry {
         // dependencies
         this.deps;
         this.dependents;
-        this.done; // Boolean that denotes whether all ISTs & GSTs are done
 
         this.reset();
     }
@@ -35,18 +37,6 @@ class Entry {
 
     hasSource() {
         return !!this.source;
-    }
-
-    getSource() {
-        return this.source;
-    }
-
-    getRawSource() {
-        return this.rawSource;
-    }
-
-    getRawDeps() {
-        return this.rawDeps;
     }
 
     getDependency() {

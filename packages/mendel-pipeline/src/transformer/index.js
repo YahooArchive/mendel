@@ -44,15 +44,20 @@ class TransformManager extends MultiProcessMaster {
         }
 
         const descriptor = {filename, transforms, additional: []};
-        this._transforming.push(descriptor);
         return this.dispatchJob({
             transforms,
             filename,
             source,
         }).then(result => {
+            const jobInd = this._transforming.findIndex(t => t === descriptor);
+            this._transforming.splice(jobInd, 1);
+
             descriptor.additional.forEach(({resolve}) => resolve(result));
             return result;
         }).catch(error => {
+            const jobInd = this._transforming.findIndex(t => t === descriptor);
+            this._transforming.splice(jobInd, 1);
+
             descriptor.additional.forEach(({reject}) => {
                 reject(error);
             });

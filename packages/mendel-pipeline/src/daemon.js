@@ -41,7 +41,7 @@ class CacheManager extends EventEmitter {
 
             const entry = from.getEntry(id);
             to.addEntry(id);
-            to.getEntry(id).setSource(entry.getRawSource(), entry.getRawDeps());
+            to.getEntry(id).setSource(entry.rawSource, entry.rawDeps);
         });
     }
 

@@ -42,7 +42,7 @@ bundles:
     outfile: lazy.js
     generator: extract-bundles
     from: main
-    extract-entries:
+    entries:
       # This file requires different files in a variation.
       #   - util.js
       #   + third-number.js

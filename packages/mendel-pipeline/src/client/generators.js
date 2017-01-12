@@ -1,4 +1,3 @@
-const Bundle = require('../bundles/bundle');
 const DefaultGenerator = require('../bundles/default-generator');
 const debug = require('debug')('mendel:generators');
 const analyze = require('../helpers/analytics/analytics')('generator');
@@ -20,18 +19,6 @@ class MendelGenerators {
             id: 'default',
             plugin: DefaultGenerator,
         });
-
-        this.bundles = options.bundles.map(opts => new Bundle(opts));
-
-        // This orders generators to run in order of "generators" declaration
-        // in the mendelrc
-        this.plan = this.generators.map(generator => {
-            return this.bundles.filter(bundle => {
-                return bundle.options.generator === generator.id;
-            });
-        }).filter(b => b.length);
-
-        debug('plan', this.plan);
     }
 
     perform(bundle, doneBundles) {
@@ -62,13 +49,15 @@ class MendelGenerators {
         return doneBundles;
     }
 
-    performAll() {
-        const doneBundles = [];
+    performAll(bundles) {
+        bundles = bundles.slice().sort((a, b) => {
+            return this.generators.findIndex(g => g.id === a.options.generator)
+                - this.generators.findIndex(g => g.id === b.options.generator);
+        });
 
-        this.plan.forEach(bundles => {
-            bundles.forEach(bundle => {
-                this.perform(bundle, doneBundles);
-            });
+        const doneBundles = [];
+        bundles.forEach(bundle => {
+            this.perform(bundle, doneBundles);
         });
 
         return doneBundles;

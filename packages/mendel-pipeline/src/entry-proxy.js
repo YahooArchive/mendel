@@ -3,9 +3,9 @@ class EntryProxy {
         const proxy = new EntryProxy();
         proxy.filename = entry.id;
         proxy.normalizedId = entry.normalizedId;
-        proxy.map; // TODO
-        proxy.source = entry.getSource();
-        proxy.deps = entry.getDependency();
+        proxy.map = entry.istMap;
+        proxy.source = entry.istSource;
+        proxy.deps = entry.istDeps;
         return proxy;
     }
  }

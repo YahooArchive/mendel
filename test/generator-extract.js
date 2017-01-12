@@ -27,7 +27,6 @@ tap.test('Build the extraction app', function(t) {
             './math': /\d/,
             './some-number': /\d/,
         }, 'indices have all normalizedId expected in main');
-
         t.matches(lazy.indexes, {
             './another-number': /\d/,
             './number-list': /\d/,

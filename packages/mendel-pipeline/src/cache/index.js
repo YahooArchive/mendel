@@ -176,7 +176,6 @@ class MendelCache extends EventEmitter {
 
     doneEntry(id) {
         const entry = this.getEntry(id);
-        entry.done = true;
         this.emit('doneEntry', entry);
     }
 

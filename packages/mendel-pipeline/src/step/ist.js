@@ -59,7 +59,7 @@ class IndependentSourceTransform extends BaseStep {
     perform(entry) {
         const entryId = entry.id;
         const {ids, type: newType} = this.getTransform(entry);
-        const source = entry.getRawSource();
+        const source = entry.rawSource;
 
         let promise = Promise.resolve({source});
         if (ids.length) {
@@ -70,12 +70,19 @@ class IndependentSourceTransform extends BaseStep {
 
         promise
         .then(({source}) => {
-            return this._depsResolver.detect(entry.id, source).then(({deps}) => {
+            return this._depsResolver.detect(entry.id, source)
+            .then(({deps}) => {
                 this._registry.addTransformedSource({
                     id: entryId,
                     source,
                     deps,
                 });
+
+                // This is needed for cached GST
+                // A file has changed and we need to do GST again
+                // and want to use sources from IST, not from any other steps
+                entry.istSource = source;
+                entry.istDeps = deps;
 
                 if (entry.type !== newType) {
                     this._registry.setEntryType(entryId, newType);

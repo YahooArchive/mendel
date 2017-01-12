@@ -146,7 +146,7 @@ class GraphSourceTransform extends BaseStep {
         }
 
         const graph = this._registry.getDependencyGraph(entry.normalizedId, (depEntry) => {
-            const dependecyMap = depEntry.getDependency();
+            const dependecyMap = depEntry.deps;
             return Object.keys(dependecyMap).map(literal => {
                 return dependecyMap[literal];
             });
