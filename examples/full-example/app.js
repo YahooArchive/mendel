@@ -50,7 +50,7 @@ app.get('/', function(req, res) {
             // The full example supports on-demand loading, lazy bundle
             // is only loaded client-side when a button is clicked in the
             // application
-            // entryMap(req, 'lazy'),
+            entryMap(req, 'lazy'),
         '</body>'
     ].join('\n');
 
@@ -89,7 +89,7 @@ function entryMap(req, bundle) {
         // of entries that were used (normalized by variations) as values. This
         // allows apps to create a specific logic with their bundles in the
         // runtime.
-        var bundles = req.mendel.getBundleEntries();
+        var bundles = req.mendel.getBundleEntries(bundle);
 
         // In this particular case, entryMap will be used to expose to the client
         // the URL for bundles based on modules that are "exposed", meaning, after
@@ -100,7 +100,7 @@ function entryMap(req, bundle) {
             '       var nameSpace = "_mendelEntryMap";',
             '       var url = "'+req.mendel.getURL(bundle)+'";',
             '       window[nameSpace] = window[nameSpace] || {};',
-            '       ' + bundles[bundle].map(function(entry) {
+            '       ' + bundles.map(function(entry) {
                         return 'window[nameSpace]["'+entry+'"] = ' + ' url;';
                     }).join('\n       '),
             '   })()',

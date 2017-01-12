@@ -1,5 +1,4 @@
 const EventEmitter = require('events').EventEmitter;
-
 const mendelConfig = require('../../../mendel-config');
 const CacheClient = require('../cache/client');
 const MendelGenerators = require('./generators');
@@ -12,6 +11,7 @@ process.title = 'Mendel Client';
 class BaseMendelClient extends EventEmitter {
     constructor(options={}) {
         super();
+        this.debug = require('debug')('mendel:client:' + this.constructor.name);
 
         if (options.config === false) {
             this.config = options;
@@ -24,11 +24,11 @@ class BaseMendelClient extends EventEmitter {
         this.registry = new MendelOutletRegistry(this.config);
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
-        this.setupClient();
+        this._setupClient();
         this.synced = false;
     }
 
-    setupClient() {
+    _setupClient() {
         this.client = new CacheClient(this.config, this.registry);
 
         this.client.on('error', (error) => {
@@ -42,10 +42,12 @@ class BaseMendelClient extends EventEmitter {
         });
 
         this.client.on('sync', function() {
+            this.debug('Client is synced');
             this.synced = true;
             this.onSync.apply(this, arguments);
         }.bind(this));
         this.client.on('unsync', function() {
+            this.debug('Client is unsynced');
             this.synced = false;
             this.onUnsync.apply(this, arguments);
         }.bind(this));
@@ -74,7 +76,6 @@ class BaseMendelClient extends EventEmitter {
     }
 
     onUnsync(entryId) { // eslint-disable-line no-unused-vars
-
     }
 
     onSync() {

@@ -1,8 +1,9 @@
 const debug = require('debug')('mendel:generator:extract');
 
 function generatorExtract(bundle, doneBundles, registry) {
-    const {from, extractEntries} = bundle.options.options;
-    const extracts = registry.getEntriesByGlob(extractEntries);
+    const {entries} = bundle.options;
+    const {from} = bundle.options.options;
+    const extracts = registry.getEntriesByGlob(entries);
     const fromBundle = doneBundles.find(d => d.options.id === from);
 
     if (!fromBundle) {
@@ -23,6 +24,10 @@ function generatorExtract(bundle, doneBundles, registry) {
             // walk. Same code path can be visited when multiple entries
             // share the same dependencies
             if (extractedBundle.has(entry.id)) return false;
+            // Expose all lazy bundle first.
+            // Unexposed later when it is known that the module is internal
+            // only to lazy.
+            entry.expose = entry.id;
             extractedBundle.set(entry.id, entry);
         });
     });
@@ -48,7 +53,14 @@ function generatorExtract(bundle, doneBundles, registry) {
     fromBundle.entries.forEach(entry => {
         const {id} = entry;
         // case when entry only exist in the lazy bundle
-        if (!mainEntryIds.has(id)) return fromBundle.entries.delete(id);
+        if (!mainEntryIds.has(id)) {
+            if (extracts.indexOf(entry) < 0) {
+                 // Do not expose lazy internal module
+                 // and it is not an entrance to the bundle
+                entry.expose = null;
+            }
+            return fromBundle.entries.delete(id);
+        }
         // case when entry exist both on lazy and main. Should remove it from
         // lazy and make main expose it
         if (extractedBundle.has(id)) {

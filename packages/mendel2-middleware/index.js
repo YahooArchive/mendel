@@ -12,7 +12,7 @@ function MendelMiddleware(opts) {
     client.run();
     const config = parseConfig(opts);
     const {variations} = config.variationConfig;
-    const route = config.routeConfig.variation || '/mendel/:variations/:bundle\.js';
+    const route = config.routeConfig.variation || '/mendel/:variations/:bundle';
     const getPath = pathToRegExp.compile(route);
     const keys = [];
     // Populates the key with name of the path variables
@@ -23,8 +23,16 @@ function MendelMiddleware(opts) {
 
     return function(req, res, next) {
         req.mendel = req.mendel || {variations: false};
-        req.mendel.getBundleEntries = function getBundleEntries() {
-            return {};
+        req.mendel.getBundleEntries = function getBundleEntries(bundleId) {
+            const bundleConfig = config.bundles.find(({id}) => id === bundleId);
+            if (!bundleConfig)
+                throw new Error(`No bundle with id ${bundleId} found`);
+
+            // Without bundling yet, we need to get normalizedIds of entries/entrances
+            const normIds = new Set();
+            client.registry.getEntriesByGlob(bundleConfig.entries || [])
+                .forEach(entry => normIds.add(entry.normalizedId));
+            return Array.from(normIds.keys());
         };
 
         req.mendel.setVariations = function setVariations(variations) {
