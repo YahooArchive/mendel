@@ -111,6 +111,9 @@ module.exports = class MendelPipelineDaemon {
         // In the watch mode, after first `environment` is processed,
         // we want to process all environments declared.
         pipeline.once('idle', () => {
+            // Without printing this out, it is super hard to know when
+            // you are ready to start a client process
+            console.log(`Daemon - "${environment}" is ready`);
             Object.keys(this.environments).forEach(envName => {
                 this._watch(envName);
             });

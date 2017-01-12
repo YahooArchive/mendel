@@ -33,8 +33,10 @@ class BaseMendelClient extends EventEmitter {
 
         this.client.on('error', (error) => {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
-                console.error('Please, use --outlet only when you have another'+
-                    'mendel process running on --watch mode.');
+                console.error([
+                    'Please, use --outlet only when you have another',
+                    'mendel process running on --watch mode.',
+                ].join(' '));
                 process.exit(1);
             }
         });
