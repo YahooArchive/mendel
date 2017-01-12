@@ -94,7 +94,10 @@ module.exports = class ManifestOutlet {
     }
 
     writeToStream(stream, arrData) {
-        if (!arrData.length) stream.end();
+        if (!arrData.length) {
+            stream.end();
+            return;
+        }
 
         // Writing null terminates the stream. It is equal to EOF for streams.
         while (arrData.length && stream.write(arrData[0])) {
@@ -117,10 +120,12 @@ module.exports = class ManifestOutlet {
             // Clone the object so mutating it does not mutate source entry
             deps: Object.assign({}, item.deps),
             file: item.id,
+            sourceFile: '.', //This is weird, but need for sourcemaps to work properly
             variation: item.variation || this.config.baseConfig.dir,
             source: item.source,
             entry: item.entry,
             expose: item.expose,
+            map: item.map,
         };
 
         return data;

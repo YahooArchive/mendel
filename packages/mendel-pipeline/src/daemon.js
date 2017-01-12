@@ -41,7 +41,7 @@ class CacheManager extends EventEmitter {
 
             const entry = from.getEntry(id);
             to.addEntry(id);
-            to.getEntry(id).setSource(entry.rawSource, entry.rawDeps);
+            to.getEntry(id).setSource(entry.rawSource, entry.rawDeps, entry.map);
         });
     }
 
@@ -148,6 +148,7 @@ module.exports = class MendelPipelineDaemon {
                 depsResolver: this.depsResolver,
                 options: envConf,
             });
+
             this.cacheManager.sync(cache);
             this.pipelines[environment].watch();
         }

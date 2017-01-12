@@ -26,7 +26,7 @@ class TransformManager extends MultiProcessMaster {
         return {};
     }
 
-    transform(filename, transformIds, source) {
+    transform(filename, transformIds, source, map) {
         debug(`Transforming "${filename}" with [${transformIds}]`);
         const transforms = transformIds.map(id => this._transforms.get(id));
         const existing = this._transforming.find(exist => {
@@ -36,7 +36,7 @@ class TransformManager extends MultiProcessMaster {
                 });
         });
 
-        if (!transforms.length) return Promise.resolve({source});
+        if (!transforms.length) return Promise.resolve({source, map});
         if (existing) {
             return new Promise((resolve, reject) => {
                 existing.additional.push({resolve, reject});
@@ -48,6 +48,7 @@ class TransformManager extends MultiProcessMaster {
             transforms,
             filename,
             source,
+            map,
         }).then(result => {
             const jobInd = this._transforming.findIndex(t => t === descriptor);
             this._transforming.splice(jobInd, 1);

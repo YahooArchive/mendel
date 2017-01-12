@@ -61,7 +61,7 @@ class GraphSourceTransform extends BaseStep {
 
         depPromise.then(({deps}) => {
             this._virtual.delete(id);
-            this._registry.addTransformedSource({id, source, deps});
+            this._registry.addTransformedSource({id, source, deps, map});
         });
     }
 

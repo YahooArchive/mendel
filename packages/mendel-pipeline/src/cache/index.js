@@ -218,7 +218,7 @@ class MendelCache extends EventEmitter {
         entry.type = newType;
     }
 
-    setSource(id, source, deps) {
+    setSource(id, source, deps, map) {
         const entry = this.getEntry(id);
         const normalizedDeps = {};
         Object.keys(deps).forEach(depLiteral => {
@@ -229,7 +229,7 @@ class MendelCache extends EventEmitter {
             // main is "false" when depdenecy is a node's package.
             normalizedDeps[depLiteral] = this.getNormalizedId(depObject.main || depLiteral);
         });
-        entry.setSource(source, normalizedDeps);
+        entry.setSource(source, normalizedDeps, map);
     }
 
     emit(eventName, entry) {

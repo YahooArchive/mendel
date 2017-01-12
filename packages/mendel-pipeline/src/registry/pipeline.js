@@ -40,7 +40,7 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache.addEntry(filePath);
     }
 
-    addSource({id, source, deps}) {
+    addSource({id, source, deps, map}) {
         if (!this._mendelCache.hasEntry(id)) {
             this._mendelCache.addEntry(id);
         }
@@ -51,11 +51,11 @@ class MendelRegistry extends EventEmitter {
             if (main && !this.hasEntry(main)) this.addToPipeline(main);
         });
 
-        this._mendelCache.setSource(id, source, deps);
+        this._mendelCache.setSource(id, source, deps, map);
     }
 
-    addTransformedSource({id, source, deps}) {
-        this.addSource({id, source, deps});
+    addTransformedSource({id, source, deps, map}) {
+        this.addSource({id, source, deps, map});
     }
 
     invalidateDepedencies(filePath) {

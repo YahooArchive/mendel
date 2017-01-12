@@ -25,9 +25,13 @@ class Entry {
     }
 
     // Let's store rawSource
-    setSource(source, deps) {
+    setSource(source, deps, map) {
         this.source = source;
         this.deps = deps;
+
+        if (map) {
+            this.map = map;
+        }
 
         if (!this.rawSource) {
             this.rawSource = source;
@@ -69,6 +73,7 @@ class Entry {
             dependents: this.dependents,
             source: this.source,
             deps: this.deps,
+            map: this.map
         };
     }
 }
