@@ -40,16 +40,18 @@ app.get('/', function(req, res) {
 
     var html = [
         '<!DOCTYPE html>',
-        '<html><head></head><body>',
-            '<div id="main">'+optionalMarkup+'</div>',
+        '<head>',
             bundle(req, 'css'),
+        '</head>',
+        '<body>',
+            '<div id="main">'+optionalMarkup+'</div>',
             bundle(req, 'vendor'),
             bundle(req, 'main'),
             // The full example supports on-demand loading, lazy bundle
             // is only loaded client-side when a button is clicked in the
             // application
             // entryMap(req, 'lazy'),
-        '</body></html>'
+        '</body>'
     ].join('\n');
 
     res.send(html);
