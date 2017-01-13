@@ -11,7 +11,7 @@ function MendelMiddleware(opts) {
     const client = new MendelClient(Object.assign({}, opts, {noout: true}));
     client.run();
     const config = parseConfig(opts);
-    const {variations} = config.variationConfig;
+    const {variations: varsConfig} = config.variationConfig;
     const route = config.routeConfig.variation || '/mendel/:variations/:bundle';
     const getPath = pathToRegExp.compile(route);
     const keys = [];
@@ -36,8 +36,26 @@ function MendelMiddleware(opts) {
         };
 
         req.mendel.setVariations = function setVariations(variations) {
+            // You can set variation only once
             if (req.mendel.variations === false) {
-                req.mendel.variations = variations;
+                let validVars = variations.filter(variation => {
+                    return varsConfig.some(({id}) => id === variation);
+                });
+
+                if (config.verbose && validVars.length !== variations.length) {
+                    console.log([
+                        `[WARN] Certain variations in ${variations}`,
+                        'does not exist. Defaulted to base variation.',
+                    ].join(' '));
+                }
+
+                if (!validVars.length) {
+                    validVars = [config.baseConfig.id];
+                }
+
+                req.mendel.variations = validVars;
+            } else {
+                console.error('You cannot set variation more than once per request'); //eslint-disable-line max-len
             }
             return req.mendel.variations;
         };
@@ -48,9 +66,18 @@ function MendelMiddleware(opts) {
             return getPath({bundle: bundleId, variations});
         };
 
-        req.mendel.require = function mendelRequire(entryId, variation) {
-            variation = variation || config.baseConfig.dir;
-            return variationalExec(client.registry, entryId, variation);
+        req.mendel.require = function mendelRequire(entryId, variations) {
+            variations = variations ||
+                req.mendel.variations ||
+                [config.baseConfig.dir];
+
+            return variationalExec(
+                client.registry,
+                entryId,
+                variations.map(variation => {
+                    return varsConfig.find(({id}) => id === variation);
+                }).filter(Boolean)
+            );
         };
 
         req.mendel.isSsrReady = () => client.isSynced();
@@ -66,10 +93,11 @@ function MendelMiddleware(opts) {
         if (!params.bundle || !bundles.has(params.bundle)) return next();
 
         const vars = resolveVariations(
-            variations,
+            varsConfig,
             // %2C is comma done in getURL above
             (params.variations || []).split(/(,|%2C)/i)
         );
+
         // If params.variations does not exist or it does not resolve to
         // proper chain.
         if (!vars.length) return next();

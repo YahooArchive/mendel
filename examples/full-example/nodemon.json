@@ -1,4 +1,4 @@
 {
   "ignore": ["build/", "isomorphic/"],
-  "watch": [".mendelrc_v2", ".mendelrc"]
+  "watch": [".mendelrc_v2", ".mendelrc", "../../packages/**/*.js"]
 }

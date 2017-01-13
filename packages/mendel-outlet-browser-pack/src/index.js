@@ -26,6 +26,14 @@ class PaddedStream extends Transform {
     }
 }
 
+function matchVar(entries, multiVariations) {
+    for (let i = 0; i < multiVariations.length; i++) {
+        const varId = multiVariations[i];
+        const found = entries.find(entry => entry.variation === varId);
+        if (found) return found;
+    }
+}
+
 module.exports = class ManifestOutlet {
     constructor(options) {
         this.config = options;
@@ -36,9 +44,7 @@ module.exports = class ManifestOutlet {
             // globals like, "process", handling
             const processEntries = Array.from(entries.values())
                 .filter(({normalizedId}) => normalizedId === 'process');
-            processEntries.forEach(({id}) => entries.delete(id));
             const hasProcess = processEntries.length > 0;
-
             const bundles = this.getPackJSON(entries);
             const pack = browserpack(
                 Object.assign(
@@ -77,11 +83,10 @@ module.exports = class ManifestOutlet {
                 setImmediate(() => resolve(stream));
             }
 
-            const arrData = bundles.map(({variations: vars, data}) => {
-                // Because `variations` to perform is list of vars (based on chain)
-                const dataInd = vars.findIndex(v => variations.indexOf(v) >= 0);
-                return data[dataInd];
-            }).filter(Boolean);
+            const arrData = bundles
+                .map(({data}) => matchVar(data, variations))
+                // There can be bundle that does not pertain to certain variational chain (and no entry on base var)
+                .filter(Boolean);
             this.writeToStream(pack, arrData);
         });
     }
