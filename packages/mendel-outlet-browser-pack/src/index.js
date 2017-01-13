@@ -29,7 +29,9 @@ class PaddedStream extends Transform {
 function matchVar(entries, multiVariations) {
     for (let i = 0; i < multiVariations.length; i++) {
         const varId = multiVariations[i];
-        const found = entries.find(entry => entry.variation === varId);
+        const found = entries.find(entry => {
+            return entry.variation === varId && entry.runtime !== 'main';
+        });
         if (found) return found;
     }
 }

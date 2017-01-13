@@ -5,7 +5,7 @@ class Entry {
         // property is filled by cache where they have more context
         this.normalizedId;
         this.variation;
-        this.runtime; // one of 'browser', 'server', 'package', 'isomorphic'
+        this.runtime; // one of 'browser', 'main', 'package', 'isomorphic'
         this.type; // one of the ids of types defined in mendelrc.
 
         this.istSource;
