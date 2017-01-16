@@ -12,6 +12,7 @@
     "path-to-regexp": "^1.7.0",
     "mendel-config": "*",
     "mendel-development": "*",
+    "mendel-exec": "*",
     "mendel-pipeline": "*"
   }
 }

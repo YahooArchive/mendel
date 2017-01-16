@@ -43,11 +43,13 @@ class BaseMendelClient extends EventEmitter {
 
         this.client.on('sync', function() {
             this.debug('Client is synced');
+            this.emit('ready');
             this.synced = true;
             this.onSync.apply(this, arguments);
         }.bind(this));
         this.client.on('unsync', function() {
             this.debug('Client is unsynced');
+            this.emit('change');
             this.synced = false;
             this.onUnsync.apply(this, arguments);
         }.bind(this));
@@ -69,6 +71,7 @@ class BaseMendelClient extends EventEmitter {
             callback.call(null, error);
         });
         this.client.start();
+        return this;
     }
 
     exit() {
@@ -79,6 +82,10 @@ class BaseMendelClient extends EventEmitter {
     }
 
     onSync() {
+    }
+
+    isReady() {
+        return this.synced;
     }
 }
 

@@ -47,6 +47,7 @@ class MendelOutletRegistry {
     }
 
     getEntriesByGlob(globStrings) {
+        globStrings = Array.isArray(globStrings) ? globStrings : [globStrings];
         const globs = globStrings.map(str => {
             const isNegate = str[0] === '!';
             str = isNegate ? str.slice(1) : str;

@@ -9,12 +9,13 @@ import {
     scryRenderedDOMComponentsWithTag
 } from 'react-addons-test-utils';
 import Toolbar from '../toolbar';
+import {expect} from 'chai';
 
 describe("toolbar", function() {
     it("contains a button with correct label", function() {
         const toolbar = renderIntoDocument(<Toolbar />);
         const buttons = scryRenderedDOMComponentsWithTag(toolbar, 'button');
 
-        expect(findDOMNode(buttons[0]).innerText).toBe('Button');
+        expect(findDOMNode(buttons[0]).innerText).to.equal('Button');
     });
 });

@@ -38,6 +38,14 @@ transforms: # a list of all available transforms for all envs and types
     plugin: mendel-parser-json
   less-transform:
     plugin: mendel-transform-less
+  babel-test:
+    plugin: mendel-transform-babel
+    options:
+      presets:
+        - es2015
+        - react
+      plugins:
+        - istanbul
 
 types:
   json:
@@ -63,6 +71,11 @@ types:
       - .css
 
 env:
+  test:
+    types:
+      js:
+        transforms:
+          - babel-test
   production:
     types:
       js:
