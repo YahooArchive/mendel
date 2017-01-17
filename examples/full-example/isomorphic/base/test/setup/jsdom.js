@@ -72,6 +72,10 @@ Object.assign(global, browserGlobal);
             return values;
         }
 
+        if (global.window._core.Element.prototype.hasOwnProperty('innerText')) {
+            return;
+        }
+
         Object.defineProperty(global.window._core.Element.prototype, 'innerText', {
             get: function() {
                 return innerText(this);

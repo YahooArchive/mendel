@@ -51,7 +51,12 @@ class MendelOutletRegistry {
         const globs = globStrings.map(str => {
             const isNegate = str[0] === '!';
             str = isNegate ? str.slice(1) : str;
-            str = path.join(this._options.baseConfig.dir, str);
+
+            const isPadded = this._options.variationConfig.allVariationDirs
+                .some(varDir => str.indexOf(varDir) >= 0);
+            if (!isPadded)
+                str = path.join(this._options.baseConfig.dir, str);
+
             str = (isNegate ? '!./' : './') + str;
             return new Minimatch(str);
         });

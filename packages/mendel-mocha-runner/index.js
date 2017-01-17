@@ -1,7 +1,6 @@
 const Mocha = require('mocha');
 const MendelClient = require('mendel-pipeline/client');
 const exec = require('mendel-exec');
-const path = require('path');
 
 process.env.MENDELRC = '.mendelrc_v2';
 
@@ -14,23 +13,21 @@ const client = new MendelClient({
     noout: true,
 }).run();
 
-function MendelRunner(filePaths, options) {
-    options = Object.assign({}, DEFAULT_OPTIONS, options);
-    const mocha = new Mocha(options);
-    const sandbox = {};
+function MendelRunner(filePaths, options={}) {
+    const watch = options.watch || false;
+    // Watch is a feature of mendel, not mocha.
+    options = Object.assign({}, DEFAULT_OPTIONS, options, {watch: false});
 
-    if (options.prelude) {
-        require(path.resolve(process.cwd(), options.prelude));
-    }
-
-    client.once('ready', function() {
+    client.on('ready', function() {
+        const sandbox = {};
+        const mocha = new Mocha(options);
         const entries = client.registry.getEntriesByGlob(filePaths);
 
         entries.forEach(entry => {
             mocha.suite.emit('pre-require', sandbox, entry.id, mocha);
 
             const variationConf = client.config.variationConfig.variations
-                .find(({dir}) => dir === entry.variation);
+                .find(({chain}) => chain[0] === entry.variation);
             const module = exec(
                 client.registry, entry.normalizedId,
                 [variationConf], sandbox
@@ -39,9 +36,14 @@ function MendelRunner(filePaths, options) {
         });
 
         const runner = mocha.run();
-        runner.on('end', function() {
-            process.exit();
-        });
+
+        if (!watch) {
+            runner.on('end', () => process.exit(runner.failures));
+        }
+    });
+
+    client.on('change', function() {
+        console.log('Mendel detected file change. Waiting for bundle...');
     });
 }
 

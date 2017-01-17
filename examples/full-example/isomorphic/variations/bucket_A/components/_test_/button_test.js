@@ -8,21 +8,22 @@ import {
     renderIntoDocument
 } from 'react-addons-test-utils';
 import Button from '../button';
+import {expect} from 'chai';
 
 describe("Button bucket_A", function() {
     it("Adds suffix to content", function() {
         const button = renderIntoDocument(<Button></Button>);
 
-        expect(findDOMNode(button).innerText).toMatch('A#1');
+        expect(findDOMNode(button).innerText).to.contain('A#1');
     });
     it("global counter incremented", function() {
         const button = renderIntoDocument(<Button>bar</Button>);
 
-        expect(findDOMNode(button).innerText).toMatch('A#2');
+        expect(findDOMNode(button).innerText).to.contain('A#2');
     });
     it("renders with children", function() {
         const button = renderIntoDocument(<Button>foo</Button>);
 
-        expect(findDOMNode(button).innerText).toMatch('foo');
+        expect(findDOMNode(button).innerText).to.contain('foo');
     });
 });
