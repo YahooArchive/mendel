@@ -3,7 +3,7 @@ const parseConfig = require('mendel-config');
 const resolveVariations = require('mendel-development/resolve-variations');
 const MendelClient = require('mendel-pipeline/client');
 const Stream = require('stream');
-const variationalExec = require('./exec');
+const {execWithRegistry} = require('mendel-exec');
 
 module.exports = MendelMiddleware;
 
@@ -71,7 +71,7 @@ function MendelMiddleware(opts) {
                 req.mendel.variations ||
                 [config.baseConfig.dir];
 
-            return variationalExec(
+            return execWithRegistry(
                 client.registry,
                 entryId,
                 variations.map(variation => {

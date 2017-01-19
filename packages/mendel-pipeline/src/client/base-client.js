@@ -42,6 +42,7 @@ class BaseMendelClient extends EventEmitter {
         });
 
         this.client.on('sync', function() {
+            clearTimeout(this.initSyncMessage);
             this.debug('Client is synced');
             this.emit('ready');
             this.synced = true;
@@ -56,6 +57,14 @@ class BaseMendelClient extends EventEmitter {
     }
 
     run(callback=()=>{}) {
+        // Print a message if it does not sync within a second.
+        this.initSyncMessage = setTimeout(() => {
+            console.log([
+                'Waiting for sync. Can take few moments',
+                'if an environment performs complex operations.',
+            ].join(' '));
+        }, 3000);
+
         // This will come after the sync listener that generates and outlets
         this.once('done', () => {
             this.exit();

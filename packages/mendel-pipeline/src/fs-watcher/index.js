@@ -12,7 +12,7 @@ class FsWatcher {
         this.initialProrityQueue = [];
 
         this.watcher = new chokidar.FSWatcher({
-            cwd: this.projectRoot,
+            cwd: projectRoot,
             ignored: this.ignored,
         });
 

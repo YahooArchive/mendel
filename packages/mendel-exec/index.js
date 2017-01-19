@@ -51,7 +51,7 @@ function runEntryInVM(filename, source, sandbox, require) {
     return module.exports;
 }
 
-function matchVar(entries, variations) {
+function matchVar(entries, variations, runtime) {
     // variations are variation configurations based on request.
     // How entries resolve in mutltivariate case is a little bit different
     // from variation inheritance, thus this flattening with a caveat.
@@ -64,7 +64,10 @@ function matchVar(entries, variations) {
     for (let i = 0; i < multiVariations.length; i++) {
         const varId = multiVariations[i];
         const found = entries.find(entry => {
-            return entry.variation === varId && entry.runtime !== 'browser';
+            return entry.variation === varId && (
+                entry.runtime === 'isomorphic' ||
+                entry.runtime === runtime
+            );
         });
         if (found) return found;
     }
@@ -77,7 +80,7 @@ function matchVar(entries, variations) {
     ].join(' '));
 }
 
-module.exports = function exec(registry, mainId, variations, sandbox = {}) {
+function exec(fileName, source, {sandbox = {}, resolver}) {
     if (!sandbox) sandbox = {};
     if (!sandbox.global) sandbox.global = sandbox;
     if (!sandbox.process) sandbox.process = require('process');
@@ -86,25 +89,8 @@ module.exports = function exec(registry, mainId, variations, sandbox = {}) {
     // Let's pipe vm output to stdout this way
     sandbox.console = console;
 
-    const mainEntries = registry.getEntriesByNormId(mainId);
-    if (!mainEntries || !mainEntries.size) {
-        return require(mainId);
-    }
-
-    function resolver(id) {
-        const entries = registry.getEntriesByNormId(id);
-        if (!entries) return null;
-        return matchVar(
-            Array.from(entries.values()),
-            variations
-        );
-    }
-
     function localRequire(parentId, requireLiteral) {
-        const parent = registry.getEntry(parentId);
-        const depNormId = parent.deps[requireLiteral];
-        const entry = resolver(depNormId);
-
+        const entry = resolver(parentId, requireLiteral);
         if (entry) {
             return runEntryInVM(entry.id, entry.source, sandbox, localRequire);
         }
@@ -119,7 +105,33 @@ module.exports = function exec(registry, mainId, variations, sandbox = {}) {
     // instance of sandbox. If not, we create a new one and make it
     // last one exec execution.
     localRequire.cache = sandbox.cache;
+    return runEntryInVM(fileName, source, sandbox, localRequire);
+}
 
-    const mainEntry = matchVar(Array.from(mainEntries.values()), variations);
-    return runEntryInVM(mainEntry.id, mainEntry.source, sandbox, localRequire);
+module.exports = {
+    execWithRegistry(registry, mainId, variations, sandbox, runtime='main') {
+        function resolve(id) {
+            const entries = registry.getEntriesByNormId(id);
+            if (!entries) return null;
+            return matchVar(
+                Array.from(entries.values()),
+                variations,
+                runtime
+            );
+        }
+
+        const mainEntry = resolve(mainId);
+        if (!mainEntry) return require(mainId);
+        return exec(mainEntry.id, mainEntry.source, {
+            sandbox,
+            runtime,
+            resolver(from, depLiteral) {
+                const parent = registry.getEntry(from);
+                let normId = parent.deps[depLiteral];
+                if (typeof normId === 'object') normId = normId[runtime];
+                return resolve(normId);
+            },
+        });
+    },
+    exec,
 };

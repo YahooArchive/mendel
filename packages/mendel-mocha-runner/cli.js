@@ -15,6 +15,7 @@ program
     .option('-b, --bail', 'bail after first test failure')
     .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
     .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+    .option('-p, --prelude <filepath>', 'File to execute before running test')
     .option('-w, --watch', 'watch files for changes')
     .option('--check-leaks', 'check for global variable leaks')
     .option('--full-trace', 'display the full stack trace')

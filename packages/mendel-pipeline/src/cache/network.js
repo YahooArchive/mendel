@@ -51,6 +51,17 @@ module.exports = {
             if (isClosed) return;
             close.call(server);
         };
+        server.on('error', () => {
+            const serverPath = connectionOptions.path ||
+                `${connectionOptions.host}:${connectionOptions.port}`;
+            console.error([
+                'Server cannot start when another server is active.',
+                '\nIf no server process is active, please remove or kill',
+                `"${serverPath}" manually.`,
+                '\nThis is a symptom of server process exiting preemptively.',
+            ].join(' '));
+            process.exit(1);
+        });
 
         return server;
     },

@@ -1,6 +1,7 @@
 class EntryProxy {
     static getFromEntry(entry) {
         const proxy = new EntryProxy();
+        proxy.id = entry.id;
         proxy.filename = entry.id;
         proxy.normalizedId = entry.normalizedId;
         proxy.map = entry.istMap;

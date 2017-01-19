@@ -17,6 +17,9 @@ class MendelOutletRegistry {
     }
 
     getEntry(id) {
+        if (path.isAbsolute(id)) {
+            id = './' + path.relative(process.cwd(), id);
+        }
         return this._cache.get(id);
     }
 

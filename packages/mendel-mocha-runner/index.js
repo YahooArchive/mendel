@@ -1,7 +1,8 @@
 const Mocha = require('mocha');
 const MendelClient = require('mendel-pipeline/client');
-const exec = require('mendel-exec');
-
+const {execWithRegistry, exec} = require('mendel-exec');
+const fs = require('fs');
+const glob = require('glob');
 process.env.MENDELRC = '.mendelrc_v2';
 
 const DEFAULT_OPTIONS = {
@@ -18,7 +19,12 @@ function MendelRunner(filePaths, options={}) {
     // Watch is a feature of mendel, not mocha.
     options = Object.assign({}, DEFAULT_OPTIONS, options, {watch: false});
 
+    if (options.prelude) {
+        options.prelude = glob.sync(options.prelude);
+    }
+
     client.on('ready', function() {
+        // Populate the global sandbox
         const sandbox = {};
         const mocha = new Mocha(options);
         const entries = client.registry.getEntriesByGlob(filePaths);
@@ -26,9 +32,27 @@ function MendelRunner(filePaths, options={}) {
         entries.forEach(entry => {
             mocha.suite.emit('pre-require', sandbox, entry.id, mocha);
 
+            options.prelude.forEach(file => {
+                const entry = client.registry.getEntry('./' + file);
+                const id = entry ? entry.id : file;
+                const source = entry ? entry.source : fs.readFileSync(file, 'utf8');
+                exec(id, source, {
+                    sandbox,
+                    resolver(from, dep) {
+                        const fromEntry = client.registry.getEntry(from);
+                        if (!fromEntry) return null;
+                        const depNorm = fromEntry.deps[dep];
+                        if (!depNorm || depNorm.indexOf('/') < 0 || depNorm.indexOf('node_modules') > 0) return null;
+                        const entries = client.registry.getEntriesByNormId(depNorm);
+                        if (!entries) return null;
+                        return entries.values().next().value;
+                    },
+                });
+            });
+
             const variationConf = client.config.variationConfig.variations
                 .find(({chain}) => chain[0] === entry.variation);
-            const module = exec(
+            const module = execWithRegistry(
                 client.registry, entry.normalizedId,
                 [variationConf], sandbox
             );
