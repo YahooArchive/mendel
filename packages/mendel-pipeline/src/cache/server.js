@@ -98,7 +98,7 @@ class CacheServer extends EventEmitter {
 
     serializeEntry(entry) {
         const type = entry.getTypeForConfig(this.config);
-        const {deps, source, map, runtime} = entry;
+        const {deps, source, map, runtime, rawSource, id, normalizedId} = entry;
 
         let variation = this.getVariationForEntry(entry);
         if (!variation) {
@@ -107,14 +107,14 @@ class CacheServer extends EventEmitter {
         variation = variation.chain[0];
 
         return {
-            id: entry.id,
-            normalizedId: entry.normalizedId,
-            variation,
-            type,
+            id, normalizedId,
+            // Metadata
+            variation, type, runtime,
+            // Dependency information
+            // FIXME currently only puts dependencies in browser runtime
             deps,
-            source,
-            map,
-            runtime,
+            // Important source data
+            source, map, rawSource,
         };
     }
 

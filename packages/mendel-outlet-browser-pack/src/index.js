@@ -3,6 +3,7 @@ const fs = require('fs');
 const {Transform} = require('stream');
 const {Buffer} = require('buffer');
 const browserpack = require('browser-pack');
+const INLINE_MAP_PREFIX = '//# sourceMappingURL=data:application/json;base64,';
 
 class PaddedStream extends Transform {
     constructor({prelude='', appendix=''}, options) {
@@ -120,9 +121,15 @@ module.exports = class ManifestOutlet {
             // Clone the object so mutating it does not mutate source entry
             deps: Object.assign({}, item.deps),
             file: item.id,
-            sourceFile: '.', //This is weird, but need for sourcemaps to work properly
             variation: item.variation || this.config.baseConfig.dir,
-            source: item.source,
+            // This is supposed to be file path but our sourcemap already includes it
+            // so '.' is sufficient.
+            sourceFile: '.',
+            // Kinda ugly but browser pack uses "combine-source-map" which expects
+            // inline source map which gets removed when putting multiple files together
+            // as a bundle.
+            source: !item.map ? item.source : `${item.source}
+${INLINE_MAP_PREFIX}${new Buffer(JSON.stringify(item.map)).toString('base64')}`,
             entry: item.entry,
             expose: item.expose,
             map: item.map,

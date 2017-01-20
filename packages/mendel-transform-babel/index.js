@@ -5,7 +5,7 @@ module.exports = function({source, filename, map: inputSourceMap}, options) {
     const {code, map} = babel.transform(source,
         Object.assign({
             babelrc: false,
-            sourceMaps: 'both',
+            sourceMaps: true,
             inputSourceMap,
             filename,
             sourceFileName: filename,

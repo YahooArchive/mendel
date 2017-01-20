@@ -3,6 +3,7 @@ const MendelClient = require('mendel-pipeline/client');
 const {execWithRegistry, exec} = require('mendel-exec');
 const fs = require('fs');
 const glob = require('glob');
+const sourceMapper = require('./source-mapper');
 process.env.MENDELRC = '.mendelrc_v2';
 
 const DEFAULT_OPTIONS = {
@@ -34,8 +35,8 @@ function MendelRunner(filePaths, options={}) {
         sandbox.__coverage__ = global.__coverage__ = {};
 
         const mocha = new Mocha(options);
-        const entries = client.registry.getEntriesByGlob(filePaths);
 
+        const entries = client.registry.getEntriesByGlob(filePaths);
         entries.forEach(entry => {
             mocha.suite.emit('pre-require', sandbox, entry.id, mocha);
 
@@ -68,6 +69,9 @@ function MendelRunner(filePaths, options={}) {
         });
 
         const runner = mocha.run();
+        runner.on('fail', (test, error) => {
+            error.stack = sourceMapper(error.stack, client.registry);
+        });
 
         if (!watch) {
             runner.on('end', () => process.exit(runner.failures));
