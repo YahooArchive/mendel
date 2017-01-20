@@ -3,6 +3,8 @@ base-config:
   dir: ./isomorphic/base
   outdir: ./build
 
+support: test/**/*.js
+
 variation-config:
   variation-dirs:
     - ./isomorphic/variations
@@ -58,9 +60,16 @@ types:
       plugin: mendel-bundle-browser-pack
     transforms:
       - babel
-    extensions:
-      - .js
-      - .jsx
+    glob:
+      - "./**/*.{js,jsx}"
+      - "!./**/_test_/*"
+  jstest:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - babel
+    glob:
+      - "./**/_test_/*"
   less:
     extensions:
       - .less
@@ -76,6 +85,9 @@ env:
       js:
         transforms:
           - babel-test
+        glob:
+          - "./**/*.{js,jsx}"
+          - "!./**/_test_/*"
   production:
     types:
       js:

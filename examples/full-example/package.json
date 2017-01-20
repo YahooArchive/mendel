@@ -4,7 +4,7 @@
   "description": "Example of app using mendel, es6, jsx, react, server-side-rendering, multivariant and multilayer support.",
   "main": "index.js",
   "scripts": {
-    "test": "eslint .",
+    "test": "./node_modules/.bin/mendel-mocha --prelude test/setup/jsdom.js **/_test_/*.js --reporter=mocha-istanbul-reporter --reporter-options=text,text-summary",
     "build": "mendel",
     "development": "nodemon index.js",
     "v2": "nodemon index.js beta",
@@ -50,6 +50,7 @@
     "mendel-parser-json": "*",
     "mendel-pipeline": "*",
     "mendel-transform-babel": "*",
+    "mocha-istanbul-reporter": "^0.1.0",
     "nodemon": "^1.9.2",
     "react-addons-test-utils": "^0.14.8"
   },

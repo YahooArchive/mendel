@@ -26,6 +26,13 @@ function MendelRunner(filePaths, options={}) {
     client.on('ready', function() {
         // Populate the global sandbox
         const sandbox = {};
+        // Expose to mocha options for others.
+        options.context = sandbox;
+
+        // Istanbul support: it writes to global so make instrumentation
+        // running in different context share object with the global one.
+        sandbox.__coverage__ = global.__coverage__ = {};
+
         const mocha = new Mocha(options);
         const entries = client.registry.getEntriesByGlob(filePaths);
 
@@ -36,6 +43,7 @@ function MendelRunner(filePaths, options={}) {
                 const entry = client.registry.getEntry('./' + file);
                 const id = entry ? entry.id : file;
                 const source = entry ? entry.source : fs.readFileSync(file, 'utf8');
+
                 exec(id, source, {
                     sandbox,
                     resolver(from, dep) {

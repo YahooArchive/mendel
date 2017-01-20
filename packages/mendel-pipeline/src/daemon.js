@@ -98,6 +98,7 @@ module.exports = class MendelPipelineDaemon {
 
         this.server.on('environmentRequested', (env) => this._watch(env));
         this.watcher.subscribe(config.variationConfig.allDirs);
+        this.watcher.subscribe(config.support);
     }
 
     _watch(environment) {

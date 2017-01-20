@@ -4,13 +4,23 @@ const program = require('commander');
 const fs = require('fs');
 const path = require('path');
 
+function keyValueCoercer(value, defaultValue, delimiter=',') {
+    const res = defaultValue || {};
+    value.split(delimiter).forEach(keyValue => {
+        let [key, value=true] = keyValue.trim().split('=');
+        if (value === 'true' || value === 'false') value = Boolean(value);
+        res[key] = value;
+    });
+    return res;
+}
+
 /* eslint-disable max-len */
 program
     .version(JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version)
     .usage('[debug] [options] [files]')
     .option('-c, --colors', 'force enabling of colors')
     .option('-C, --no-colors', 'force disabling of colors')
-    .option('-O, --reporter-options <k=v,k2=v2,...>', 'reporter-specific options')
+    .option('-O, --reporter-options <k=v,k2=v2,...>', 'reporter-specific options', keyValueCoercer, {})
     .option('-R, --reporter <name>', 'specify the reporter to use', 'spec')
     .option('-b, --bail', 'bail after first test failure')
     .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')

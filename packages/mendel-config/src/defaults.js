@@ -37,5 +37,9 @@ module.exports = function() {
         defaultShim: {},
         // This controls whether outlet outputs to a file or a stream
         noout: false,
+        // In a large project, there are configuration/support related code
+        // that is not variatonal or should be bundled to browser.
+        // Takes glob as input
+        support: '',
     };
 };
