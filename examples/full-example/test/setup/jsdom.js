@@ -48,7 +48,7 @@ Object.assign(global, browserGlobal);
             'LABEL',
             'SELECT',
             'TEXTAREA',
-            'LI',
+            'LI'
         ];
 
         function innerText(node) {
