@@ -34,7 +34,8 @@ app.get('/', function(req, res) {
     if (serverRender) {
         // To improve ssr performance, you need to pass
         // array of bundle ids you only need for ssr rendering
-        var Main = req.mendel.require('./main');
+        const resolver = req.mendel.resolver(['main']);
+        var Main = resolver.require('./main');
         optionalMarkup = ReactDOMServer.renderToString(Main())
     }
 

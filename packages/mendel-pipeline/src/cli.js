@@ -48,17 +48,19 @@ if (program.outlet) {
     });
 
     process.on('exit', (code) => {
+        console.log('exit', code);
         if (code > 0) daemon.onForceExit();
     });
 
     process.on('SIGINT', () => {
+        console.log('SIGINT');
         daemon.onForceExit();
         process.exit(1);
     });
 
     process.on('uncaughtException', (error) => {
         console.log([
-            `Force closing due to a critcal error:\n`,
+            `Force closing due to a critical error:\n`,
             chalk.red(error.stack),
         ].join(' '));
         daemon.onForceExit();

@@ -2,22 +2,38 @@ const vm = require('vm');
 const path = require('path');
 const m = require('module');
 const resolve = require('resolve');
+// Node modules cannot be in variation so it can be cached globally.
 const nodeModuleCache = {};
+// https://github.com/nodejs/node/blob/master/lib/internal/module.js#L54-L60
+const builtinLibs = [
+  'assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns',
+  'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode',
+  'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'tls', 'tty',
+  'url', 'util', 'v8', 'vm', 'zlib',
+];
+const _require = require;
 
 function isNodeModule(filePath) {
     return filePath.indexOf('node_modules') >= 0;
 }
 
 function runEntryInVM(filename, source, sandbox, require) {
-    const cacheable = isNodeModule(filename);
-    if (cacheable && nodeModuleCache[filename]) {
-        return nodeModuleCache[filename];
+    const nodeModule = isNodeModule(filename);
+    if (nodeModule && nodeModuleCache[filename]) {
+        return nodeModuleCache[filename].exports;
     } else if (require.cache[filename]) {
-        return require.cache[filename];
+        return require.cache[filename].exports;
     }
 
     const exports = {};
     const module = {exports};
+    // Put the cache first so if return something even in the case when
+    // cycle of dependencies happen.
+    if (nodeModule) {
+       nodeModuleCache[filename] = module;
+    } else {
+       require.cache[filename] = module;
+    }
 
     // the filename is only necessary for uncaught exception reports to point to the right file
     try {
@@ -35,13 +51,9 @@ function runEntryInVM(filename, source, sandbox, require) {
             filename,
             path.dirname(filename)
         );
-
-        if (cacheable) {
-            nodeModuleCache[filename] = module.exports;
-        } else {
-            require.cache[filename] = module.exports;
-        }
     } catch (e) {
+        delete nodeModuleCache[filename];
+        delete require.cache[filename];
         console.log('Error was thrown while evaluating.');
         console.log(filename);
         console.log(e.stack);
@@ -64,17 +76,19 @@ function matchVar(entries, variations, runtime) {
     for (let i = 0; i < multiVariations.length; i++) {
         const varId = multiVariations[i];
         const found = entries.find(entry => {
-            return entry.variation === varId && (
-                entry.runtime === 'isomorphic' ||
-                entry.runtime === runtime
-            );
+            return entry.variation === varId &&
+                (
+                    entry.runtime === 'isomorphic' ||
+                    entry.runtime === 'package' ||
+                    entry.runtime === runtime
+                );
         });
         if (found) return found;
     }
 
     throw new RangeError([
         'Could not find entries that matches',
-        `"${variations}"`,
+        `"${JSON.stringify(variations)}"`,
         'in the list of entries',
         `[${entries.map(({id}) => id)}]`,
     ].join(' '));
@@ -82,30 +96,37 @@ function matchVar(entries, variations, runtime) {
 
 function exec(fileName, source, {sandbox = {}, resolver}) {
     if (!sandbox) sandbox = {};
-    if (!sandbox.global) sandbox.global = sandbox;
-    if (!sandbox.process) sandbox.process = require('process');
     if (!sandbox.cache) sandbox.cache = {};
     vm.createContext(sandbox);
+    if (!sandbox.global) sandbox.global = sandbox;
+    if (!sandbox.process) sandbox.process = require('process');
+    if (!sandbox.Buffer) sandbox.Buffer = global.Buffer;
+    if (!sandbox.setTimeout) sandbox.setTimeout = global.setTimeout;
+    if (!sandbox.clearTimeout) sandbox.clearTimeout = global.clearTimeout;
+    if (!sandbox.setInterval) sandbox.setInterval = global.setInterval;
+    if (!sandbox.clearInterval) sandbox.clearInterval = global.clearInterval;
+
     // Let's pipe vm output to stdout this way
     sandbox.console = console;
 
-    function localRequire(parentId, requireLiteral) {
-        const entry = resolver(parentId, requireLiteral);
+    function varRequire(parentId, literal) {
+        if (builtinLibs.indexOf(literal) >= 0) return _require(literal);
+        const entry = resolver(parentId, literal);
         if (entry) {
-            return runEntryInVM(entry.id, entry.source, sandbox, localRequire);
+            return runEntryInVM(entry.id, entry.source, sandbox, varRequire);
         }
 
         // In such case, it is real node's module.
-        const dependencyPath = resolve.sync(requireLiteral, {
+        const dependencyPath = resolve.sync(literal, {
             basedir: path.dirname(parentId),
         });
-        return require(dependencyPath);
+        return _require(dependencyPath);
     }
     // We allow API user to use older version of cache if it passes the same
     // instance of sandbox. If not, we create a new one and make it
     // last one exec execution.
-    localRequire.cache = sandbox.cache;
-    return runEntryInVM(fileName, source, sandbox, localRequire);
+    varRequire.cache = sandbox.cache;
+    return runEntryInVM(fileName, source, sandbox, varRequire);
 }
 
 module.exports = {

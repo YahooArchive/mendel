@@ -88,6 +88,7 @@ class CacheServer extends EventEmitter {
     }
 
     _sendEntry(client, size, entry) {
+        if (client.destroyed) return;
         client.send({
             totalEntries: size,
             type: 'addEntry',
@@ -126,6 +127,7 @@ class CacheServer extends EventEmitter {
     signalRemoval(client, id) {
         const cache = this.cacheManager.getCache(client.environment);
         try {
+            if (!client.destroyed) return;
             client.send({
                 totalEntries: cache.size(),
                 type: 'removeEntry',

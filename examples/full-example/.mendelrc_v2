@@ -55,6 +55,7 @@ types:
       - .json
     parser: json-parse
     parser-to-type: js
+    include-node_modules: true
   js:
     outlet:
       plugin: mendel-bundle-browser-pack

@@ -1,5 +1,4 @@
 const BaseStep = require('./step');
-const debug = require('debug')('mendel:ist');
 
 class IndependentSourceTransform extends BaseStep {
     /**
@@ -27,32 +26,42 @@ class IndependentSourceTransform extends BaseStep {
 
     getTransformIdsByType(typeName) {
         const type = this._types.find(({name}) => typeName === name);
+        // Secondary type can be also missing.
         if (!type) return [];
-        if (!this._parserTypeConversion.has(typeName)) return type.transforms;
+        if (!this._parserTypeConversion.has(typeName))
+            return type.transforms;
+
         return type.transforms.concat([type.parser]);
     }
 
     getTransform(entry) {
-        // do ist first
         const type = entry.type;
-        const ist = {
-            type,
-            ids: [],
-        };
-        let xformIds = this.getTransformIdsByType(type);
+        let typeConfig = this._types.find(({name}) => type === name);
+        if (type === 'node_modules' && !typeConfig && type !== entry._type) {
+            const config = this._types.find(({name}) => entry._type === name);
+            if (config && config.includeNodeModules) {
+                typeConfig = config;
+            }
+        }
+        if (!typeConfig) return {type, ids: []};
+
+        const ist = {type: typeConfig.name, ids: []};
+        let xformIds = this.getTransformIdsByType(ist.type);
 
         // If there is a parser, do type conversion
         while (this._parserTypeConversion.has(ist.type)) {
             const newType = this._parserTypeConversion.get(ist.type);
-            ist.type = newType;
-            xformIds = xformIds.concat(this.getTransformIdsByType(ist.type));
+            // node_modules cannot change its type
+            if (ist.type !== 'node_modules') ist.type = newType;
+            else ist._type = newType;
+            xformIds = xformIds.concat(this.getTransformIdsByType(ist));
         }
 
-        const xforms = xformIds
-        .map(transformId => this._transforms.find(({id}) => transformId === id))
-        .filter(Boolean);
-
-        ist.ids = xforms.filter(({mode}) => mode === 'ist').map(({id}) => id);
+        ist.ids = xformIds
+            .map(xformId => this._transforms.find(({id}) => xformId === id))
+            .filter(Boolean)
+            .filter(({mode}) => mode === 'ist')
+            .map(({id}) => id);
         return ist;
     }
 

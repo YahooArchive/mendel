@@ -66,18 +66,22 @@ function MendelMiddleware(opts) {
             return getPath({bundle: bundleId, variations});
         };
 
-        req.mendel.require = function mendelRequire(entryId, variations) {
-            variations = variations ||
-                req.mendel.variations ||
-                [config.baseConfig.dir];
+        req.mendel.resolver = function(bundles, variations) {
+            return {
+                require: function mendelRequire(entryId) {
+                    variations = variations ||
+                        req.mendel.variations ||
+                        [config.baseConfig.dir];
 
-            return execWithRegistry(
-                client.registry,
-                entryId,
-                variations.map(variation => {
-                    return varsConfig.find(({id}) => id === variation);
-                }).filter(Boolean)
-            );
+                    return execWithRegistry(
+                        client.registry,
+                        entryId,
+                        variations.map(variation => {
+                            return varsConfig.find(({id}) => id === variation);
+                        }).filter(Boolean)
+                    );
+                },
+            };
         };
 
         req.mendel.isSsrReady = () => client.isSynced();

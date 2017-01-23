@@ -40,6 +40,7 @@ function TypesConfig(typeName, type) {
     this.parser = type.parser;
     this.parserToType = type['parser-to-type'];
     this.transforms = type.transforms || [];
+    this.includeNodeModules = Boolean(type['include-node_modules']);
 
     TypesConfig.validate(this);
 }

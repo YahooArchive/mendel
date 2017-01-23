@@ -98,7 +98,10 @@ module.exports = class MendelPipelineDaemon {
 
         this.server.on('environmentRequested', (env) => this._watch(env));
         this.watcher.subscribe(config.variationConfig.allDirs);
-        this.watcher.subscribe(config.support);
+
+        if (config.support) {
+            this.watcher.subscribe(config.support);
+        }
     }
 
     _watch(environment) {
@@ -124,7 +127,13 @@ module.exports = class MendelPipelineDaemon {
         process.once('SIGTERM', () => process.exit(0));
         // Above `process.exit()` results in `exit` event.
         process.once('exit', () => this.onExit());
-        process.once('uncaughtException', () => this.onForceExit());
+        process.once('uncaughtException', (error) => {
+            console.log([
+                `Force closing due to a critical error:\n`,
+            ], error.stack);
+
+            this.onForceExit();
+        });
     }
 
     run(callback, environment=this.default) {

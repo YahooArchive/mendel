@@ -44,9 +44,11 @@ class MendelCache extends EventEmitter {
 
     // Get Type only based on the entryId. IST can convert the types.
     getInitialType(id) {
-        if (isNodeModule(id)) return 'node_modules';
-        const type = this._types.find(type => type.test(id));
-        return type ? type.name : 'others';
+        const {name} = this._types.find(t => t.test(id)) || {name: 'others'};
+        return {
+            type: isNodeModule(id) ? 'node_modules' : name,
+            _type: name,
+        };
     }
 
     getNormalizedId(id) {
@@ -80,7 +82,9 @@ class MendelCache extends EventEmitter {
         entry.variation = this.getVariation(id);
         entry.normalizedId = this.getNormalizedId(id);
         entry.runtime = this.getRuntime(id);
-        entry.type = this.getInitialType(id);
+        const type = this.getInitialType(id);
+        entry.type = type.type;
+        entry._type = type._type;
 
         // fast lookup cache per normalized id
         if (!this._normalizedIdToEntryIds.has(entry.normalizedId)) {
@@ -156,7 +160,7 @@ class MendelCache extends EventEmitter {
         const existing = this._packageMap.get(targetNormId);
         if (existing && existing.mapToId !== packageNormId) {
             throw new Error([
-                "Invariant: Found 2 `package.json` targeting same normalizedId",
+                'Invariant: Found 2 `package.json` targeting same normalizedId',
                 '\n',
                 `${packageNormId} -> ${targetNormId}`,
                 `${existing.mapToId} -> ${targetNormId}`,
@@ -249,9 +253,7 @@ class MendelCache extends EventEmitter {
             console.log('  norm: ' + entry.normalizedId);
             console.log('  var: ' + entry.variation);
             console.log('  sources:');
-            Array.from(entry.sourceVersions.entries()).forEach(([ids, {deps}]) => {
-                console.log(`    ${ids}: ${JSON.stringify(deps)}`);
-            });
+            console.log(entry.source);
         });
     }
 }
