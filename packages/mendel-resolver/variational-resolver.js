@@ -3,17 +3,16 @@ const path = require('path');
 const variationMatches = require('mendel-development/variation-matches');
 
 class VariationalModuleResolver extends ModuleResolver {
-    constructor({
-        runtimes,
-        extensions,
-        // entry related
-        basedir,
-        // config params
-        projectRoot,
-        baseConfig,
-        variationConfig,
-    }) {
-        super({cwd: projectRoot, basedir, runtimes, extensions});
+    constructor(options) {
+        const {
+            // entry related
+            basedir,
+            // config params
+            projectRoot,
+            baseConfig,
+            variationConfig,
+        } = options;
+        super(options);
 
         // config params
         this.projectRoot = projectRoot;

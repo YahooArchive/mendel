@@ -4,6 +4,7 @@ function isNodeModule(id) {
 
 module.exports = function generatorNodeModule(bundle, doneBundles) {
     const nodeModules = new Map();
+    const nodeModulesNorm = new Map();
     bundle.entries = nodeModules;
 
     doneBundles.forEach(doneBundle => {
@@ -16,6 +17,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles) {
             entries.delete(entry.id);
             // and add it to the node module bundle;
             nodeModules.set(entry.id, entry);
+            nodeModulesNorm.set(entry.normalizedId, entry);
             entry.expose = null;
         });
 
@@ -26,9 +28,9 @@ module.exports = function generatorNodeModule(bundle, doneBundles) {
             Object.keys(deps)
             .forEach(depLiteral => {
                 const dep = entry.deps[depLiteral];
-                if (!nodeModules.has(dep)) return;
+                if (!nodeModulesNorm.has(dep)) return;
 
-                const depEntry = nodeModules.get(dep);
+                const depEntry = nodeModulesNorm.get(dep);
                 // Only node modules that are being used by main bundle
                 // should be expose or "required" in browserify sense.
                 // Unncessary but congruent to ManifestV1

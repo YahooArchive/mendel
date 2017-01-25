@@ -128,10 +128,8 @@ module.exports = class MendelPipelineDaemon {
         // Above `process.exit()` results in `exit` event.
         process.once('exit', () => this.onExit());
         process.once('uncaughtException', (error) => {
-            console.log([
-                `Force closing due to a critical error:\n`,
-            ], error.stack);
-
+            console.log('Force closing due to a critical error:');
+            console.log(error.stack);
             this.onForceExit();
         });
     }

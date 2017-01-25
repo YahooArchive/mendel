@@ -7,7 +7,6 @@ import Header from './header';
 import Body from './body';
 import Footer from './footer';
 
-
 class App extends React.Component {
   render() {
     return (

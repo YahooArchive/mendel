@@ -55,7 +55,7 @@ module.exports = class ManifestOutlet {
                     options.browserPackOptions,
                     {
                         raw: true, // since we pass Object instead of JSON string
-                        hasExports: true, // exposes require globally. Required for multi-bundles.
+                        hasExports: true, // exposes `require` globally. Required for multi-bundles.
                     }
                 )
             );

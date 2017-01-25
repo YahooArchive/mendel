@@ -10,10 +10,10 @@ class MendelCache extends EventEmitter {
         super();
         this.projectRoot = config.projectRoot;
         this.environment = config.environment;
+
         this._store = new Map();
         this._normalizedIdToEntryIds = new Map();
         this._packageMap = new Map();
-        this._runtimeMap = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
         this._shimPathToId = new Map();
@@ -24,45 +24,42 @@ class MendelCache extends EventEmitter {
         this._types = config.types;
     }
 
+    // Get Type only based on the entryId. IST can convert the types.
+    getInitialType(id) {
+        const nodeModule = isNodeModule(id);
+        // Find type as if node module was a source
+        if (nodeModule) id = '.' + id.slice(id.indexOf('node_modules') + 12);
+        const {name} = this._types.find(t => t.test(id)) || {name: '_others'};
+        return {
+            type: nodeModule ? 'node_modules' : name,
+            // Secondary type: type as if node_modules was a source
+            _type: name,
+        };
+    }
+
     // Please, don't use this function except to calculate package.json maps
     _getBeforePackageJSONNormalizedId(id) {
+        if (isNodeModule(id)) return id;
         let normalizedId = id;
-
         const match = variationMatches(this._variations, id);
-        if (match && !isNodeModule(id)) {
+        if (match) {
             const parts = path.parse(match.file);
-            if (parts.base === 'package.json' || parts.name === 'index') {
-                normalizedId = './' + parts.dir;
-            } else {
-                // no extension
-                normalizedId = './' + path.join(parts.dir, parts.name);
-            }
+            // some people like to directly require package.json 😱
+            // and we don't want to give back module entry
+            if (parts.base === 'package.json') return id;
+            if (parts.name === 'index') normalizedId = './' + parts.dir;
+            // Strip extension
+            else normalizedId = './' + path.join(parts.dir, parts.name);
         }
 
         return normalizedId;
-    }
-
-    // Get Type only based on the entryId. IST can convert the types.
-    getInitialType(id) {
-        const {name} = this._types.find(t => t.test(id)) || {name: 'others'};
-        return {
-            type: isNodeModule(id) ? 'node_modules' : name,
-            _type: name,
-        };
     }
 
     getNormalizedId(id) {
         // For node's packages and shims, normalizedId will resolve to its respective package name
         if (this._shimPathToId.has(id)) return this._shimPathToId.get(id);
-
-        let normalizedId = this._getBeforePackageJSONNormalizedId(id);
-        if (this._packageMap.has(normalizedId)) {
-            const map = this._packageMap.get(normalizedId);
-            normalizedId = map.mapToId;
-            this._runtimeMap.set(id, map.runtime);
-        }
-
-        return normalizedId;
+        if (this._packageMap.has(id)) return this._packageMap.get(id).mapToId;
+        return this._getBeforePackageJSONNormalizedId(id);
     }
 
     getVariation(path) {
@@ -72,9 +69,7 @@ class MendelCache extends EventEmitter {
     }
 
     addEntry(id) {
-        if (this._store.has(id)) return;
-
-        this.handleAsPackageJSON(id);
+        if (this.hasEntry(id)) return;
 
         const entry = new Entry(id);
 
@@ -97,65 +92,6 @@ class MendelCache extends EventEmitter {
         this.emit('entryAdded', id);
     }
 
-    handleAsPackageJSON(id) {
-        const parts = path.parse(id);
-        const packageNormId = this._getBeforePackageJSONNormalizedId(id);
-        const pkgPath = path.join(this.projectRoot, id);
-
-        if (parts.base !== 'package.json') return;
-
-        delete require.cache[require.resolve(pkgPath)];
-        const pkg = require(pkgPath);
-
-        ['browser', 'main']
-        // TODO we need to support these browser declarations for compat. i.e.,
-        //   `browser: {fromFilePath: toFilePath}`
-        //   `browser: {filePath: false}`
-        .filter(key => pkg[key] === 'string')
-        .forEach(runtime => {
-            const targetNormId = this._getBeforePackageJSONNormalizedId(
-                './' + path.join(parts.dir, pkg[runtime])
-            );
-            this.invariantTwoPackagesSameTarget(packageNormId, targetNormId);
-            this._packageMap.set(targetNormId, {
-                mapToId: packageNormId,
-                runtime: runtime,
-            });
-        });
-
-        // This is done after invariantTwoPackagesSameTarget because both match
-        // but invariantTwoPackagesSameTarget is more useful
-        this.invariantNewPackageOldEntry(packageNormId, id);
-    }
-
-    invariantNewPackageOldEntry(packageNormId, id) {
-        if (this._normalizedIdToEntryIds.has(packageNormId)) {
-            /*
-              This should only happen in watch mode
-
-              TODO: It is possible to not throw here.
-
-              Mutating entries is not safe, since other async pieces of the
-              pipeline might be relying on this files already.
-
-              Here are some hypothesis on how to avoid throwing:
-              1. Restart the whole process automatically when this happens
-              2. Traverse all decendants from all variations and files from
-                 this normalizedId and remove them from the pipeline and
-                 traverse all the tree again with the new package.json
-            */
-            throw new Error([
-                `can't process ${id} after the`,
-                'following files are in the system:',
-                '\n\t',
-                this._normalizedIdToEntryIds.get(packageNormId).join('\n\t'),
-                '\n',
-                'Diagnostics\n-----------\n',
-                `env: ${this.environment}`,
-            ].join(' '));
-        }
-    }
-
     invariantTwoPackagesSameTarget(packageNormId, targetNormId) {
         const existing = this._packageMap.get(targetNormId);
         if (existing && existing.mapToId !== packageNormId) {
@@ -171,8 +107,8 @@ class MendelCache extends EventEmitter {
 
     getRuntime(id) {
         let runtime = 'isomorphic';
-        if (this._runtimeMap.has(id)) {
-            runtime = this._runtimeMap.get(id);
+        if (this._packageMap.has(id)) {
+            runtime = this._packageMap.get(id).runtime;
         }
         if (path.parse(id).base === 'package.json') runtime = 'package';
         return runtime;
@@ -183,8 +119,8 @@ class MendelCache extends EventEmitter {
         this.emit('doneEntry', entry);
     }
 
-    requestEntry(id) {
-        if (!this._store.has(id)) {
+    _requestEntry(id) {
+        if (id && !this.hasEntry(id)) {
             this.emit('entryRequested', id);
         }
     }
@@ -194,7 +130,7 @@ class MendelCache extends EventEmitter {
     }
 
     removeEntry(id) {
-        if (this._store.has(id)) {
+        if (this.hasEntry(id)) {
             this._store.delete(id);
             this.emit('entryRemoved', id);
         }
@@ -217,7 +153,7 @@ class MendelCache extends EventEmitter {
     }
 
     setEntryType(id, newType) {
-        if (!this._store.has(id)) return;
+        if (!this.hasEntry(id)) return;
         const entry = this.getEntry(id);
         entry.type = newType;
     }
@@ -225,13 +161,40 @@ class MendelCache extends EventEmitter {
     setSource(id, source, deps, map) {
         const entry = this.getEntry(id);
         const normalizedDeps = {};
-        Object.keys(deps).forEach(depLiteral => {
-            const depObject = deps[depLiteral];
+
+        Object.keys(deps).forEach(depKey => {
+            const dep = deps[depKey];
+
+            // Gather metadata on package if a package.json was never
+            // visited even once.
+            if (dep.packageJson && !this.hasEntry(dep.packageJson)) {
+                // TODO we can shorten it more if we read the package.json and get
+                // the name. However, it can collide when multiple version of a
+                // smae module is loaded. In such case, we need to dedupe. DO IT.
+                const name = path.dirname(dep.packageJson);
+
+                ['browser', 'main']
+                .filter(runtime => dep[runtime])
+                .forEach(runtime => {
+                    const depPath = dep[runtime];
+                    this.invariantTwoPackagesSameTarget(name, depPath);
+                    this._packageMap.set(depPath, {
+                        mapToId: name,
+                        runtime,
+                    });
+                });
+            }
+
+            // If dependency is not added yet,
+            this._requestEntry(dep.packageJson);
+            this._requestEntry(dep.browser);
+            if (dep.browser !== dep.main) this._requestEntry(dep.main);
+
             // Because of normalizedId, even in the package.json case, it should
             // be sufficient to use the main. The resolver will pick the right
             // run-time entry.
             // main is "false" when depdenecy is a node's package.
-            normalizedDeps[depLiteral] = this.getNormalizedId(depObject.main || depLiteral);
+            normalizedDeps[depKey] = this.getNormalizedId(dep.main || depKey);
         });
         entry.setSource(source, normalizedDeps, map);
     }

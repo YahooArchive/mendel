@@ -31,6 +31,10 @@ class MendelOutletRegistry {
             .get(entry.normalizedId)
             .set(entry.id, entry);
 
+        if (entry.id.indexOf('inherits') >= 0) {
+            const {runtime, normalizedId, id} = entry;
+            console.log({normalizedId, id, runtime});
+        }
         this._cache.set(entry.id, entry);
     }
 

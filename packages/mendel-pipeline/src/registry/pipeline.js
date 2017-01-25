@@ -32,25 +32,12 @@ class MendelRegistry extends EventEmitter {
         super.emit.apply(this, arguments);
     }
 
-    addToPipeline(filePath) {
-        this._mendelCache.requestEntry(filePath);
-    }
-
     addEntry(filePath) {
         this._mendelCache.addEntry(filePath);
     }
 
     addSource({id, source, deps, map}) {
-        if (!this._mendelCache.hasEntry(id)) {
-            this._mendelCache.addEntry(id);
-        }
-
-        Object.keys(deps).map(key => deps[key]).forEach(({browser, main}) => {
-            // In case the entry is missing for dependency, time to add them into our pipeline.
-            if (browser && !this.hasEntry(browser)) this.addToPipeline(browser);
-            if (main && !this.hasEntry(main)) this.addToPipeline(main);
-        });
-
+        if (!this._mendelCache.hasEntry(id)) this._mendelCache.addEntry(id);
         this._mendelCache.setSource(id, source, deps, map);
     }
 

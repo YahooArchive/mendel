@@ -120,9 +120,9 @@ function MendelMiddleware(opts) {
             else if (typeof bundle === 'string') return res.send(bundle).end();
 
             console.error(
-                'Mendel client build is imcompatible with middleware.',
-                'Bundle: ' + params.bundle,
-                'Output was of type: ' + typeof bundle
+                'Build is imcompatible with middleware.',
+                'Bundle: "' + params.bundle + '"',
+                'Output is: ' + typeof bundle
             );
 
             res.status(500)

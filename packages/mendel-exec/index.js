@@ -12,6 +12,7 @@ const builtinLibs = [
   'url', 'util', 'v8', 'vm', 'zlib',
 ];
 const _require = require;
+const errorMapper = require('./source-mapper');
 
 function isNodeModule(filePath) {
     return filePath.indexOf('node_modules') >= 0;
@@ -54,9 +55,6 @@ function runEntryInVM(filename, source, sandbox, require) {
     } catch (e) {
         delete nodeModuleCache[filename];
         delete require.cache[filename];
-        console.log('Error was thrown while evaluating.');
-        console.log(filename);
-        console.log(e.stack);
         throw e;
     }
 
@@ -79,8 +77,8 @@ function matchVar(entries, variations, runtime) {
             return entry.variation === varId &&
                 (
                     entry.runtime === 'isomorphic' ||
-                    entry.runtime === 'package' ||
-                    entry.runtime === runtime
+                    entry.runtime === runtime ||
+                    entry.runtime === 'package'
                 );
         });
         if (found) return found;
@@ -143,16 +141,24 @@ module.exports = {
 
         const mainEntry = resolve(mainId);
         if (!mainEntry) return require(mainId);
-        return exec(mainEntry.id, mainEntry.source, {
-            sandbox,
-            runtime,
-            resolver(from, depLiteral) {
-                const parent = registry.getEntry(from);
-                let normId = parent.deps[depLiteral];
-                if (typeof normId === 'object') normId = normId[runtime];
-                return resolve(normId);
-            },
-        });
+        try {
+            return exec(mainEntry.id, mainEntry.source, {
+                sandbox,
+                runtime,
+                resolver(from, depLiteral) {
+                    const parent = registry.getEntry(from);
+                    let normId = parent.deps[depLiteral];
+                    if (typeof normId === 'object') normId = normId[runtime];
+                    return resolve(normId);
+                },
+            });
+        } catch (e) {
+            e.stack = errorMapper(e.stack, registry);
+
+            console.log('Error was thrown while evaluating.');
+            console.log(e.stack);
+            throw e;
+        }
     },
     exec,
 };

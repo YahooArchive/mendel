@@ -34,6 +34,7 @@ module.exports = function(done) {
                 projectRoot,
                 baseConfig,
                 variationConfig,
+                recordPackageJson: true,
                 has(filePath) {
                     return new Promise(resolve => {
                         if (!pendingInquiry.has(filePath)) pendingInquiry.set(filePath, []);

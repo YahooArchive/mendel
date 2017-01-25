@@ -34,7 +34,21 @@ class CacheServer extends EventEmitter {
         this.server.close();
     }
 
+    send(client, data) {
+        if (client.destroyed) return;
+        try {
+            client.send(data);
+        } catch (e) {
+            console.log(e.stack);
+        }
+    }
+
     initServer() {
+        this.server.on('error', (e) => {
+            console.log('Mendel Server Errored');
+            console.log(e.stack);
+            process.exit(1);
+        });
         this.server.on('listening', () => this.emit('ready'));
         this.server.on('connection', (client) => {
             debug(`[${this.clients.length}] A client connected`);
@@ -63,7 +77,7 @@ class CacheServer extends EventEmitter {
                     default:
                         return;
                 }
-                client.send(data);
+                this.send(client, data);
             });
         });
     }
@@ -88,8 +102,7 @@ class CacheServer extends EventEmitter {
     }
 
     _sendEntry(client, size, entry) {
-        if (client.destroyed) return;
-        client.send({
+        this.send(client, {
             totalEntries: size,
             type: 'addEntry',
             entry: this.serializeEntry(entry),
@@ -127,8 +140,7 @@ class CacheServer extends EventEmitter {
     signalRemoval(client, id) {
         const cache = this.cacheManager.getCache(client.environment);
         try {
-            if (!client.destroyed) return;
-            client.send({
+            this.send(client, {
                 totalEntries: cache.size(),
                 type: 'removeEntry',
                 id,
