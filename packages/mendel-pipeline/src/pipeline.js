@@ -41,13 +41,13 @@ module.exports = class MendelPipeline extends EventEmitter {
                         [entry].concat(Array.prototype.slice.call(arguments, 1))
                     );
                 } catch (e) {
-                    console.error('Mendel step errored', e.stack);
+                    console.error(`Mendel (${i}, ${curStep.constructor.name}) errored: `, e.stack); // eslint-disable-line max-len
                     process.exit(1);
                 }
             });
 
             curStep.on('error', (e) => {
-                console.error('Mendel step errored', e.stack);
+                console.error(`Mendel (${i}, ${curStep.constructor.name}) errored: `, e.stack); // eslint-disable-line max-len
                 process.exit(1);
             });
         });
