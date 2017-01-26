@@ -15,10 +15,10 @@ class CacheClient extends EventEmitter {
         this.registry = registry;
         this.environment = environment;
 
+        this.cacheConnection = cacheConnection;
         this.connected = false;
         this.closeReqeusted = false;
-        this.connection = network.getClient(cacheConnection);
-        this.initClient(this.connection);
+        this.connect();
     }
 
     start() {
@@ -36,8 +36,10 @@ class CacheClient extends EventEmitter {
         this.connection.end();
     }
 
-    initClient(conn) {
-        conn.on('error', (err) => this.emit('error', err));
+    connect(isRetry=false) {
+        const conn = network.getClient(this.cacheConnection);
+        this.connection = conn;
+        conn.on('error', (err) => !isRetry && this.emit('error', err));
         conn.on('data', (data) => {
             try {
                 data = JSON.parse(data);
@@ -69,14 +71,22 @@ class CacheClient extends EventEmitter {
             }
         });
 
-        conn.on('connect', () => this.connected = true);
+        conn.on('connect', () => {
+            this.connected = true;
+            if (isRetry) console.log('Reconnected to daemon. Good to go!');
+        });
         conn.on('end', () => {
             debug('Disconnected from master');
+            // User intentionally closed. Do not print or retry to connect
             if (this.closeReqeusted) return;
-            console.log([
-                'Mendel Daemon was disconnected.',
-                'Please check and restart the process.',
-            ].join(' '));
+
+            if (!isRetry) {
+                console.log([
+                    'Mendel Daemon was disconnected.',
+                    'Will try to reconnect...',
+                ].join(' '));
+            }
+            setTimeout(() => this.connect(true), 5000);
         });
     }
 

@@ -2,6 +2,11 @@ const path = require('path');
 const {stat, readFile} = require('fs');
 const error = require('debug')('error:mendel-resolver');
 
+function withPrefix(path) {
+    if (/^\w[^:]/.test(path)) path = './' + path;
+    return path;
+}
+
 class ModuleResolver {
     /**
      * @param {Object} options
@@ -56,7 +61,8 @@ class ModuleResolver {
         let promise;
         if (!ModuleResolver.isNodeModule(moduleName)) {
             const moduleAbsPath = path.resolve(this.basedir, moduleName);
-            promise = this.resolveFile(moduleAbsPath).catch(() => this.resolveDir(moduleAbsPath));
+            promise = this.resolveFile(moduleAbsPath)
+                .catch(() => this.resolveDir(moduleAbsPath));
         } else {
             promise = this.resolveNodeModules(moduleName);
         }
@@ -65,11 +71,28 @@ class ModuleResolver {
         // Post process
         .then((deps) => {
             // Make the path relative to the `basedir`.
-            Object.keys(deps).forEach((depsKey) => {
-                // It can be module name without real path for default
-                // node modules (like "path")
-                if (deps[depsKey].indexOf('/') < 0) return;
-                deps[depsKey] = path.relative(this.cwd, deps[depsKey]);
+            Object.keys(deps)
+            .filter(rt => deps[rt])
+            .forEach(rt => {
+                if (typeof deps[rt] === 'string') {
+                    // It can be module name without real path for default
+                    // node modules (like "path")
+                    if (deps[rt].indexOf('/') < 0) return;
+                    deps[rt] = withPrefix(path.relative(this.cwd, deps[rt]));
+                } else if (typeof deps[rt] === 'object') {
+                    const rtDep = deps[rt];
+                    Object.keys(rtDep)
+                    .filter(key => rtDep[key])
+                    .forEach(depKey => {
+                        const newKey = depKey.indexOf('/') < 0 ? depKey :
+                            withPrefix(path.relative(this.cwd, depKey));
+                        const newValue = rtDep[depKey].indexOf('/') < 0 ?
+                            rtDep[depKey] :
+                            withPrefix(path.relative(this.cwd, rtDep[depKey]));
+                        delete rtDep[depKey];
+                        rtDep[newKey] = newValue;
+                    });
+                }
             });
 
             return deps;
@@ -106,25 +129,8 @@ class ModuleResolver {
     }
 
     resolveDir(moduleName) {
-        const packagePath = path.join(moduleName, '/package.json');
-
-        return this.readPackageJson(packagePath)
-        .then((pkg) => {
-            // Nested package.json is not supported.
-            // e.g., ./package.json#main -> ./foo/package.json#main -> ./foo/bar/index.js
-            // Fallback to `main` in case package.json misses the name required.
-            const resolved = this.runtimes.reduce((reduced, name) => {
-                const module = typeof pkg[name] === 'string' ? pkg[name] : pkg.main;
-                reduced[name] = path.join(moduleName, module);
-                return reduced;
-            }, {});
-            return Promise.all(this.runtimes.map(runtime => this.fileExists(resolved[runtime])))
-            .then(() => {
-                if (this.recordPackageJson) resolved.packageJson = packagePath;
-                return resolved;
-            });
-        })
-        .catch(() => this.resolveFile(path.join(moduleName, 'index')));
+        return this.resolvePackageJson(moduleName)
+            .catch(() => this.resolveFile(path.join(moduleName, 'index')));
     }
 
     readPackageJson(dirName) {
@@ -139,6 +145,70 @@ class ModuleResolver {
         .then((packageStr) => {
             // if fails to parse, we will hit catch
             return JSON.parse(packageStr);
+        });
+    }
+
+    resolvePackageJson(moduleName) {
+        const packagePath = path.join(moduleName, '/package.json');
+        return this.readPackageJson(packagePath)
+        .then(pkg => {
+            const consider = new Map();
+            // A "package.json" can have below data structure
+            // {
+            //     "main": "./foo",
+            //     "browser": {
+            //         "./foo": "./bar",
+            //         "moduleA": "moduleB",
+            //         "./baz": false,
+            //         "./abc": "./xyz.js"
+            //     }
+            // }
+            // In case of the main, it should resolve to either "./foo.js" or "./foo/index.js"
+            // In case of browser runtime, it should anything that requires "./foo" should map to "./bar.js" or "./bar/index.js"
+            this.runtimes.filter(name => pkg[name])
+            .forEach(name => {
+                if (typeof pkg[name] === 'string') consider.set(pkg[name]);
+                else if (typeof pkg[name] === 'object') {
+                    Object.keys(pkg[name]).forEach(fromPath => {
+                        consider.set(fromPath);
+                        consider.set(pkg[name][fromPath]);
+                    });
+                }
+            });
+            const furtherPaths = Array.from(consider.keys());
+            const furtherResolve = furtherPaths.map(depPath => {
+                let promise = this.resolve(path.join(moduleName, depPath));
+                if (ModuleResolver.isNodeModule(depPath))
+                    promise = promise.catch(() => this.resolve(depPath));
+                return promise.catch(() => false);
+            });
+            return Promise.all(furtherResolve).then(resolves => {
+                resolves.forEach((resolved, index) => {
+                    consider.set(furtherPaths[index], resolved);
+                });
+                return {deps: consider, pkg};
+            });
+        })
+        .then(({pkg, deps}) => {
+            const resolved = this.runtimes.reduce((reduced, name) => {
+                const runtimeVal = pkg[name] || pkg.main;
+                if (deps.has(runtimeVal))
+                    reduced[name] = deps.get(runtimeVal)[name];
+                else if (typeof runtimeVal === 'object') {
+                    const obj = reduced[name] = {};
+                    Object.keys(runtimeVal).forEach(key => {
+                        const val = runtimeVal[key];
+                        if (!deps.get(key) && !deps.get(val)) return;
+                        if (!deps.get(key) && deps.get(val))
+                            return obj[key] = deps.get(val)[name];
+                        obj[deps.get(key)[name]] = deps.get(val)[name];
+                    });
+                }
+                return reduced;
+            }, {});
+
+            if (this.recordPackageJson) resolved.packageJson = packagePath;
+            return resolved;
         });
     }
 
@@ -194,6 +264,5 @@ class ModuleResolver {
         return dirs;
     }
 }
-
 
 module.exports = ModuleResolver;

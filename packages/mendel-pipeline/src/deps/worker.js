@@ -7,11 +7,6 @@ const VariationalResolver = require('mendel-resolver/bisource-resolver');
 const pendingInquiry = new Map();
 const RUNTIME = ['main', 'browser'];
 
-function withPrefix(path) {
-    if (/^\w[^:]/.test(path)) path = './' + path;
-    return path;
-}
-
 module.exports = function(done) {
     return {
         start(payload, sender) {
@@ -46,14 +41,9 @@ module.exports = function(done) {
 
             debug(`Detecting dependencies for ${filePath}`);
             dep({source, resolver})
-            .then((deps) => {
-                Object.keys(deps).forEach(literal => {
-                    Object.keys(deps[literal]).forEach(runtime => {
-                        deps[literal][runtime] = withPrefix(deps[literal][runtime]);
-                    });
-                });
-                return deps;
-            })
+            // .then((deps) => {
+            //     return deps;
+            // })
             // mendel-resolver throws in case nothing was found
             .catch(() => {
                 return RUNTIME.reduce((reduced, name) => {

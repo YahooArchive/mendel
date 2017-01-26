@@ -50,7 +50,7 @@ function MendelRunner(filePaths, options={}) {
                     resolver(from, dep) {
                         const fromEntry = client.registry.getEntry(from);
                         if (!fromEntry) return null;
-                        const depNorm = fromEntry.deps[dep];
+                        const depNorm = fromEntry.deps[dep] ? fromEntry.deps[dep].main : null;
                         if (!depNorm || depNorm.indexOf('/') < 0 || depNorm.indexOf('node_modules') > 0) return null;
                         const entries = client.registry.getEntriesByNormId(depNorm);
                         if (!entries) return null;

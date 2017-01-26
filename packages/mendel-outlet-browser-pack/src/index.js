@@ -42,13 +42,15 @@ module.exports = class ManifestOutlet {
         this.config = options;
     }
 
-    perform({entries, options}, variations) {
+    perform({entries, options, id}, variations) {
         return new Promise((resolve, reject) => {
             // globals like, "process", handling
             const processEntries = Array.from(entries.values())
                 .filter(({normalizedId}) => normalizedId === 'process');
             const hasProcess = processEntries.length > 0;
             const bundles = this.getPackJSON(entries);
+
+            debug(bundles.map(({data}) => `[${id}] ${data[0].file} - ${data[0].runtime}`));
             const pack = browserpack(
                 Object.assign(
                     {},
@@ -116,10 +118,15 @@ module.exports = class ManifestOutlet {
     }
 
     dataFromItem(item) {
+        const deps = {};
+        Object.keys(item.deps).forEach(literal => {
+            deps[literal] = item.deps[literal]['browser'];
+        });
         const data = {
             id: item.normalizedId,
             // Clone the object so mutating it does not mutate source entry
-            deps: Object.assign({}, item.deps),
+            deps,
+            runtime: item.runtime,
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
             // This is supposed to be file path but our sourcemap already includes it

@@ -4,6 +4,7 @@ const verbose = require('debug')('verbose:mendel:cache');
 
 const Entry = require('./entry.js');
 const variationMatches = require('mendel-development/variation-matches');
+const RUNTIME = ['main', 'browser'];
 
 class MendelCache extends EventEmitter {
     constructor(config) {
@@ -13,6 +14,7 @@ class MendelCache extends EventEmitter {
 
         this._store = new Map();
         this._normalizedIdToEntryIds = new Map();
+        this._moduleAliasMap = new Map();
         this._packageMap = new Map();
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
@@ -107,9 +109,8 @@ class MendelCache extends EventEmitter {
 
     getRuntime(id) {
         let runtime = 'isomorphic';
-        if (this._packageMap.has(id)) {
+        if (this._packageMap.has(id))
             runtime = this._packageMap.get(id).runtime;
-        }
         if (path.parse(id).base === 'package.json') runtime = 'package';
         return runtime;
     }
@@ -158,45 +159,121 @@ class MendelCache extends EventEmitter {
         entry.type = newType;
     }
 
-    setSource(id, source, deps, map) {
-        const entry = this.getEntry(id);
-        const normalizedDeps = {};
+    /**
+     * Certain project or module creates alias of its dependency
+     * using package.json's "browser" property. Since the alias is
+     * scope to the project, it cannot use global concept of normalizedId
+     * but should use a special mapping. For easier search, we use RegExp
+     * and key by "<moduleRoot>/<aliasName>" as key to the alias map.
+     * For instance: "./node_modules/superagent/emitter" is one.
+     */
+    _applyModuleAlias(id, depKey, depObject) {
+        const match = id.match(/(.*\/node_modules\/[^\/]+)\/\S+$/);
+        if (!match || match.length !== 2) return depObject;
+        const key = path.join(match[1], depKey);
+        if (!this._moduleAliasMap.has(key)) return depObject;
 
-        Object.keys(deps).forEach(depKey => {
-            const dep = deps[depKey];
+        if (typeof depObject !== 'object') depObject = {
+            main: false,
+            browser: false,
+        };
+        const {to, runtime} = this._moduleAliasMap.get(key);
+        depObject[runtime] = to;
+        return depObject;
+    }
 
-            // Gather metadata on package if a package.json was never
-            // visited even once.
-            if (dep.packageJson && !this.hasEntry(dep.packageJson)) {
-                // TODO we can shorten it more if we read the package.json and get
-                // the name. However, it can collide when multiple version of a
-                // smae module is loaded. In such case, we need to dedupe. DO IT.
-                const name = path.dirname(dep.packageJson);
+    _handleDependency(oDep) {
+        const isPkgModule = !!oDep.packageJson;
+        // Gather metadata on package if a package.json was never
+        // visited even once.
+        if (isPkgModule && this.hasEntry(oDep.packageJson)) return;
+        // If oDependency is not added yet,
+        isPkgModule && this._requestEntry(oDep.packageJson);
+        const isIsomorphic = !oDep.browser || oDep.main === oDep.browser;
 
-                ['browser', 'main']
-                .filter(runtime => dep[runtime])
-                .forEach(runtime => {
-                    const depPath = dep[runtime];
-                    this.invariantTwoPackagesSameTarget(name, depPath);
-                    this._packageMap.set(depPath, {
+        RUNTIME
+        // dep can have false as a value in which case indicates not found modules
+        .filter(runtime => oDep[runtime])
+        .forEach(runtime => {
+            const dep = oDep[runtime];
+            if (typeof dep === 'string') {
+                if (isPkgModule && !isIsomorphic) {
+                    const name = path.dirname(oDep.packageJson);
+                    !isIsomorphic && name && this._packageMap.set(dep, {
                         mapToId: name,
                         runtime,
                     });
+                }
+
+                this._requestEntry(dep);
+            } else {
+                // This code path when dependency in a runtime
+                // contains a mapping of source to another within a module.
+                // It often pertains to node modules like superagent.
+                // https://github.com/visionmedia/superagent/blob/36ce8782842c2fee402013ff0650d7f8b310e3a7/package.json#L53-L57
+                Object.keys(dep)
+                .filter(key => dep[key])
+                .forEach(fromDep => {
+                    const toDep = dep[fromDep];
+                    // This is the case where node module mapping exists
+                    // but it points to unexisting module.
+                    // e.g.,
+                    // "browser": {
+                    //      "unexisting": "existing"
+                    // }
+                    // and in the code, `require('unexisting');` should resolve
+                    // to `existing`.
+                    if (fromDep.indexOf('./') !== 0) {
+                        this._moduleAliasMap.set(
+                            // Makes something like './node_modules/module'
+                            path.join(path.dirname(oDep.packageJson), fromDep),
+                            {
+                                to: toDep,
+                                runtime,
+                            }
+                        );
+                    } else {
+                        this._packageMap.set(toDep, {
+                            mapToId: this.getNormalizedId(fromDep),
+                            runtime,
+                        });
+                        this._packageMap.set(fromDep, {
+                            mapToId: this.getNormalizedId(fromDep),
+                            runtime: 'main',
+                        });
+                    }
+                    this._requestEntry(toDep);
                 });
             }
-
-            // If dependency is not added yet,
-            this._requestEntry(dep.packageJson);
-            this._requestEntry(dep.browser);
-            if (dep.browser !== dep.main) this._requestEntry(dep.main);
-
-            // Because of normalizedId, even in the package.json case, it should
-            // be sufficient to use the main. The resolver will pick the right
-            // run-time entry.
-            // main is "false" when depdenecy is a node's package.
-            normalizedDeps[depKey] = this.getNormalizedId(dep.main || depKey);
         });
-        entry.setSource(source, normalizedDeps, map);
+    }
+
+    setSource(id, source, deps, map) {
+        const entry = this.getEntry(id);
+        const normDep = {};
+
+        Object.keys(deps)
+        // mod = module name or require literal
+        .forEach(mod => {
+            const dep = deps[mod] = this._applyModuleAlias(id, mod, deps[mod]);
+            this._handleDependency(dep);
+
+            normDep[mod] = {};
+            RUNTIME.forEach(runtime => {
+                let rtDep = dep[runtime];
+                // When we add entries, we add them index them by normalizedId.
+                // Because of normalizedId, even in the package.json case where multiple
+                // runtimes can point to different sources, we can use normalizedId
+                // to map it back, thus, it should be sufficient to use any version of dep
+                // to generate normalizedId when we store.
+                // The resolver will pick the right runtime entry.
+                // main is "false" when depdenecy is a node's core module.
+                rtDep = typeof rtDep === 'string' ? rtDep : dep.main;
+                normDep[mod][runtime] = this.getNormalizedId(rtDep || mod);
+            });
+        });
+
+        entry.setSource(source, normDep, map);
     }
 
     emit(eventName, entry) {

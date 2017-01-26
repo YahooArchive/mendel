@@ -148,7 +148,11 @@ class GraphSourceTransform extends BaseStep {
         const graph = this._registry.getDependencyGraph(entry.normalizedId, (depEntry) => {
             const dependecyMap = depEntry.deps;
             return Object.keys(dependecyMap).map(literal => {
-                return dependecyMap[literal];
+                // FIXME GST can be difference for main and browser.
+                // The difference can lead to different SHA if done poorly.
+                // Currently, we just apply main version but browser version
+                // may be needed. Address this.
+                return dependecyMap[literal].main;
             });
         });
 

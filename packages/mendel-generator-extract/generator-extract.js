@@ -18,7 +18,7 @@ function generatorExtract(bundle, doneBundles, registry) {
 
     // Collect dependencies of lazy bundle
     extracts.forEach(({normalizedId, type}) => {
-        registry.walk(normalizedId, [type, 'node_modules'], entry => {
+        registry.walk(normalizedId, {types: [type, 'node_modules']}, entry => {
             // Returning false stops from walking further
             // Since this code path is already visited; short circuit out of the
             // walk. Same code path can be visited when multiple entries
@@ -35,7 +35,7 @@ function generatorExtract(bundle, doneBundles, registry) {
     // Collect dependencies of main as if lazy was not there
     registry.getEntriesByGlob(fromBundle.options.entries)
     .forEach(({normalizedId, type}) => {
-        registry.walk(normalizedId, [type, 'node_modules'], dep => {
+        registry.walk(normalizedId, {types: [type, 'node_modules']}, dep => {
             // Returning false stops from walking further
             // Since this code path is already visited; short circuit out of the
             // walk. Same code path can be visited when multiple entries

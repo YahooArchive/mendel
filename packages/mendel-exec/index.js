@@ -147,14 +147,13 @@ module.exports = {
                 runtime,
                 resolver(from, depLiteral) {
                     const parent = registry.getEntry(from);
-                    let normId = parent.deps[depLiteral];
+                    let normId = parent.deps[depLiteral][runtime];
                     if (typeof normId === 'object') normId = normId[runtime];
                     return resolve(normId);
                 },
             });
         } catch (e) {
             e.stack = errorMapper(e.stack, registry);
-
             console.log('Error was thrown while evaluating.');
             console.log(e.stack);
             throw e;

@@ -30,11 +30,6 @@ class MendelOutletRegistry {
         this._normalizedIdToEntryIds
             .get(entry.normalizedId)
             .set(entry.id, entry);
-
-        if (entry.id.indexOf('inherits') >= 0) {
-            const {runtime, normalizedId, id} = entry;
-            console.log({normalizedId, id, runtime});
-        }
         this._cache.set(entry.id, entry);
     }
 
@@ -81,7 +76,8 @@ class MendelOutletRegistry {
     /**
      * Walks dependency graph of a specific type
      */
-    walk(normId, types, visitorFunction, _visited=new Set()) {
+    walk(normId, criteria, visitorFunction, _visited=new Set()) {
+        const {types, runtime='browser'} = criteria;
         if (_visited.has(normId)) return;
         _visited.add(normId);
 
@@ -96,7 +92,13 @@ class MendelOutletRegistry {
         }
 
         Array.from(entryVariations.values())
-        .filter(entry => types.indexOf(entry.type) >= 0)
+        .filter(entry => {
+            return types.indexOf(entry.type) >= 0 && (
+                entry.runtime === 'isomorphic' ||
+                entry.runtime === 'node_modules' ||
+                entry.runtime === runtime
+            );
+        })
         .some(entry => {
             const isContinue = visitorFunction(entry);
 
@@ -104,14 +106,14 @@ class MendelOutletRegistry {
             if (isContinue === false) return true;
 
             const allDeps = Object.keys(entry.deps)
-                .reduce((reducedDeps, depName) => {
-                    const dep = entry.deps[depName];
-                    reducedDeps.push(dep);
-                    return reducedDeps;
-                }, []);
+            .reduce((reducedDeps, depName) => {
+                const dep = entry.deps[depName][runtime];
+                reducedDeps.push(dep);
+                return reducedDeps;
+            }, []).filter(Boolean);
 
-            allDeps.filter(Boolean).forEach(normId => {
-                this.walk(normId, types, visitorFunction, _visited);
+            allDeps.forEach(normId => {
+                this.walk(normId, criteria, visitorFunction, _visited);
             });
         });
     }

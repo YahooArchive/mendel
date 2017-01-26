@@ -50,13 +50,15 @@ class CacheServer extends EventEmitter {
             process.exit(1);
         });
         this.server.on('listening', () => this.emit('ready'));
+
         this.server.on('connection', (client) => {
             debug(`[${this.clients.length}] A client connected`);
             this.clients.push(client);
-            client.on('end', () => {
+            client.on('close', () => {
                 this.clients.splice(this.clients.indexOf(client), 1);
                 debug(`[${this.clients.length}] A client disconnected`);
             });
+            client.on('error', () => {});
 
             client.on('data', (data) => {
                 try {
