@@ -5,6 +5,8 @@ function ShimConfig({projectRoot, shim, defaultShim}) {
     Object.keys(ret).forEach(moduleName => {
         if (!ret[moduleName]) return;
         ret[moduleName] = path.relative(projectRoot, ret[moduleName]);
+        if (ret[moduleName].indexOf('./') !== 0)
+            ret[moduleName] = './' + ret[moduleName];
     });
     return ret;
 }

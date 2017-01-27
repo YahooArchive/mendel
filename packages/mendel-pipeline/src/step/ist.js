@@ -54,9 +54,8 @@ class IndependentSourceTransform extends BaseStep {
             // node_modules cannot change its type
             if (ist.type !== 'node_modules') ist.type = newType;
             else ist._type = newType;
-            xformIds = xformIds.concat(this.getTransformIdsByType(ist));
+            xformIds = xformIds.concat(this.getTransformIdsByType(ist.type));
         }
-
         ist.ids = xformIds
             .map(xformId => this._transforms.find(({id}) => xformId === id))
             .filter(Boolean)
@@ -95,7 +94,6 @@ class IndependentSourceTransform extends BaseStep {
                 entry.istSource = source;
                 entry.istDeps = deps;
                 entry.map = map;
-
                 if (entry.type !== newType) {
                     this._registry.setEntryType(entryId, newType);
                 }

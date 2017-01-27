@@ -5,6 +5,9 @@ base-config:
 
 support: test/**/*.js
 
+shim:
+  fake: ./shim/fake.js
+
 variation-config:
   variation-dirs:
     - ./isomorphic/variations

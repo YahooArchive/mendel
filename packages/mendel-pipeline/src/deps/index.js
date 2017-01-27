@@ -45,7 +45,7 @@ class DepsManager extends MultiProcessMaster {
         .filter(literal => this._shim[literal])
         .forEach(literal => {
             deps[literal] = {
-                main: false,
+                main: deps[literal].main || this._shim[literal],
                 browser: this._shim[literal],
             };
         });

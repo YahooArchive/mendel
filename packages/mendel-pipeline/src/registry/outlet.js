@@ -12,6 +12,7 @@ class MendelOutletRegistry {
             normalizedId: '_noop',
             runtime: 'isomorphic',
             source: '',
+            variation: options.baseConfig.dir,
             map: '',
             deps: {},
         });

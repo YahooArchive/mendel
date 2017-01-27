@@ -113,8 +113,10 @@ class CacheServer extends EventEmitter {
     }
 
     serializeEntry(entry) {
-        const type = entry.getTypeForConfig(this.config);
-        const {deps, source, map, runtime, rawSource, id, normalizedId} = entry;
+        const {
+            deps, source, map, type, runtime,
+            rawSource, id, normalizedId,
+        } = entry;
 
         let variation = this.getVariationForEntry(entry);
         if (!variation) {

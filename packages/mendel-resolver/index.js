@@ -186,6 +186,8 @@ class ModuleResolver {
                 return promise.catch(() => false);
             });
             return Promise.all(furtherResolve).then(resolves => {
+                if (resolves.every(resolve => resolve === false))
+                    throw new Error('None of the path declared resolves');
                 resolves.forEach((resolved, index) => {
                     consider.set(furtherPaths[index], resolved);
                 });

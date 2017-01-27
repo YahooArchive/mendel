@@ -218,6 +218,7 @@ class MendelCache extends EventEmitter {
             if (typeof dep === 'string') {
                 if (isPkgModule && !isIsomorphic) {
                     const name = path.dirname(oDep.packageJson);
+
                     name && this._packageMap.set(dep, {
                         mapToId: name,
                         runtime,

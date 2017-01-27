@@ -3,6 +3,8 @@
    See the accompanying LICENSE file for terms. */
 import App from './components/app';
 import React from 'react'; // eslint-disable-line
+import 'fake';
+import '../../config.json';
 
 if (typeof document !== 'undefined') {
     const ReactDOM = require('react-dom');
