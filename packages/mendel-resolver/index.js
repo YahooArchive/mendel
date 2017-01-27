@@ -94,7 +94,6 @@ class ModuleResolver {
                     });
                 }
             });
-
             return deps;
         })
         .catch((e) => {
@@ -152,6 +151,9 @@ class ModuleResolver {
         const packagePath = path.join(moduleName, '/package.json');
         return this.readPackageJson(packagePath)
         .then(pkg => {
+            if (this.runtimes.every(name => !pkg[name]))
+                throw new Error('package.json without "main"');
+
             const consider = new Map();
             // A "package.json" can have below data structure
             // {
