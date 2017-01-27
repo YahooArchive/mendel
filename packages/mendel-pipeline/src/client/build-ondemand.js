@@ -84,7 +84,7 @@ class BuildOnDemand extends BaseClient {
 
     onUnsync() {
         this._bundles = null;
-        this._bundleCache = new Map();
+        this._bundleCache.clear();
     }
 }
 

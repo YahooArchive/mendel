@@ -14,8 +14,20 @@ class MendelCache extends EventEmitter {
 
         this._store = new Map();
         this._normalizedIdToEntryIds = new Map();
-        this._moduleAliasMap = new Map();
+        // PackageMap maps a source to a normalizedId
+        // that allows to group sources that they are the "same"
+        // so a depdenecy can resolve to different file in different runtime
         this._packageMap = new Map();
+        // In a package.json, you can define broswer property that
+        // is an object with a source path as a key and `false` as a value
+        // to depict DO NOT bundle
+        this._depIgnoreMap = new Map();
+        // Similar to packageMap but this pertains to dependency out of
+        // current module's source paths like sibling or ancestors.
+        // In such cases, a destination package may not be used for
+        // only one runtime.
+        this._moduleAliasMap = new Map();
+
         this._baseConfig = config.baseConfig;
         this._variations = config.variationConfig.variations;
         this._shimPathToId = new Map();
@@ -177,6 +189,7 @@ class MendelCache extends EventEmitter {
             main: false,
             browser: false,
         };
+
         const {to, runtime} = this._moduleAliasMap.get(key);
         depObject[runtime] = to;
         return depObject;
@@ -189,7 +202,13 @@ class MendelCache extends EventEmitter {
         if (isPkgModule && this.hasEntry(oDep.packageJson)) return;
         // If oDependency is not added yet,
         isPkgModule && this._requestEntry(oDep.packageJson);
-        const isIsomorphic = !oDep.browser || oDep.main === oDep.browser;
+        let isIsomorphic = false;
+        if (typeof oDep.browser === 'object') {
+            const val = oDep.browser[oDep.main];
+            isIsomorphic = typeof val === 'undefined' || val === false;
+        } else if (typeof oDep.browser === 'string') {
+            isIsomorphic = oDep.main === oDep.browser;
+        }
 
         RUNTIME
         // dep can have false as a value in which case indicates not found modules
@@ -199,7 +218,7 @@ class MendelCache extends EventEmitter {
             if (typeof dep === 'string') {
                 if (isPkgModule && !isIsomorphic) {
                     const name = path.dirname(oDep.packageJson);
-                    !isIsomorphic && name && this._packageMap.set(dep, {
+                    name && this._packageMap.set(dep, {
                         mapToId: name,
                         runtime,
                     });
@@ -212,18 +231,25 @@ class MendelCache extends EventEmitter {
                 // It often pertains to node modules like superagent.
                 // https://github.com/visionmedia/superagent/blob/36ce8782842c2fee402013ff0650d7f8b310e3a7/package.json#L53-L57
                 Object.keys(dep)
-                .filter(key => dep[key])
                 .forEach(fromDep => {
                     const toDep = dep[fromDep];
-                    // This is the case where node module mapping exists
-                    // but it points to unexisting module.
-                    // e.g.,
-                    // "browser": {
-                    //      "unexisting": "existing"
-                    // }
-                    // and in the code, `require('unexisting');` should resolve
-                    // to `existing`.
-                    if (fromDep.indexOf('./') !== 0) {
+                    if (typeof toDep === 'undefined') {
+                        return;
+                    } else if (toDep === false) {
+                        this._depIgnoreMap.set(
+                            fromDep,
+                            (this._depIgnoreMap.get(fromDep) || new Set())
+                                .add(runtime)
+                        );
+                    } else if (fromDep.indexOf('./') !== 0) {
+                        // This is the case where node module mapping exists
+                        // but it points to unexisting module.
+                        // e.g.,
+                        // "browser": {
+                        //      "unexisting": "existing"
+                        // }
+                        // and in the code, `require('unexisting');` should resolve
+                        // to `existing`.
                         this._moduleAliasMap.set(
                             // Makes something like './node_modules/module'
                             path.join(path.dirname(oDep.packageJson), fromDep),
@@ -256,11 +282,20 @@ class MendelCache extends EventEmitter {
         // mod = module name or require literal
         .forEach(mod => {
             const dep = deps[mod] = this._applyModuleAlias(id, mod, deps[mod]);
+            if (typeof dep === 'object' && this._depIgnoreMap.has(dep.main)) {
+                const set = this._depIgnoreMap.get(dep.main);
+                set.forEach(runtime => {
+                    dep[runtime] = false;
+                });
+            }
             this._handleDependency(dep);
 
             normDep[mod] = {};
             RUNTIME.forEach(runtime => {
                 let rtDep = dep[runtime];
+                if (rtDep === false)
+                    return normDep[mod][runtime] = false;
+
                 // When we add entries, we add them index them by normalizedId.
                 // Because of normalizedId, even in the package.json case where multiple
                 // runtimes can point to different sources, we can use normalizedId
@@ -279,7 +314,7 @@ class MendelCache extends EventEmitter {
     emit(eventName, entry) {
         if (entry && entry.id) {
             verbose(eventName, entry.id);
-        } else if(entry) {
+        } else if (entry) {
             verbose(eventName, entry);
         } else {
             verbose(eventName);

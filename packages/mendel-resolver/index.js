@@ -173,7 +173,8 @@ class ModuleResolver {
                 else if (typeof pkg[name] === 'object') {
                     Object.keys(pkg[name]).forEach(fromPath => {
                         consider.set(fromPath);
-                        consider.set(pkg[name][fromPath]);
+                        if (typeof pkg[name][fromPath] === 'string')
+                            consider.set(pkg[name][fromPath]);
                     });
                 }
             });
@@ -203,6 +204,8 @@ class ModuleResolver {
                         if (!deps.get(key) && !deps.get(val)) return;
                         if (!deps.get(key) && deps.get(val))
                             return obj[key] = deps.get(val)[name];
+                        if (deps.get(key) && typeof val !== 'string')
+                            return obj[deps.get(key)[name]] = false;
                         obj[deps.get(key)[name]] = deps.get(val)[name];
                     });
                 }

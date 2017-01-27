@@ -21,6 +21,9 @@ class BaseMendelClient extends EventEmitter {
             );
         }
 
+        this._verbose = process.env.NODE_ENV === 'development' ||
+            typeof process.env.NODE_ENV === 'undefined';
+
         this.registry = new MendelOutletRegistry(this.config);
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
@@ -42,19 +45,17 @@ class BaseMendelClient extends EventEmitter {
         });
 
         this.client.on('sync', function() {
-            if (this.initSyncMessage === null) {
-                console.log('Mendel Synced. Ready now.');
-            } else {
-                clearTimeout(this.initSyncMessage);
-            }
-
-            this.debug('Client is synced');
+            clearTimeout(this.initSyncMessage);
             this.emit('ready');
             this.synced = true;
             this.onSync.apply(this, arguments);
+
+            if (this._verbose)
+                console.log('Mendel synced');
         }.bind(this));
         this.client.on('unsync', function() {
-            this.debug('Client is unsynced');
+            if (this._verbose)
+                console.log('File changed detected. Waiting to sync again...');
             this.emit('change');
             this.synced = false;
             this.onUnsync.apply(this, arguments);

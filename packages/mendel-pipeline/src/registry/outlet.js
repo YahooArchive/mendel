@@ -6,6 +6,15 @@ class MendelOutletRegistry {
         this._cache = new Map();
         this._normalizedIdToEntryIds = new Map();
         this._options = options;
+        // noop module support
+        this.addEntry({
+            id: './node_modules/_noop',
+            normalizedId: '_noop',
+            runtime: 'isomorphic',
+            source: '',
+            map: '',
+            deps: {},
+        });
     }
 
     get size() {
@@ -30,6 +39,16 @@ class MendelOutletRegistry {
         this._normalizedIdToEntryIds
             .get(entry.normalizedId)
             .set(entry.id, entry);
+
+        // On client side, dep that resolves to "false" means noop and needs to
+        // be bundlded or handled appropriately
+        Object.keys(entry.deps)
+        .forEach(mod => {
+            Object.keys(entry.deps[mod]).forEach(runtime => {
+                if (entry.deps[mod][runtime] === false)
+                    entry.deps[mod][runtime] = '_noop';
+            });
+        });
         this._cache.set(entry.id, entry);
     }
 
@@ -93,11 +112,11 @@ class MendelOutletRegistry {
 
         Array.from(entryVariations.values())
         .filter(entry => {
-            return types.indexOf(entry.type) >= 0 && (
-                entry.runtime === 'isomorphic' ||
+            if (entry.normalizedId === '_noop') return true;
+            if (types.indexOf(entry.type) < 0) return false;
+            return entry.runtime === 'isomorphic' ||
                 entry.runtime === 'node_modules' ||
-                entry.runtime === runtime
-            );
+                entry.runtime === runtime;
         })
         .some(entry => {
             const isContinue = visitorFunction(entry);

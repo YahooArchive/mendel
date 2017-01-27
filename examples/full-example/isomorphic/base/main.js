@@ -1,12 +1,11 @@
 /* Copyright 2015, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
-import superagent from 'superagent';
 import App from './components/app';
 import React from 'react'; // eslint-disable-line
-import ReactDOM from 'react-dom';
 
 if (typeof document !== 'undefined') {
+    const ReactDOM = require('react-dom');
     var main = document.querySelector('#main');
     ReactDOM.render(<App data={window.data} />, main);
 } else {
