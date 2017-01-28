@@ -9,13 +9,18 @@ class DepsManager extends MultiProcessMaster {
      * @param {String} config.projectRoot
      */
     constructor({projectRoot, baseConfig, variationConfig, shim}, mendelCache) {
-        super(path.join(__dirname, 'worker.js'), {name: 'deps'});
+        // For higher cache hit rate, do not utilize "all cores".
+        super(path.join(__dirname, 'worker.js'), {name: 'deps', numWorker: 2});
 
         this._mendelCache = mendelCache;
         this._projectRoot = projectRoot;
         this._baseConfig = baseConfig;
         this._variationConfig = variationConfig;
         this._shim = shim;
+
+        this._mendelCache.on('entryRemoved', () => {
+            this.sendAll('clearCache');
+        });
     }
 
     detect(entryId, source) {

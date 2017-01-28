@@ -102,7 +102,7 @@ class IndependentSourceTransform extends BaseStep {
         .then(() => this.emit('done', {entryId}, ids))
         .catch(error => {
             console.error(`Errored while transforming ${entryId}:
-    ${error.message}: ${error.stack}`);
+    ${error.stack}`);
             this.emit('error', error);
         });
     }

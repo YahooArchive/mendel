@@ -6,6 +6,8 @@ const VariationalResolver = require('mendel-resolver/bisource-resolver');
 
 const pendingInquiry = new Map();
 const RUNTIME = ['main', 'browser'];
+const resolveCache = new Map();
+let resolver;
 
 module.exports = function(done) {
     return {
@@ -20,30 +22,37 @@ module.exports = function(done) {
             debug(`Detecting dependencies for ${filePath}`);
 
             analytics.tic();
-            const resolver = new VariationalResolver({
-                runtimes: RUNTIME,
-                extensions: ['.js', '.jsx', '.json'],
-                // entry related
-                basedir: path.resolve(projectRoot, path.dirname(filePath)),
-                // config params
-                projectRoot,
-                baseConfig,
-                variationConfig,
-                recordPackageJson: true,
-                has(filePath) {
-                    return new Promise(resolve => {
-                        if (!pendingInquiry.has(filePath)) pendingInquiry.set(filePath, []);
-                        pendingInquiry.get(filePath).push(resolve);
-                        sender('has', {filePath});
-                    });
-                },
-            });
+            if (!resolver) {
+                resolver = new VariationalResolver({
+                    cache: resolveCache,
+                    runtimes: RUNTIME,
+                    extensions: ['.js', '.jsx', '.json'],
+                    // entry related
+                    basedir: path.resolve(projectRoot, path.dirname(filePath)),
+                    // config params
+                    projectRoot,
+                    baseConfig,
+                    variationConfig,
+                    recordPackageJson: true,
+                    has(filePath) {
+                        return new Promise(resolve => {
+                            if (!pendingInquiry.has(filePath))
+                                pendingInquiry.set(filePath, []);
+
+                            pendingInquiry.get(filePath).push(resolve);
+                            sender('has', {filePath});
+                        });
+                    },
+                });
+            } else {
+                resolver.setBaseDir(path.resolve(
+                    projectRoot,
+                    path.dirname(filePath)
+                ));
+            }
 
             debug(`Detecting dependencies for ${filePath}`);
             dep({source, resolver})
-            // .then((deps) => {
-            //     return deps;
-            // })
             // mendel-resolver throws in case nothing was found
             .catch(() => {
                 return RUNTIME.reduce((reduced, name) => {
@@ -66,6 +75,10 @@ module.exports = function(done) {
 
         onExit() {
             // Nothing to clean
+        },
+
+        clearCache() {
+            resolveCache.clear();
         },
     };
 };

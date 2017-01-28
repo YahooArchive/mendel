@@ -3,8 +3,6 @@ base-config:
   dir: ./isomorphic/base
   outdir: ./build
 
-support: test/**/*.js
-
 shim:
   fake: ./shim/fake.js
 
@@ -85,6 +83,7 @@ types:
 
 env:
   test:
+    support: test/**/*.js
     types:
       js:
         transforms:

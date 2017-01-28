@@ -24,7 +24,7 @@ class Worker {
             if (this._subscriptions && this._subscriptions.onExit) {
                 this._subscriptions.onExit();
             }
-            this.debug(`Gracefully exited`);
+            this.debug('Gracefully exited');
         });
         // childProcess.kill triggers this. We want to gracefully exit
         process.on('SIGTERM', () => process.exit(0));

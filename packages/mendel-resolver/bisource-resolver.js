@@ -1,12 +1,28 @@
 const VariationalModuleResolver = require('./variational-resolver');
+const path = require('path');
 
-class BiSourceVariationalResolver extends VariationalModuleResolver {
+class CachedBisourceVariationalResolver extends VariationalModuleResolver {
     constructor(options) {
         super(options);
 
         // Cache has to implement "has" method that returns Boolean when passed
         // a file path
         this.biSourceHas = options.has;
+        this._cache = options.cache;
+    }
+
+    resolve(moduleName) {
+        const cacheKey = CachedBisourceVariationalResolver.isNodeModule(moduleName) ?
+            moduleName : path.resolve(this.basedir, moduleName);
+
+        if (this._cache.has(cacheKey))
+            return Promise.resolve(this._cache.get(cacheKey));
+
+        return super.resolve(moduleName)
+        .then(deps => {
+            this._cache.set(cacheKey, deps);
+            return deps;
+        });
     }
 
     fileExists(filePath) {
@@ -21,4 +37,4 @@ class BiSourceVariationalResolver extends VariationalModuleResolver {
     }
 }
 
-module.exports = BiSourceVariationalResolver;
+module.exports = CachedBisourceVariationalResolver;

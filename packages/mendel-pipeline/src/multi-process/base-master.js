@@ -58,6 +58,10 @@ class BaseMasterProcess {
         });
     }
 
+    sendAll(type, args) {
+        this._workers.forEach(worker => worker.send({type, args}));
+    }
+
     _next() {
         if (!this._jobs.length || !this._idleWorkers.length) return;
 

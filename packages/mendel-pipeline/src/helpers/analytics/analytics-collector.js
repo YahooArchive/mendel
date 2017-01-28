@@ -30,6 +30,7 @@ class AnalyticsCollector {
         ) return;
 
         const {pid, name, after, before} = message;
+
         this.data.push({
             name,
             pid,
