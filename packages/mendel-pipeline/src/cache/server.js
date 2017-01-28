@@ -100,7 +100,9 @@ class CacheServer extends EventEmitter {
     bootstrap(client) {
         const cache = this.cacheManager.getCache(client.environment);
         const entries = cache.entries();
-        entries.forEach(entry => this._sendEntry(client, cache.size(), entry));
+        entries
+        .filter(entry => entry.done)
+        .forEach(entry => this._sendEntry(client, cache.size(), entry));
     }
 
     _sendEntry(client, size, entry) {

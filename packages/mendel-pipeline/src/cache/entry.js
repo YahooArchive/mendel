@@ -21,6 +21,9 @@ class Entry {
         this.deps;
         this.dependents;
 
+        // Whether entry went through upto GST step in pipeline.
+        this.done;
+
         this.reset();
     }
 
