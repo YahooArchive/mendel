@@ -21,8 +21,12 @@ class BaseMendelClient extends EventEmitter {
             );
         }
 
-        this._verbose = process.env.NODE_ENV === 'development' ||
-            typeof process.env.NODE_ENV === 'undefined';
+        this._verbose = typeof options.verbose !== 'undefined' ?
+            options.verbose :
+            (
+                process.env.NODE_ENV === 'development' ||
+                typeof process.env.NODE_ENV === 'undefined'
+            );
 
         this.registry = new MendelClientRegistry(this.config);
         this.generators = new MendelGenerators(this.config, this.registry);
@@ -33,7 +37,6 @@ class BaseMendelClient extends EventEmitter {
 
     _setupClient() {
         this.client = new CacheClient(this.config, this.registry);
-
         this.client.on('error', (error) => {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
                 console.error([
@@ -64,13 +67,15 @@ class BaseMendelClient extends EventEmitter {
 
     run(callback=()=>{}) {
         // Print a message if it does not sync within a second.
-        this.initSyncMessage = setTimeout(() => {
-            this.initSyncMessage = null;
-            console.log([
-                'Waiting for sync. Can take few moments',
-                'if an environment performs complex operations.',
-            ].join(' '));
-        }, 3000);
+        if (this._verbose) {
+            this.initSyncMessage = setTimeout(() => {
+                this.initSyncMessage = null;
+                console.log([
+                    'Waiting for sync. Can take few moments',
+                    'if an environment performs complex operations.',
+                ].join(' '));
+            }, 3000);
+        }
 
         // This will come after the sync listener that generates and outlets
         this.once('done', () => {

@@ -12,7 +12,7 @@ class Mendel {
 
     constructor(config) {
         this.daemon = new Mendel.Daemon(config);
-        this.client = new Mendel.Client(config);
+        this.client = new Mendel.Client(Object.assign({verbose: false}, config));
     }
 
     run(callback) {
