@@ -6,20 +6,27 @@ class MendelOutletRegistry {
         this._cache = new Map();
         this._normalizedIdToEntryIds = new Map();
         this._options = options;
+
+        this._numInternalEntries = 1; // Because there is internal noop "module", we need to decrement the size.
+        this.clear();
+    }
+
+    clear() {
+        this._cache.clear();
         // noop module support
         this.addEntry({
             id: './node_modules/_noop',
             normalizedId: '_noop',
             runtime: 'isomorphic',
             source: '',
-            variation: options.baseConfig.dir,
+            variation: this._options.baseConfig.dir,
             map: '',
             deps: {},
         });
     }
 
     get size() {
-        return this._cache.size;
+        return this._cache.size - this._numInternalEntries;
     }
 
     hasEntry(id) {

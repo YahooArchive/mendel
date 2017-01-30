@@ -76,7 +76,7 @@ class Entry {
             dependents: this.dependents,
             source: this.source,
             deps: this.deps,
-            map: this.map
+            map: this.map,
         };
     }
 }

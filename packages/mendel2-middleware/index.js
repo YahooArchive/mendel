@@ -4,6 +4,7 @@ const resolveVariations = require('mendel-development/resolve-variations');
 const MendelClient = require('mendel-pipeline/client');
 const Stream = require('stream');
 const {execWithRegistry} = require('mendel-exec');
+const path = require('path');
 
 module.exports = MendelMiddleware;
 
@@ -94,7 +95,8 @@ function MendelMiddleware(opts) {
 
         // This is a bundle route. Return a bundle and end
         const params = namedParams(keys, reqParams);
-        if (!params.bundle || !bundles.has(params.bundle)) return next();
+        const bundle = params.bundle ? path.parse(params.bundle).name : '';
+        if (!bundle || !bundles.has(bundle)) return next();
 
         const vars = resolveVariations(
             varsConfig,
@@ -114,14 +116,14 @@ function MendelMiddleware(opts) {
             res.header('content-type', 'application/javascript');
         }
 
-        client.build(params.bundle, vars)
+        client.build(bundle, vars)
         .then(bundle => {
             if (bundle instanceof Stream) return bundle.pipe(res);
             else if (typeof bundle === 'string') return res.send(bundle).end();
 
             console.error(
                 'Build is imcompatible with middleware.',
-                'Bundle: "' + params.bundle + '"',
+                'Bundle: "' + bundle + '"',
                 'Output is: ' + typeof bundle
             );
 

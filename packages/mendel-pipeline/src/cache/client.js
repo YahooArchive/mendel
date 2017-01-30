@@ -76,6 +76,9 @@ class CacheClient extends EventEmitter {
             if (isRetry) console.log('Reconnected to daemon. Good to go!');
         });
         conn.on('end', () => {
+            this.emit('unsync');
+            this.registry.clear();
+
             debug('Disconnected from master');
             // User intentionally closed. Do not print or retry to connect
             if (this.closeReqeusted) return;
