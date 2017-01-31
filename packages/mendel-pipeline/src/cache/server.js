@@ -86,9 +86,10 @@ class CacheServer extends EventEmitter {
 
     initCache() {
         this.cacheManager.on('doneEntry', (cache, entry) => {
+            const size = cache.size();
             this.clients
-                .filter(client => client.environment === cache.environment)
-                .forEach(client => this._sendEntry(client, cache.size(), entry));
+                .filter(c => c.environment === cache.environment)
+                .forEach(c => this._sendEntry(c, size, entry));
         });
         this.cacheManager.on('entryRemoved', (cache, entryId) => {
             this.clients
@@ -99,10 +100,9 @@ class CacheServer extends EventEmitter {
 
     bootstrap(client) {
         const cache = this.cacheManager.getCache(client.environment);
-        const entries = cache.entries();
-        entries
-        .filter(entry => entry.done)
-        .forEach(entry => this._sendEntry(client, cache.size(), entry));
+        cache.entries()
+            .filter(entry => entry.done)
+            .forEach(entry => this._sendEntry(client, cache.size(), entry));
     }
 
     _sendEntry(client, size, entry) {

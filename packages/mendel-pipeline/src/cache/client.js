@@ -17,6 +17,7 @@ class CacheClient extends EventEmitter {
 
         this.cacheConnection = cacheConnection;
         this.connected = false;
+        this.synced = false;
         this.closeReqeusted = false;
         this.connect();
     }
@@ -60,8 +61,8 @@ class CacheClient extends EventEmitter {
                     }
                 case 'removeEntry':
                     {
-                        const unsynced = this.sync ? true : false;
-                        this.sync = false;
+                        const unsynced = this.synced ? true : false;
+                        this.synced = false;
                         this.registry.removeEntry(data.id);
                         if (unsynced) this.emit('unsync', data.id);
                         break;
@@ -73,11 +74,15 @@ class CacheClient extends EventEmitter {
 
         conn.on('connect', () => {
             this.connected = true;
-            if (isRetry) console.log('Reconnected to daemon. Good to go!');
+            if (isRetry) {
+                console.log('[Mendel] Reconnected to daemon. Good to go!');
+            }
         });
-        conn.on('end', () => {
-            this.emit('unsync');
+
+        conn.on('close', () => {
+            if (!isRetry) this.emit('unsync');
             this.registry.clear();
+            this.synced = false;
 
             debug('Disconnected from master');
             // User intentionally closed. Do not print or retry to connect
@@ -85,11 +90,15 @@ class CacheClient extends EventEmitter {
 
             if (!isRetry) {
                 console.log([
-                    'Mendel Daemon was disconnected.',
+                    '[Mendel] Daemon was disconnected.',
                     'Will try to reconnect...',
                 ].join(' '));
             }
-            setTimeout(() => this.connect(true), 5000);
+
+            setTimeout(() => {
+                this.connect(true);
+                this.start();
+            }, 5000);
         });
     }
 
@@ -102,9 +111,9 @@ class CacheClient extends EventEmitter {
     }
 
     checkStatus(total) {
-        if (this.registry.size === total && !this.sync) {
+        if (this.registry.size === total && !this.synced) {
             debug(`${this.registry.size} entries are synced with a server`);
-            this.sync = true;
+            this.synced = true;
             this.emit('sync');
         }
     }
