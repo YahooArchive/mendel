@@ -36,13 +36,27 @@ class MendelRegistry extends EventEmitter {
         this._mendelCache.addEntry(filePath);
     }
 
+    removeEntry(filePath) {
+        if (!this._mendelCache.hasEntry(filePath)) return;
+
+        this._mendelCache.removeEntry(filePath);
+    }
+
+    getEntry(filePath) {
+        return this._mendelCache.getEntry(filePath);
+    }
+
+    hasEntry(filePath) {
+        return this._mendelCache.hasEntry(filePath);
+    }
+
     addSource({id, source, deps, map}) {
         if (!this._mendelCache.hasEntry(id)) this._mendelCache.addEntry(id);
         this._mendelCache.setSource(id, source, deps, map);
     }
 
-    addTransformedSource({id, source, deps, map}) {
-        this.addSource({id, source, deps, map});
+    addTransformedSource(obj) {
+        this.addSource(obj);
     }
 
     invalidateDepedencies(filePath) {
@@ -53,23 +67,6 @@ class MendelRegistry extends EventEmitter {
     doneEntry(filePath, environment) {
         if (!this._mendelCache.hasEntry(filePath)) return;
         this._mendelCache.doneEntry(filePath, environment);
-    }
-
-    removeEntry(filePath) {
-        if (!this._mendelCache.hasEntry(filePath)) return;
-
-        this._mendelCache.deleteEntry(filePath);
-
-        // Because Entry is deleted, we don't really dispatch with the Entry
-        this.emit('entryRemoved', filePath);
-    }
-
-    getEntry(filePath) {
-        return this._mendelCache.getEntry(filePath);
-    }
-
-    hasEntry(filePath) {
-        return this._mendelCache.hasEntry(filePath);
     }
 
     setEntryType(entryId, newType) {
@@ -91,6 +88,7 @@ class MendelRegistry extends EventEmitter {
             const normId = unvisitedNorms.shift();
             if (visitedEntries.has(normId)) continue;
             const entryIds = this._mendelCache.getEntriesByNormId(normId);
+
             if (!entryIds) continue;
 
             const entries = entryIds.map(entryId => this.getEntry(entryId));

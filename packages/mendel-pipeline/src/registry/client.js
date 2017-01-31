@@ -2,11 +2,10 @@ const Minimatch = require('minimatch').Minimatch;
 const path = require('path');
 
 class MendelOutletRegistry {
-    constructor(options) {
+    constructor(config) {
         this._cache = new Map();
         this._normalizedIdToEntryIds = new Map();
-        this._options = options;
-
+        this._options = config;
         this._numInternalEntries = 1; // Because there is internal noop "module", we need to decrement the size.
         this.clear();
     }
@@ -71,8 +70,15 @@ class MendelOutletRegistry {
         }
     }
 
-    getEntriesByNormId(normId) {
-        return this._normalizedIdToEntryIds.get(normId);
+    getExecutableEntries(normId) {
+        const fromMap = this._normalizedIdToEntryIds.get(normId);
+        const entries = Array.from(fromMap.entries())
+        .filter(([, value]) => {
+            const type = this._options.types.get(value.type);
+            return type && !type.isResource;
+        });
+
+        return new Map(entries);
     }
 
     getEntriesByGlob(globStrings) {
@@ -108,7 +114,7 @@ class MendelOutletRegistry {
         if (_visited.has(normId)) return;
         _visited.add(normId);
 
-        const entryVariations = this.getEntriesByNormId(normId);
+        const entryVariations = this._normalizedIdToEntryIds.get(normId);
         if (!entryVariations) {
             // throw new Error(`Entry ${normId} not found in registry`);
             // TODO figure out what to do about missing packages.

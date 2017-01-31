@@ -27,7 +27,15 @@ module.exports = function() {
             hash: '/mendel/:hash/:bundle',
         },
         transforms: {},
-        types: {},
+        types: {
+            node_modules: {
+                glob: [
+                    /.*\/node_modules\/.*/,
+                ],
+                isResource: false,
+                isBinary: false,
+            },
+        },
         outlets: [],
         generators: [],
         env: {},

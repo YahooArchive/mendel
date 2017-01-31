@@ -25,7 +25,7 @@ class IndependentSourceTransform extends BaseStep {
     }
 
     getTransformIdsByType(typeName) {
-        const type = this._types.find(({name}) => typeName === name);
+        const type = this._types.get(typeName);
         // Secondary type can be also missing.
         if (!type) return [];
         if (!this._parserTypeConversion.has(typeName))
@@ -35,10 +35,18 @@ class IndependentSourceTransform extends BaseStep {
     }
 
     getTransform(entry) {
-        const type = entry.type;
-        let typeConfig = this._types.find(({name}) => type === name);
-        if (type === 'node_modules' && !typeConfig && type !== entry._type) {
-            const config = this._types.find(({name}) => entry._type === name);
+        const {type} = entry;
+        let typeConfig = this._types.get(entry.type);
+
+        // When current entry is a node modules,
+        // it can be applied with more global configuration from
+        // "includeNodeModules". As node_modules cannot have more than one
+        // subtype, this property is used to, for instance, minify or
+        // do transformations on the source.
+        // Such global configuration will override any transformations configured
+        // for the node_modules type.
+        if (type !== entry._type && type === 'node_modules') {
+            const config = this._types.get(entry._type);
             if (config && config.includeNodeModules) {
                 typeConfig = config;
             }
@@ -56,6 +64,7 @@ class IndependentSourceTransform extends BaseStep {
             else ist._type = newType;
             xformIds = xformIds.concat(this.getTransformIdsByType(ist.type));
         }
+
         ist.ids = xformIds
             .map(xformId => this._transforms.find(({id}) => xformId === id))
             .filter(Boolean)
@@ -88,15 +97,12 @@ class IndependentSourceTransform extends BaseStep {
                     map,
                 });
 
-                // This is needed for cached GST
-                // A file has changed and we need to do GST again
-                // and want to use sources from IST, not from any other steps
-                entry.istSource = source;
-                entry.istDeps = deps;
-                entry.map = map;
                 if (entry.type !== newType) {
                     this._registry.setEntryType(entryId, newType);
                 }
+
+                entry.istSource = entry.source;
+                entry.istDeps = entry.deps;
             });
         })
         .then(() => this.emit('done', {entryId}, ids))

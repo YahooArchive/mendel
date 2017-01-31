@@ -38,9 +38,17 @@ module.exports = function(rawConfig) {
     config.projectRoot = path.resolve(config.projectRoot);
     config.baseConfig = BaseConfig(config);
     config.variationConfig = VariationConfig(config);
-    config.types = Object.keys(config.types).map(function(typeName) {
+    config.types = Object.keys(config.types).map(typeName => {
         return new TypesConfig(typeName, config.types[typeName], config);
     });
+
+    // utility function for types as we almost always do this
+    (function(types) {
+        const map = new Map();
+        types.forEach(type => map.set(type.name, type));
+        types.get = (name) => map.get(name);
+    })(config.types);
+
     config.transforms = Object.keys(config.transforms).map(id => {
         return new TransformConfig(id, config.transforms[id], config);
     });

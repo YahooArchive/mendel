@@ -10,20 +10,16 @@ class FileReader extends BaseStep {
         this.depsResolver = depsResolver;
         this.projectRoot = projectRoot;
         this.registry = registry;
-        this._typeMap = new Map();
-        types.forEach(type => this._typeMap.set(type.name, type));
+        this._types = types;
         this.sourceExt = new Set();
     }
 
     perform(entry) {
         // raw can exist without read step in case of virtual files and others.
-        if (entry.rawSource) {
-            return this.emit('done', {entryId: entry.id});
-        }
-
+        if (entry.rawSource) return this.emit('done', {entryId: entry.id});
         const filePath = path.resolve(this.projectRoot, entry.id);
-        const entryType = entry.type;
-        const isBinary = !this._typeMap.has(entryType) || this._typeMap.get(entryType).isBinary;
+        const {type} = entry;
+        const {isBinary} = (this._types.get(type) || {isBinary: true});
 
         analytics.tic('read');
         fs.readFile(filePath, isBinary ? 'binary' : 'utf8', (error, source) => {

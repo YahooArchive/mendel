@@ -41,13 +41,13 @@ module.exports = class MendelPipeline extends EventEmitter {
                         [entry].concat(Array.prototype.slice.call(arguments, 1))
                     );
                 } catch (e) {
-                    console.error(`Mendel (${i}, ${curStep.constructor.name}) errored: `, e.stack); // eslint-disable-line max-len
+                    console.error(`Mendel "${curStep.constructor.name}" errored: `, e.stack); // eslint-disable-line max-len
                     process.exit(1);
                 }
             });
 
             curStep.on('error', (e) => {
-                console.error(`Mendel (${i}, ${curStep.constructor.name}) errored: `, e.stack); // eslint-disable-line max-len
+                console.error(`Mendel "${curStep.constructor.name}" errored: `, e.stack); // eslint-disable-line max-len
                 process.exit(1);
             });
         });
@@ -65,10 +65,8 @@ module.exports = class MendelPipeline extends EventEmitter {
             .on('done', () => startedEntries++);
 
         this.steps[this.steps.length-1]
-            .on('done', () => { doneEntries++;
-
-                if (startedEntries === doneEntries) {
-
+            .on('done', () => {
+                if (++doneEntries === startedEntries) {
                     const total = this.cache.size();
                     this.debug(`${doneEntries} entries were processed.`);
                     this.debug(`${total} entries in registry.`);

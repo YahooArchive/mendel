@@ -129,8 +129,8 @@ function exec(fileName, source, {sandbox = {}, resolver}) {
 
 module.exports = {
     execWithRegistry(registry, mainId, variations, sandbox, runtime='main') {
-        function resolve(id) {
-            const entries = registry.getEntriesByNormId(id);
+        function resolve(norm) {
+            const entries = registry.getExecutableEntries(norm);
             if (!entries) return null;
             return matchVar(
                 Array.from(entries.values()),

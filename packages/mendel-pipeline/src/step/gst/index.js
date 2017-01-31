@@ -39,30 +39,22 @@ class GraphSourceTransform extends BaseStep {
         this._curGstIndex = 0;
         this._processed = new Set();
         this._virtual = new Set();
+        this.clear();
+        this._cache.on('entryRemoved', () => this.clear());
     }
 
-    // FIXME map should be used
-    addTransform({id, source, map, deps}) {
-        const depPromise = !deps ?
-            this._depsResolver.detect(id, source) :
-            Promise.resolve({deps}).then(({deps}) => {
-                // Whatever returned by plugins cannot and should not conform
-                // to internal data structure. This tidies the deps returned by
-                // plugin. (Plugin returns an object of require literal to path)
-                Object.keys(deps).forEach(dep => {
-                    deps[dep] = {
-                        browser: dep,
-                        main: dep,
-                    };
-                });
+    clear() {
+        this._curGstIndex = 0;
+        this._processed.clear();
 
-                return {deps};
-            });
+        this._virtual.forEach(entryId => this._registry.removeEntry(entryId));
+        this._virtual.clear();
+    }
 
-        depPromise.then(({deps}) => {
-            this._virtual.delete(id);
-            this._registry.addTransformedSource({id, source, deps, map});
-        });
+    addTransform({id, source='', map='', deps={}}) {
+        // This will add source to the "rawSource" so it does not have to
+        // go through fs-reader (which should fail as it can be a virtual entry)
+        this._registry.addTransformedSource({id, source, deps, map});
     }
 
     getContext() {
@@ -81,9 +73,8 @@ class GraphSourceTransform extends BaseStep {
     gstDone(entry) {
         this._processed.add(entry.id);
 
-        if (this._processed.size >= this._cache.size() + this._virtual.size) {
+        if (this._processed.size >= this._cache.size()) {
             this._processed.clear();
-            this._virtual.clear();
             if (++this._curGstIndex >= this._gsts.length) {
                 this._cache.entries().forEach(({id}) => {
                     this.emit('done', {entryId: id});
@@ -111,6 +102,7 @@ class GraphSourceTransform extends BaseStep {
                 variations.add(node.variation);
             });
         });
+
 
         Array.from(variations.keys())
         // Filter out undeclared (in config) variations
@@ -146,7 +138,10 @@ class GraphSourceTransform extends BaseStep {
         }
 
         const graph = this._registry.getDependencyGraph(entry.normalizedId, (depEntry) => {
-            const dependecyMap = depEntry.deps;
+            // In fs-change case, we can start over from the ist and
+            // "deps" can be wrong. We want the ist version in such case.
+            const dependecyMap = this._curGstIndex === 0 ?
+                depEntry.istDeps : depEntry.deps;
             return Object.keys(dependecyMap).map(literal => {
                 // FIXME GST can be difference for main and browser.
                 // The difference can lead to different SHA if done poorly.

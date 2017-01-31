@@ -63,8 +63,8 @@ types:
     transforms:
       - babel
     glob:
-      - "./**/*.{js,jsx}"
-      - "!./**/_test_/*"
+      - "**/*.{js,jsx}"
+      - "!**/_test_/*"
   jstest:
     outlet:
       plugin: mendel-bundle-browser-pack
@@ -77,9 +77,11 @@ types:
       - .less
     parser: less-transform
     parser-to-type: css
+    resource: true
   css:
     extensions:
       - .css
+    resource: true
 
 env:
   test:

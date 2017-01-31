@@ -25,18 +25,28 @@ function TypesConfig(typeName, type) {
         type.extensions.map(function(ext) {
             return ext[0] !== '.' ? '.' + ext : ext;
         }).map(function(ext) {
-            return './**/*' + ext;
+            return '**/*' + ext;
         });
-    const globs = this.globs = globStrings.map(function(glob) {
+    const globs = this.globs = globStrings.map(glob => {
+        if (glob instanceof Minimatch) return glob;
+        if (glob instanceof RegExp) {
+            glob.match = function(str) {
+                return str.match(this);
+            };
+            return glob;
+        }
+
         return new Minimatch(glob);
     });
 
     this.test = function(id) {
+        if (id.startsWith('./')) id = id.slice(2);
         return globs.filter(({negate}) => !negate).some(g => g.match(id)) &&
             globs.filter(({negate}) => negate).every(g => g.match(id));
     };
 
-    this.isBinary = type.isBinary || false;
+    this.isBinary = type.binary || type.isBinary || false;
+    this.isResource = type.resource || type.isResource || false;
     this.parser = type.parser;
     this.parserToType = type['parser-to-type'];
     this.transforms = type.transforms || [];
