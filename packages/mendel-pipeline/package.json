@@ -1,6 +1,6 @@
 {
   "name": "mendel-pipeline",
-  "version": "1.0.0",
+  "version": "3.0.0-alpha.1",
   "description": "Coordenates all async operations for Mendel",
   "main": "src/main.js",
   "bin": "src/cli.js",
@@ -8,7 +8,7 @@
     "test": "tap test/*.js",
     "lint": "eslint ."
   },
-  "author": "",
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",

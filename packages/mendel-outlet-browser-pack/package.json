@@ -1,13 +1,13 @@
 {
   "name": "mendel-outlet-browser-pack",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0-alpha.1",
+  "description": "Mendel outlet for JavaScript bundles using browser-pack.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "browser-pack": "^6.0.2",
     "debug": "^2.6.0"

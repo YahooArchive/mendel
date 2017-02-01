@@ -1,7 +1,7 @@
 {
   "name": "mendel-transform-less",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0-alpha.1",
+  "description": "Mendel transformer for LESS",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

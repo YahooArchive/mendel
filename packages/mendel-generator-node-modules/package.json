@@ -1,6 +1,6 @@
 {
   "name": "mendel-generator-node-modules",
-  "version": "1.0.0-beta",
+  "version": "3.0.0-alpha.1",
   "private": true,
   "description": "Mendel Generator to create one bundle from all node modules from all other bundles.",
   "scripts": {

@@ -1,5 +1,6 @@
 {
   "name": "mendel-monorepo",
+  "private": true,
   "description": "Build toolchain for experimentation on isomorphic web applications with tree-inheritance and multivariate support.",
   "keywords": [
     "testing",

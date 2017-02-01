@@ -1,13 +1,13 @@
 {
-  "name": "mendel2-middleware",
-  "version": "1.0.0",
+  "name": "mendel2-development-middleware",
+  "version": "3.0.0-alpha.1",
   "description": "A temporary package as it loses backwards compatibility",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "path-to-regexp": "^1.7.0",
     "mendel-config": "*",

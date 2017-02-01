@@ -1,13 +1,13 @@
 {
   "name": "mendel-exec",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0-alpha.1",
+  "description": "JavaScript executor using VM and Mendelv2 for custom variational resolving.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "resolve": "^1.2.0"
   }

@@ -1,6 +1,6 @@
 {
   "name": "mendel-generator-extract",
-  "version": "1.0.0-beta",
+  "version": "3.0.0-alpha.1",
   "private": true,
   "description": "Mendel Generator to create sub-bundles from a main bundle following extractify algorithm.",
   "scripts": {
