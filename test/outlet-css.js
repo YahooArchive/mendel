@@ -9,7 +9,7 @@ const buildPath = path.join(appPath, 'build');
 rimraf.sync(buildPath);
 
 test('mendel-outlet-css sanity test', function (t) {
-    t.plan(5);
+    t.plan(4);
 
     process.chdir(appPath);
     process.env.MENDELRC = '.mendelrc';
@@ -23,22 +23,10 @@ test('mendel-outlet-css sanity test', function (t) {
 
         const css = fs.readFileSync(path.join(buildPath, 'main.css'), 'utf8');
 
-        t.doesNotHave(css, 'background:red');
-        t.include(css, 'html{padding:0}');
-        t.include(css, 'body{background:blue}');
+        t.doesNotHave(css, 'background: red');
+        t.include(css, 'padding: 0');
+        t.include(css, 'background: blue');
         // From LESS
-        t.include(css, 'html body{background:#11f}');
-        t.same(substringCount(css, 'background:blue'), 1);
+        t.include(css, 'background: #1111ff');
     });
 });
-
-function substringCount(string, substring) {
-    let count = 0, lastIndex = 0;
-
-    while ((lastIndex = string.indexOf(substring)) >= 0) {
-        count++;
-        string = string.slice(lastIndex + substring.length);
-    }
-
-    return count;
-}

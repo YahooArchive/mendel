@@ -3,8 +3,14 @@ const less = require('postcss-less-engine');
 
 function LessTransformer({source, filename, map}) {
     return postcss([less({})])
-        .process(source, {parser: less.parser, from: filename,
-            map: {prev: map}})
+        .process(source, {
+            parser: less.parser,
+            from: filename,
+            map: {
+                inline: false,
+                prev: map || '',
+            },
+        })
         .then(({css, map}) => ({source: css, map: map}));
 }
 
