@@ -62,6 +62,18 @@ generators: # AKA graph transforms - or graph operations
   - id: node-modules-generator
     plugin: mendel-extract-node-modules
 
+outlets:
+  - id: manifest
+    plugin: mendel-outlet-manifest
+  - id: css
+    plugin: mendel-outlet-css
+    options:
+      plugin:
+        -
+          - autoprefixer
+          -
+            browsers: "last 2 versions"
+
 # "outfile" is optional and only needed for single layer generation
 bundles:
   test:

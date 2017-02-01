@@ -153,6 +153,7 @@ var fakes = fakeModules([
     'mendel-envify',
     'mendel-extract-bundles',
     'mendel-extract-node-modules',
+    'autoprefixer',
 ]);
 
 process.env.NODE_ENV = 'development';
@@ -194,6 +195,24 @@ t.match(config(where), {
             plugin: fakes['mendel-envify'],
             options: {
                 NODE_ENV: 'production',
+            },
+        },
+    ],
+    outlets: [
+        {
+            id: 'manifest',
+            plugin: /.+\/mendel-outlet-manifest.*/,
+        },
+        {
+            id: 'css',
+            plugin: /.+\/mendel-outlet-css.*/,
+            options: {
+                plugin: [
+                    [
+                        /.+\/autoprefixer.*/,
+                        {browsers: 'last 2 versions'},
+                    ],
+                ],
             },
         },
     ],
