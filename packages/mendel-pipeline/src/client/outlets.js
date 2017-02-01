@@ -15,7 +15,7 @@ class MendelOutlets {
             });
 
             const Plugin = require(outlet.plugin);
-            const plugin = new Plugin(this.options);
+            const plugin = new Plugin(this.options, outlet.options);
 
             if (bundle.options.outfile) {
                 mkdirp.sync(path.dirname(bundle.options.outfile));

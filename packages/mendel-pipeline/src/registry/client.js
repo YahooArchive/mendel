@@ -91,7 +91,6 @@ class MendelOutletRegistry {
                 .some(varDir => str.indexOf(varDir) >= 0);
             if (!isPadded)
                 str = path.join(this._options.baseConfig.dir, str);
-
             str = (isNegate ? '!./' : './') + str;
             return new Minimatch(str);
         });

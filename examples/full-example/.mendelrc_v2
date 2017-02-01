@@ -109,6 +109,12 @@ outlets:
     plugin: mendel-outlet-manifest
   - id: css
     plugin: mendel-outlet-css
+    options:
+      plugin:
+        -
+          - autoprefixer
+          -
+            browsers: "last 2 versions"
   - id: file
     plugin: mendel-outlet-browser-pack
 
@@ -136,6 +142,11 @@ bundles:
     from: main
     all-bundles: true # expects only 1 bundle to apply this generator, or throws
                       # look for node_modules in every other bundle
+    entries:
+      # This file either has to be part of dependency graph or source
+      # or it has to be part of a variation's source folder.
+      # Otherwise, it is not added to Mendel at all.
+      - ./vendor/large-code.js
   lazy:
     outlet: file
     outfile: lazy.js
