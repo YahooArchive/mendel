@@ -2,10 +2,21 @@ function isNodeModule(id) {
     return id.indexOf('node_modules') >= 0;
 }
 
-module.exports = function generatorNodeModule(bundle, doneBundles) {
+module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
+    const entries = bundle.options.entries;
     const nodeModules = new Map();
     const nodeModulesNorm = new Map();
     bundle.entries = nodeModules;
+
+    // TODO factor this out to separate sharable component
+    registry.getEntriesByGlob(entries).forEach(entry => {
+        const {normalizedId, type} = entry;
+        registry.walk(normalizedId, {types: [type, 'node_modules']}, (dep) => {
+            if (nodeModules.has(dep.id)) return false;
+            if (dep === entry) dep.entry = true;
+            nodeModules.set(dep.id, dep);
+        });
+    });
 
     doneBundles.forEach(doneBundle => {
         const {entries} = doneBundle;
