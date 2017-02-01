@@ -163,6 +163,12 @@ t.match(config(where), {
     },
     types: [
         {
+            name: 'node_modules',
+            isBinary: false,
+            isResource: false,
+            parser: null,
+        },
+        {
             name: 'js',
             transforms: ['envify-dev'],
         },
@@ -201,8 +207,15 @@ t.match(config(where), {
     },
     types: [
         {
+            name: 'node_modules',
+            isBinary: false,
+            isResource: false,
+            parser: null,
+        },
+        {
             name: 'js',
             isBinary: false,
+            isResource: false,
             parser: null,
             transforms: ['envify-prod', 'babelify-prod'],
         },
