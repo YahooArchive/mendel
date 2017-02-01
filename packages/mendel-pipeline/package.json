@@ -19,9 +19,9 @@
     "chokidar": "^1.6.0",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
-    "mendel-deps": "*",
-    "mendel-development": "*",
-    "mendel-resolver": "^1.0.0",
+    "mendel-deps": "3.0.0-alpha.1",
+    "mendel-development": "^1.1.0",
+    "mendel-resolver": "3.0.0-alpha.1",
     "node-libs-browser": "^2.0.0",
     "pretty-ms": "^2.1.0",
     "resolve": "^1.1.7"

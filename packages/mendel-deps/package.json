@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "glob": "^7.1.1",
-    "tap": "^7.1.2"
+    "tap": "^7.1.2",
+    "mendel-resolver": "3.0.0-alpha.1"
   }
 }
