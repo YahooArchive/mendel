@@ -14,8 +14,10 @@ function combineCss(cssEntries, outputFileName='') {
     const map = JSON.parse(concat.sourceMap);
     map.sourcesContent = map.sources
         .map((id, index) => {
-            if (map.sourcesContent[index]) return map.sourcesContent[index];
-            if (!cssEntries.has(id)) return null;
+            if (map.sourcesContent && map.sourcesContent[index])
+                return map.sourcesContent[index];
+            if (!cssEntries.has(id))
+                return null;
             return cssEntries.get(id).source;
         });
 
