@@ -1,5 +1,5 @@
 const EventEmitter = require('events').EventEmitter;
-const mendelConfig = require('../../../mendel-config');
+const mendelConfig = require('mendel-config');
 const CacheClient = require('../cache/client');
 const MendelGenerators = require('./generators');
 const MendelClientRegistry = require('../registry/client');

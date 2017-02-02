@@ -1,5 +1,5 @@
 const debug = require('debug')('mendel:daemon');
-const mendelConfig = require('../../mendel-config');
+const mendelConfig = require('mendel-config');
 
 const EventEmitter = require('events').EventEmitter;
 const MendelCache = require('./cache');

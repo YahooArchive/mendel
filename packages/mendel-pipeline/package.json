@@ -1,6 +1,6 @@
 {
   "name": "mendel-pipeline",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "description": "Coordenates all async operations for Mendel",
   "main": "src/main.js",
   "bin": "src/cli.js",
@@ -19,6 +19,7 @@
     "chokidar": "^1.6.0",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
+    "mendel-config": "^3.0.0-alpha.1",
     "mendel-deps": "3.0.0-alpha.1",
     "mendel-development": "^1.1.0",
     "mendel-resolver": "3.0.0-alpha.1",
