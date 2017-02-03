@@ -136,8 +136,6 @@ class GraphSourceTransform extends BaseStep {
             return this.gstDone(entry);
         }
 
-        this._registry.changeEntry(entry.id);
-
         const graph = this._registry.getDependencyGraph(entry.normalizedId, (depEntry) => {
             // In fs-change case, we can start over from the ist and
             // "deps" can be wrong. We want the ist version in such case.
