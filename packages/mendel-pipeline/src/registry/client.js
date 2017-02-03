@@ -61,6 +61,7 @@ class MendelOutletRegistry {
 
     removeEntry(id) {
         const entry = this._cache.get(id);
+        if (!entry) return;
         this._cache.delete(id);
 
         const map = this._normalizedIdToEntryIds.get(entry.normalizedId);

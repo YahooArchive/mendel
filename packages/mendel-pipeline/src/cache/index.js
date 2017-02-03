@@ -150,6 +150,19 @@ class MendelCache extends EventEmitter {
         }
     }
 
+    /**
+     * This is different from remove then add.
+     * It does not mean real file change but entry's content
+     * is marked as potentially changeable, in which case,
+     * daemon has to notify clients that it needs to empty potential cache.
+     */
+    changeEntry(id) {
+        if (!this.hasEntry(id)) return;
+        const entry = this.getEntry(id);
+        entry.done = false;
+        this.emit('entryChanged', id);
+    }
+
     size() {
         return this._store.size;
     }

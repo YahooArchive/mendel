@@ -72,7 +72,6 @@ class GraphSourceTransform extends BaseStep {
 
     gstDone(entry) {
         this._processed.add(entry.id);
-
         if (this._processed.size >= this._cache.size()) {
             this._processed.clear();
             if (++this._curGstIndex >= this._gsts.length) {
@@ -137,6 +136,8 @@ class GraphSourceTransform extends BaseStep {
             return this.gstDone(entry);
         }
 
+        this._registry.changeEntry(entry.id);
+
         const graph = this._registry.getDependencyGraph(entry.normalizedId, (depEntry) => {
             // In fs-change case, we can start over from the ist and
             // "deps" can be wrong. We want the ist version in such case.
@@ -153,7 +154,6 @@ class GraphSourceTransform extends BaseStep {
 
         this.explorePermutation(graph, (chain, variation) => {
             const [main] = chain;
-            this._processed.add(main.id);
             // We need to create proxy for limiting API surface for plugin writers.
             const context = this.getContext();
             const chainProxy = chain.map(dep => EntryProxy.getFromEntry(dep));

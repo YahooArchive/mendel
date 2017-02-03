@@ -26,6 +26,7 @@ class CacheManager extends EventEmitter {
         cache.on('entryRequested', path => this.emit('entryRequested', path));
         cache.on('doneEntry', ent => this.emit('doneEntry', cache, ent));
         cache.on('entryRemoved', ent => this.emit('entryRemoved', cache, ent));
+        cache.on('entryChanged', ent => this.emit('entryRemoved', cache, ent));
     }
 
     /**
