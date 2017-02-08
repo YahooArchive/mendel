@@ -176,9 +176,6 @@ assert(entries, [Entry_var1]) // not a conflict
 ## Virtual Entries
 TBD
 
-## Daemon and Transient Process
-TBD
-
 # Package structure
 ## Core packages
 - **mendel-resolver**: Although default resolve is wonderful, it lacks for two features -- it lacks “browser” property support which is covered by another package but also misses variational support. In variational world, how modules get resolved needs to look into variational directory
