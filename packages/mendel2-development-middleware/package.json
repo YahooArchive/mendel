@@ -1,6 +1,6 @@
 {
   "name": "mendel2-development-middleware",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "description": "A temporary package as it loses backwards compatibility",
   "main": "index.js",
   "scripts": {
