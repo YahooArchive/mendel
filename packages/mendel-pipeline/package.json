@@ -1,6 +1,6 @@
 {
   "name": "mendel-pipeline",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "description": "Coordenates all async operations for Mendel",
   "main": "src/main.js",
   "bin": "src/cli.js",

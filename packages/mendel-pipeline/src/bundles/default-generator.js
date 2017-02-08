@@ -15,5 +15,6 @@ function defaultGenerator(bundle, doneBundles, registry) {
         });
     });
     bundle.entries = resolvedEntries;
+
     return bundle;
 }

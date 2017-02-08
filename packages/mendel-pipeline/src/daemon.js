@@ -98,11 +98,7 @@ module.exports = class MendelPipelineDaemon {
         });
 
         this.server.on('environmentRequested', (env) => this._watch(env));
-        this.watcher.subscribe(config.variationConfig.allDirs);
-
-        if (config.support) {
-            this.watcher.subscribe(config.support);
-        }
+        this.watcher.subscribe([config.variationConfig.allDirs, config.support].filter(Boolean));
     }
 
     _watch(environment) {
@@ -147,6 +143,10 @@ module.exports = class MendelPipelineDaemon {
         if (!this.pipelines[environment]) {
             debug(`Initializing for environment: ${environment}`);
             const envConf = this.environments[environment];
+            // Missing configuration for an environment. Ignore.
+            if (!envConf) {
+                throw new Error(`[Mendel] Client is expecting an environemnt "${environment}" but it is missing from the configuration.`); // eslint-disable-line max-len
+            }
             const cache = new MendelCache(envConf);
 
             this.cacheManager.addCache(cache);

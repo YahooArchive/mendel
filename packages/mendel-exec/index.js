@@ -147,6 +147,10 @@ module.exports = {
                 runtime,
                 resolver(from, depLiteral) {
                     const parent = registry.getEntry(from);
+
+                    if (!parent.deps[depLiteral])
+                        throw new Error('Any form of dynamic require is not supported by Mendel'); // eslint-disable-line max-len
+
                     let normId = parent.deps[depLiteral][runtime];
                     if (typeof normId === 'object') normId = normId[runtime];
                     return resolve(normId);

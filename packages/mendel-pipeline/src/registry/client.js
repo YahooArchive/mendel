@@ -73,6 +73,8 @@ class MendelOutletRegistry {
 
     getExecutableEntries(normId) {
         const fromMap = this._normalizedIdToEntryIds.get(normId);
+        if (!fromMap) return null;
+
         const entries = Array.from(fromMap.entries())
         .filter(([, value]) => {
             const type = this._options.types.get(value.type);
