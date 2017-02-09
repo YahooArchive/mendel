@@ -49,6 +49,7 @@ class GraphSourceTransform extends BaseStep {
 
         this._virtual.forEach(entryId => this._registry.removeEntry(entryId));
         this._virtual.clear();
+        this._canceled = true;
     }
 
     addTransform({id, source='', map='', deps={}}) {
@@ -86,7 +87,10 @@ class GraphSourceTransform extends BaseStep {
 
     // this is conforming to the steps API
     perform(entry) {
-        if (this._gsts.length <= this._curGstIndex || isNodeModule(entry.id)) return this.gstDone(entry);
+        this._canceled = false;
+        if (this._gsts.length <= this._curGstIndex || isNodeModule(entry.id))
+            return this.gstDone(entry);
+
         this.performHelper(entry);
     }
 
@@ -101,7 +105,6 @@ class GraphSourceTransform extends BaseStep {
                 variations.add(node.variation);
             });
         });
-
 
         Array.from(variations.keys())
         // Filter out undeclared (in config) variations
@@ -173,6 +176,7 @@ class GraphSourceTransform extends BaseStep {
             })
             .then(analyze.toc.bind(analyze, currentGstConfig.id))
             .then(result => {
+                if (this._canceled) return;
                 if (result && result.source) {
                     if (main.variation === variation) {
                         this.addTransform({
@@ -190,8 +194,8 @@ class GraphSourceTransform extends BaseStep {
                         });
                     }
                 }
+                this.gstDone(main);
             })
-            .then(() => this.gstDone(main))
             .catch((e) => {
                 this.emit('error', e);
             });

@@ -90,8 +90,10 @@ class MendelRegistry extends EventEmitter {
 
             if (!entryIds) continue;
 
-            const entries = entryIds.map(entryId => this.getEntry(entryId));
-            entries.filter(Boolean).forEach(entry => {
+            const entries = entryIds
+                .map(entryId => this.getEntry(entryId))
+                .filter(Boolean);
+            entries.forEach(entry => {
                 const depNorms = dependencyGetter(entry);
                 Array.prototype.push.apply(unvisitedNorms, depNorms);
             });
