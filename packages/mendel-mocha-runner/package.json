@@ -1,6 +1,6 @@
 {
   "name": "mendel-mocha-runner",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "description": "Mocha for Mendel. Mendel gains control of how sources are transformed and when and how to execute test",
   "main": "index.js",
   "scripts": {
@@ -10,8 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^2.9.0",
-    "mendel-exec": "3.0.0-alpha.4",
-    "mendel-pipeline": "3.0.0-alpha.4",
+    "mendel-exec": "3.0.0-alpha.5",
+    "mendel-pipeline": "3.0.0-alpha.5",
     "mocha": "^3.2.0",
     "resolve": "^1.2.0"
   },

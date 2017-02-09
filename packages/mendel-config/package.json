@@ -1,6 +1,6 @@
 {
   "name": "mendel-config",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.5",
   "description": "Mendel core configuration parser",
   "main": "index.js",
   "scripts": {
