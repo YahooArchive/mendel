@@ -5,12 +5,7 @@ const resolve = require('resolve');
 // Node modules cannot be in variation so it can be cached globally.
 const nodeModuleCache = {};
 // https://github.com/nodejs/node/blob/master/lib/internal/module.js#L54-L60
-const builtinLibs = [
-  'assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns',
-  'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode',
-  'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'tls', 'tty',
-  'url', 'util', 'v8', 'vm', 'zlib',
-];
+const builtinLibs = Object.keys(process.binding('natives'));
 const _require = require;
 const errorMapper = require('./source-mapper');
 
@@ -61,7 +56,7 @@ function runEntryInVM(filename, source, sandbox, require) {
     return module.exports;
 }
 
-function matchVar(entries, variations, runtime) {
+function matchVar(norm, entries, variations, runtime) {
     // variations are variation configurations based on request.
     // How entries resolve in mutltivariate case is a little bit different
     // from variation inheritance, thus this flattening with a caveat.
@@ -85,7 +80,7 @@ function matchVar(entries, variations, runtime) {
     }
 
     throw new RangeError([
-        'Could not find entries that matches',
+        `Could not find entries with norm "${norm}" that matches`,
         `"${JSON.stringify(variations)}"`,
         'in the list of entries',
         `[${entries.map(({id}) => id)}]`,
@@ -133,6 +128,7 @@ module.exports = {
             const entries = registry.getExecutableEntries(norm);
             if (!entries) return null;
             return matchVar(
+                norm,
                 Array.from(entries.values()),
                 variations,
                 runtime

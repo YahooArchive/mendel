@@ -70,6 +70,7 @@ class IndependentSourceTransform extends BaseStep {
             .filter(Boolean)
             .filter(({mode}) => mode === 'ist')
             .map(({id}) => id);
+
         return ist;
     }
 

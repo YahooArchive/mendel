@@ -1,6 +1,5 @@
 const path = require('path');
 const {stat, readFile} = require('fs');
-const error = require('debug')('error:mendel-resolver');
 
 function withPrefix(path) {
     if (/^\w[^:]/.test(path)) path = './' + path;
@@ -66,7 +65,6 @@ class ModuleResolver {
         } else {
             promise = this.resolveNodeModules(moduleName);
         }
-
         return promise
         // Post process
         .then((deps) => {
@@ -96,8 +94,7 @@ class ModuleResolver {
             });
             return deps;
         })
-        .catch((e) => {
-            error(e.stack);
+        .catch(() => {
             throw new Error(`${moduleName} failed to resolve.`);
         });
     }

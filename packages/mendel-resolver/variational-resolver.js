@@ -23,10 +23,16 @@ class VariationalModuleResolver extends ModuleResolver {
         this.baseVarDir = path.resolve(projectRoot, baseConfig.dir);
         this.variationChain = [this.baseVarDir];
 
+        this.setBaseDir(basedir);
+    }
+
+    setBaseDir(basedir) {
+        super.setBaseDir(basedir);
+        this.variationChain = [this.baseVarDir];
         const match = variationMatches(this.variationList, basedir);
         if (match) {
             const absChain = match.variation.chain.map(varDir => {
-                return path.resolve(path.resolve(projectRoot, varDir));
+                return path.resolve(path.resolve(this.projectRoot, varDir));
             });
             this.variationChain = absChain.concat([this.baseVarDir]);
         }

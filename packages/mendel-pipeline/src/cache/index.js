@@ -279,7 +279,6 @@ class MendelCache extends EventEmitter {
     setSource(id, source, deps, map) {
         const entry = this.getEntry(id);
         const normDep = {};
-
         Object.keys(deps)
         // mod = module name or require literal
         .forEach(mod => {

@@ -5,7 +5,7 @@ process.env.MENDELRC = '.mendelrc_v2';
 var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
-var MendelMiddleware = require('mendel2-middleware');
+var MendelMiddleware = require('mendel2-development-middleware');
 var cache = true;
 
 if (process.env.NODE_ENV !== 'production') {

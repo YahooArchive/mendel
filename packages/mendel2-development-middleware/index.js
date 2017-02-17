@@ -96,6 +96,7 @@ function MendelMiddleware(opts) {
         // This is a bundle route. Return a bundle and end
         const params = namedParams(keys, reqParams);
         const bundle = params.bundle ? path.parse(params.bundle).name : '';
+
         if (!bundle || !bundles.has(bundle)) return next();
 
         const vars = resolveVariations(
