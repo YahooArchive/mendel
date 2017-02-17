@@ -91,7 +91,9 @@ class MendelOutletRegistry {
             str = isNegate ? str.slice(1) : str;
 
             const isPadded = this._options.variationConfig.allVariationDirs
-                .some(varDir => str.indexOf(varDir) >= 0);
+                .some(varDir => str.indexOf(varDir) >= 0) ||
+                str.indexOf(this._options.baseConfig.dir) >= 0;
+
             if (!isPadded)
                 str = path.join(this._options.baseConfig.dir, str);
             str = (isNegate ? '!./' : './') + str;
@@ -99,7 +101,6 @@ class MendelOutletRegistry {
         });
         const positives = globs.filter(({negate}) => !negate);
         const negatives = globs.filter(({negate}) => negate);
-
         return Array.from(this._cache.keys())
         .filter(id => {
             return positives.some(g => g.match(id)) &&
