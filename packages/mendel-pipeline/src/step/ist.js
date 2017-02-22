@@ -104,13 +104,16 @@ class IndependentSourceTransform extends BaseStep {
 
                 entry.istSource = entry.source;
                 entry.istDeps = entry.deps;
+            })
+            .then(() => this.emit('done', {entryId}, ids))
+            .catch(error => {
+                error.message = `Errored while resolving deps for ${entryId}: ` + error.message;
+                this.emit('error', {error, id: entryId});
             });
-        })
-        .then(() => this.emit('done', {entryId}, ids))
-        .catch(error => {
-            console.error(`Errored while transforming ${entryId}:
-    ${error.stack}`);
-            this.emit('error', error);
+        }, error => {
+            error.message = `Errored while transforming ${entryId}: ` +
+                error.message;
+            this.emit('error', {error, id: entryId});
         });
     }
 }

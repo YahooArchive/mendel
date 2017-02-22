@@ -6,6 +6,7 @@ const IST = require('./step/ist');
 const End = require('./step/end');
 const GST = require('./step/gst');
 const Waiter = require('./step/waiter');
+const colors = require('chalk');
 
 const EventEmitter = require('events').EventEmitter;
 
@@ -32,6 +33,7 @@ module.exports = class MendelPipeline extends EventEmitter {
 
         steps.forEach((curStep, i) => {
             const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
+            const name = curStep.constructor.name;
             curStep.on('done', function({entryId}) {
                 const entry = registry.getEntry(entryId);
                 if (!nextStep) return;
@@ -40,19 +42,25 @@ module.exports = class MendelPipeline extends EventEmitter {
                         nextStep,
                         [entry].concat(Array.prototype.slice.call(arguments, 1))
                     );
-                } catch (e) {
-                    console.error(`Mendel "${curStep.constructor.name}" errored: `, e.stack); // eslint-disable-line max-len
-                    process.exit(1);
+                } catch (error) {
+                    this._handleError(name, {error, id: entryId});
                 }
             });
 
-            curStep.on('error', (e) => {
-                console.error(`Mendel "${curStep.constructor.name}" errored: `, e.stack); // eslint-disable-line max-len
-                process.exit(1);
+            curStep.on('error', descriptor => {
+                this._handleError(name, descriptor);
             });
         });
 
         this.steps = steps;
+    }
+
+    _handleError(name, descriptor) {
+        const {error, id} = descriptor;
+        console.error(colors.white(`[Pipeline] "${name}" errored:`));
+        console.error(colors.red(error.message));
+        console.error(error.stack);
+        this.cache.setEntryError(id, error);
     }
 
     watch() {

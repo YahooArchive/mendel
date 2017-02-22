@@ -59,7 +59,7 @@ class Worker {
                 if (type === Protocol.START) {
                     artifact.then(this.dispatchDone.bind(this));
                 }
-                artifact.catch(this._onError.bind(this));
+                artifact.catch(e => this._onError(e));
             }
         } catch (e) {
             this._onError(e);
@@ -67,7 +67,8 @@ class Worker {
     }
 
     _onError(error) {
-        this._send(Protocol.ERROR, error);
+        const {stack, message} = error;
+        this._send(Protocol.ERROR, {stack, message});
     }
 
     _send(type, message) {

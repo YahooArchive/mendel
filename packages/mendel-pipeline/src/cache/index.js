@@ -172,6 +172,13 @@ class MendelCache extends EventEmitter {
         entry.type = newType;
     }
 
+    setEntryError(id, error) {
+        if (!this.hasEntry(id)) return;
+        const entry = this.getEntry(id);
+        entry.error = error;
+        this.emit('entryErrored', {id, error});
+    }
+
     /**
      * Certain project or module creates alias of its dependency
      * using package.json's "browser" property. Since the alias is

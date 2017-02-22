@@ -21,8 +21,10 @@ class Entry {
         this.deps;
         this.dependents;
 
-        // Whether entry went through upto GST step in pipeline.
-        this.done;
+        // Other metadata
+        this.error; // If there is an error
+        this.done; // Whether entry went through upto GST step in pipeline
+
 
         this.reset();
     }
@@ -64,6 +66,7 @@ class Entry {
         this.map = null;
         this.deps = {};
         this.dependents = [];
+        this.error = null;
         this.done = false;
     }
 

@@ -47,6 +47,7 @@
     ]
   },
   "dependencies": {
+    "colors": "^1.1.2",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {

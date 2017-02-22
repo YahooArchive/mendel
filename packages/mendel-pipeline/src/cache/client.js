@@ -7,6 +7,7 @@ const EventEmitter = require('events').EventEmitter;
 const debug = require('debug')('mendel:net:client');
 const error = require('debug')('mendel:net:client:error');
 const verbose = require('debug')('verbose:mendel:net:client');
+const colors = require('chalk');
 
 class CacheClient extends EventEmitter {
     constructor({cacheConnection, environment}, registry) {
@@ -65,6 +66,19 @@ class CacheClient extends EventEmitter {
                         this.synced = false;
                         this.registry.removeEntry(data.id);
                         if (unsynced) this.emit('unsync', data.id);
+                        break;
+                    }
+                case 'errorEntry':
+                    {
+                        const unsynced = this.synced ? true : false;
+                        this.synced = false;
+                        this.registry.removeEntry(data.id);
+                        if (unsynced) this.emit('unsync', data.id);
+
+                        console.error(
+                            colors.red(`Errored while parsing ${data.id}\n`),
+                            data.error.stack
+                        );
                         break;
                     }
                 default:

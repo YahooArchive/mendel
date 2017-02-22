@@ -94,7 +94,12 @@ class CacheServer extends EventEmitter {
         this.cacheManager.on('entryRemoved', (cache, entryId) => {
             this.clients
                 .filter(client => client.environment === cache.environment)
-                .forEach(client => this.signalRemoval(client, entryId));
+                .forEach(client => this._signalRemoval(client, entryId));
+        });
+        this.cacheManager.on('entryErrored', (cache, desc) => {
+            this.clients
+                .filter(client => client.environment === cache.environment)
+                .forEach(client => this._signalError(client, desc));
         });
     }
 
@@ -103,15 +108,6 @@ class CacheServer extends EventEmitter {
         cache.entries()
             .filter(entry => entry.done)
             .forEach(entry => this._sendEntry(client, cache.size(), entry));
-    }
-
-    _sendEntry(client, size, entry) {
-        this.send(client, {
-            totalEntries: size,
-            type: 'addEntry',
-            entry: this.serializeEntry(entry),
-        });
-        verbose('sent', entry.id);
     }
 
     serializeEntry(entry) {
@@ -143,18 +139,30 @@ class CacheServer extends EventEmitter {
         return variations.find(({id}) => id === entry.variation);
     }
 
-    signalRemoval(client, id) {
+    _sendEntry(client, size, entry) {
+        this.send(client, {
+            totalEntries: size,
+            type: 'addEntry',
+            entry: this.serializeEntry(entry),
+        });
+        verbose('sent', entry.id);
+    }
+
+    _signalRemoval(client, id) {
         const cache = this.cacheManager.getCache(client.environment);
-        try {
-            this.send(client, {
-                totalEntries: cache.size(),
-                type: 'removeEntry',
-                id,
-            });
-        } catch(e) {
-            error(e);
-            this.emit('error', e);
-        }
+        this.send(client, {
+            totalEntries: cache.size(),
+            type: 'removeEntry',
+            id,
+        });
+    }
+
+    _signalError(client, {id, error}) {
+        this.send(client, {
+            error,
+            type: 'errorEntry',
+            id,
+        });
     }
 }
 

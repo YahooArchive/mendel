@@ -27,6 +27,7 @@ class CacheManager extends EventEmitter {
         cache.on('doneEntry', ent => this.emit('doneEntry', cache, ent));
         cache.on('entryRemoved', ent => this.emit('entryRemoved', cache, ent));
         cache.on('entryChanged', ent => this.emit('entryRemoved', cache, ent));
+        cache.on('entryErrored', des => this.emit('entryErrored', cache, des));
     }
 
     /**
@@ -133,6 +134,9 @@ module.exports = class MendelPipelineDaemon {
 
     run(callback, environment=this.default) {
         const pipeline = this.getPipeline(environment);
+
+        // In case of non-watch mode, nothing is recoverable. Exit.
+        this.cacheManager.once('entryErrored', () => process.exit(1));
         pipeline.on('idle', () => {
             this.onExit();
             callback();
