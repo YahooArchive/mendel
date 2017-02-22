@@ -1,6 +1,6 @@
 {
   "name": "mendel-generator-extract",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0-alpha.7",
   "description": "Mendel Generator to create sub-bundles from a main bundle following extractify algorithm.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

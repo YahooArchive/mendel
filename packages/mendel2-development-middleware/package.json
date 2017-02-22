@@ -1,6 +1,6 @@
 {
   "name": "mendel2-development-middleware",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0-alpha.7",
   "description": "A temporary package as it loses backwards compatibility",
   "main": "index.js",
   "scripts": {
@@ -10,9 +10,9 @@
   "license": "MIT",
   "dependencies": {
     "path-to-regexp": "^1.7.0",
-    "mendel-config": "3.0.0-alpha.6",
+    "mendel-config": "3.0.0-alpha.7",
     "mendel-development": "^1.1.0",
-    "mendel-exec": "3.0.0-alpha.6",
-    "mendel-pipeline": "3.0.0-alpha.6"
+    "mendel-exec": "3.0.0-alpha.7",
+    "mendel-pipeline": "3.0.0-alpha.7"
   }
 }
