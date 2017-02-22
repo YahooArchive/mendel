@@ -51,13 +51,13 @@ class Worker {
         if (!subscriber) return;
 
         try {
-            const artifact = subscriber(args, (type, args) => {
+            let artifact = subscriber(args, (type, args) => {
                 this._send(type, args);
             });
 
             if (artifact instanceof Promise) {
                 if (type === Protocol.START) {
-                    artifact.then(this.dispatchDone.bind(this));
+                    artifact = artifact.then(this.dispatchDone.bind(this));
                 }
                 artifact.catch(e => this._onError(e));
             }
