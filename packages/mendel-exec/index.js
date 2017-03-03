@@ -2,22 +2,13 @@ const vm = require('vm');
 const path = require('path');
 const m = require('module');
 const resolve = require('resolve');
-// Node modules cannot be in variation so it can be cached globally.
-const nodeModuleCache = {};
 // https://github.com/nodejs/node/blob/master/lib/internal/module.js#L54-L60
 const builtinLibs = Object.keys(process.binding('natives'));
 const _require = require;
 const errorMapper = require('./source-mapper');
 
-function isNodeModule(filePath) {
-    return filePath.indexOf('node_modules') >= 0;
-}
-
 function runEntryInVM(filename, source, sandbox, require) {
-    const nodeModule = isNodeModule(filename);
-    if (nodeModule && nodeModuleCache[filename]) {
-        return nodeModuleCache[filename].exports;
-    } else if (require.cache[filename]) {
+    if (require.cache[filename]) {
         return require.cache[filename].exports;
     }
 
@@ -25,11 +16,7 @@ function runEntryInVM(filename, source, sandbox, require) {
     const module = {exports};
     // Put the cache first so if return something even in the case when
     // cycle of dependencies happen.
-    if (nodeModule) {
-       nodeModuleCache[filename] = module;
-    } else {
-       require.cache[filename] = module;
-    }
+    require.cache[filename] = module;
 
     // the filename is only necessary for uncaught exception reports to point to the right file
     try {
@@ -48,7 +35,6 @@ function runEntryInVM(filename, source, sandbox, require) {
             path.dirname(filename)
         );
     } catch (e) {
-        delete nodeModuleCache[filename];
         delete require.cache[filename];
         throw e;
     }
@@ -113,6 +99,7 @@ function exec(fileName, source, {sandbox = {}, resolver}) {
         const dependencyPath = resolve.sync(literal, {
             basedir: path.dirname(parentId),
         });
+
         return _require(dependencyPath);
     }
     // We allow API user to use older version of cache if it passes the same

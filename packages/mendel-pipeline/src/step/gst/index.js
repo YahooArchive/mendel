@@ -197,6 +197,7 @@ class GraphSourceTransform extends BaseStep {
                 this.gstDone(main);
             })
             .catch(error => {
+                error.message = `Errored while transforming ${main.id}:\n` + error.message;
                 this.emit('error', {error, id: main.id});
             });
         });

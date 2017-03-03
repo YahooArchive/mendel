@@ -8,6 +8,7 @@ process.env.MENDELRC = '.mendelrc_v2';
 
 const DEFAULT_OPTIONS = {
     watch: false,
+    bail: false,
 };
 
 const client = new MendelClient({
@@ -51,7 +52,7 @@ function MendelRunner(filePaths, options={}) {
                         const fromEntry = client.registry.getEntry(from);
                         if (!fromEntry) return null;
                         const depNorm = fromEntry.deps[dep] ? fromEntry.deps[dep].main : null;
-                        if (!depNorm || depNorm.indexOf('/') < 0 || depNorm.indexOf('node_modules') > 0) return null;
+                        if (!depNorm || depNorm.indexOf('/') < 0) return null;
                         const entries = client.registry.getExecutableEntries(depNorm);
                         if (!entries) return null;
                         return entries.values().next().value;
