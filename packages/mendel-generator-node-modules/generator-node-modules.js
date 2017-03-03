@@ -3,7 +3,7 @@ function isNodeModule(id) {
 }
 
 module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
-    const entries = bundle.options.entries;
+    const {entries} = bundle.options;
     const nodeModules = new Map();
     const nodeModulesNorm = new Map();
     bundle.entries = nodeModules;
@@ -18,7 +18,15 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
         });
     });
 
-    doneBundles.forEach(doneBundle => {
+    const from = bundle.options.options || 'all';
+    const fromBundle = Array.isArray(from) ? from : [from];
+    const fromFilter = fromBundle.find(id => id === 'all') ?
+        () => true :
+        ({id}) => fromBundle.some(bundleId => id === bundleId);
+
+    doneBundles
+    .filter(fromFilter)
+    .forEach(doneBundle => {
         const {entries} = doneBundle;
 
         Array.from(entries.values())

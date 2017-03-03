@@ -148,9 +148,7 @@ bundles:
     outlet: file
     outfile: vendor.js
     generator: node-modules-generator
-    from: main
-    all-bundles: true # expects only 1 bundle to apply this generator, or throws
-                      # look for node_modules in every other bundle
+    from: main # have array of bundleId or keyword "all"
     entries:
       # This file either has to be part of dependency graph or source
       # or it has to be part of a variation's source folder.
