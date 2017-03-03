@@ -61,7 +61,8 @@
     "mendel2-development-middleware": "*",
     "mocha-istanbul-reporter": "^0.1.0",
     "nodemon": "^1.9.2",
-    "react-addons-test-utils": "^15.4.2"
+    "react-addons-test-utils": "^15.4.2",
+    "rtlcss": "^2.1.2"
   },
   "babel": {
     "presets": [

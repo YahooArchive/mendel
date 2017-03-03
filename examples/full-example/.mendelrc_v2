@@ -115,6 +115,15 @@ outlets:
           - autoprefixer
           -
             browsers: "last 2 versions"
+  - id: css-rtl
+    plugin: mendel-outlet-css
+    options:
+      plugin:
+        -
+          - autoprefixer
+          -
+            browsers: "last 2 versions"
+        - rtlcss
   - id: file
     plugin: mendel-outlet-browser-pack
 
@@ -154,9 +163,21 @@ bundles:
     from: main
     entries:
       - ./components/lazy.js
+  server:
+    outlet: manifest
+    outfile: server.js
+    entries:
+      - ./main.js
   css:
     outlet: css
     outfile: main.css
+    entries:
+      - "**/*.css"
+      - "**/*.less"
+      - "!css/reset.css"
+  css-rtl:
+    outlet: css-rtl
+    outfile: main-rtl.css
     entries:
       - "**/*.css"
       - "**/*.less"

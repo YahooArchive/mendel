@@ -3,6 +3,10 @@ html {
     margin: 0;
 }
 
+h1 {
+    margin-left: 5px;
+}
+
 body {
     background: white;
     color: blue;
