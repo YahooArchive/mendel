@@ -9,6 +9,7 @@
     "coverage": "mendel-mocha --prelude test/setup/jsdom.js **/_test_/*.js --reporter=mocha-istanbul-reporter --reporter-options=text,text-summary",
     "build": "mendel",
     "development": "nodemon index.js",
+    "buildv2": "mendel-pipeline --watch",
     "v2": "nodemon index.js beta",
     "production": "NODE_ENV=production node index.js"
   },
@@ -20,6 +21,7 @@
     "react-dom": "^15.4.2"
   },
   "devDependencies": {
+    "autoprefixer": "^6.7.6",
     "babel-plugin-istanbul": "^3.1.2",
     "babel-plugin-transform-inline-environment-variables": "^6.8.0",
     "babel-plugin-transform-react-remove-prop-types": "*",
@@ -48,7 +50,9 @@
     "mendel-generator-node-modules": "*",
     "mendel-manifest-extract-bundles": "*",
     "mendel-manifest-uglify": "*",
-    "mendel-mocha": "*",
+    "mendel-mocha-runner": "*",
+    "mendel-outlet-browser-pack": "*",
+    "mendel-outlet-css": "*",
     "mendel-outlet-manifest": "*",
     "mendel-parser-json": "*",
     "mendel-pipeline": "*",

@@ -2,9 +2,15 @@
 
 All examples are small applications that you can go to it's root directory and run `npm install` to have it all setup.
 
-You can then run:
+For Mendel 1.x, you can run:
 
+    $ npm run build
     $ npm run development
+
+For Mendel 2.x, you can run:
+
+    $ npm run buildv2
+    $ npm run v2
 
 To start the server in development mode. In this mode every source maps are enabled and bundle compilation is done on demand. The first time you load the application is slow, but once you save a file, the full bundle, and all the bundle combinations, should have changes propagated almost immediately.
 
