@@ -76,8 +76,11 @@ The following is a complete list of all 12 valid permutations that can result fr
 
 To run this example go to it's root directory and run `npm install`.
 
-You can then run:
+For Mendel 1.x, you can run:
 
+    $ npm run build
     $ npm run development
+
+*TBD: We should add .mendelrc_v2 file and update package.json for this example.*
 
 And view in your browser at `localhost:3000`
