@@ -1,23 +1,17 @@
 const debug = require('debug')('mendel:outlet:manifest');
 const fs = require('fs');
-const path = require('path');
+const shasum = require('shasum');
 
+// Manifest
 module.exports = class ManifestOutlet {
-    constructor(options) {
-        this.config = options;
+    constructor(config, options, runtime='browser') {
+        this.config = config;
+        this.runtime = runtime;
     }
 
     perform({entries, options}) {
         const manifest = this.getV1Manifest(entries);
-        const outfileObject = path.parse(options.outfile);
-
-        outfileObject.base = null;
-        outfileObject.name = outfileObject.name.endsWith('.manifest') ?
-            outfileObject.name :
-            outfileObject.name + '.manifest';
-        outfileObject.ext = '.json';
-
-        const manifestFileName = path.format(outfileObject);
+        const manifestFileName = options.manifest;
         fs.writeFileSync(
             manifestFileName,
             JSON.stringify(manifest, null, 2)
@@ -27,12 +21,19 @@ module.exports = class ManifestOutlet {
     }
 
     dataFromItem(item) {
+        const deps = {};
+        Object.keys(item.deps).forEach(key => {
+            const dep = item.deps[key][this.runtime];
+            deps[key] = dep;
+        });
+
         const data = {
             id: item.normalizedId,
-            deps: item.deps,
+            deps,
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
             source: item.source,
+            sha: shasum(item.source),
         };
 
         if (item.expose) data.expose = item.expose;
@@ -58,7 +59,8 @@ module.exports = class ManifestOutlet {
                     data: [data],
                 };
 
-                if (item.entry) newEntry.entry = item.entry;
+                if (data.entry) newEntry.entry = data.entry;
+                if (data.expose) newEntry.expose = data.expose;
                 manifest.bundles.push(newEntry);
                 const index = manifest.bundles.indexOf(newEntry);
 
@@ -68,7 +70,6 @@ module.exports = class ManifestOutlet {
                 const index = manifest.indexes[id];
                 const existing = manifest.bundles[index];
                 const newData = this.dataFromItem(item);
-
                 if (existing.variations.includes(newData.variation)) {
                     return debug(
                         `${existing.file}|${existing.variations}  `,
@@ -78,6 +79,9 @@ module.exports = class ManifestOutlet {
                 }
                 existing.variations.push(newData.variation);
                 existing.data.push(newData);
+
+                if (newData.entry) existing.entry = newData.entry;
+                if (newData.expose) existing.expose = newData.expose;
             }
         });
 

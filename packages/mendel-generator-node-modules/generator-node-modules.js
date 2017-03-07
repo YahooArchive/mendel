@@ -18,7 +18,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
         });
     });
 
-    const from = bundle.options.options || 'all';
+    const from = bundle.options.options.from || 'all';
     const fromBundle = Array.isArray(from) ? from : [from];
     const fromFilter = fromBundle.find(id => id === 'all') ?
         () => true :
@@ -53,7 +53,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
                 // Only node modules that are being used by main bundle
                 // should be expose or "required" in browserify sense.
                 // Unncessary but congruent to ManifestV1
-                depEntry.expose = depEntry.id;
+                depEntry.expose = depEntry.normalizedId;
             });
         });
     });

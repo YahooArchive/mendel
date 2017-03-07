@@ -3,6 +3,7 @@ var moduleResolveSync = require('resolve').sync;
 
 function OutletConfig({id, plugin, options={}}, {projectRoot}) {
     this.id = id;
+    this._plugin = plugin;
     this.plugin = moduleResolveSync(plugin, {basedir: projectRoot});
     this.options = options;
 

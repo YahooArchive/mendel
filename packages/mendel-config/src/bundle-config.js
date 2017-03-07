@@ -6,8 +6,14 @@ function BundleConfig(id, options, config) {
     this.id = id;
     this.generator = options.generator || 'default';
 
+    const {outdir} = config.baseConfig;
     this.outfile = options.outfile ?
-        path.resolve(config.baseConfig.outdir, options.outfile) : '';
+        path.resolve(outdir, options.outfile) : '';
+
+    if (options.manifest) {
+        this.manifest = path.resolve(outdir, options.manifest);
+    }
+
     this.entries = flattenArrays(options.entries || []);
     this.require = flattenArrays(options.require || []);
     this.external = flattenArrays(options.external || []);

@@ -27,7 +27,7 @@ function generatorExtract(bundle, doneBundles, registry) {
             // Expose all lazy bundle first.
             // Unexposed later when it is known that the module is internal
             // only to lazy.
-            entry.expose = entry.id;
+            entry.expose = entry.normalizedId;
             extractedBundle.set(entry.id, entry);
         });
     });
@@ -42,8 +42,14 @@ function generatorExtract(bundle, doneBundles, registry) {
             // share the same dependencies
             // If lazy is part of the dependecy chain, stop from going further
             // to disregard that code path
-            if (mainEntryIds.has(dep.id) || extracts.indexOf(dep) >= 0)
+
+            if (mainEntryIds.has(dep.id)) return false;
+            const isExtractsEntry = extracts.some(({normalizedId}) => {
+                return dep.normalizedId === normalizedId;
+            });
+            if (isExtractsEntry) {
                 return false;
+            }
 
             mainEntryIds.add(dep.id);
         });
@@ -51,7 +57,7 @@ function generatorExtract(bundle, doneBundles, registry) {
 
     // From the main entry, now, we pick and shift things around.
     fromBundle.entries.forEach(entry => {
-        const {id} = entry;
+        const {id, normalizedId} = entry;
         // case when entry only exist in the lazy bundle
         if (!mainEntryIds.has(id)) {
             if (extracts.indexOf(entry) < 0) {
@@ -65,7 +71,7 @@ function generatorExtract(bundle, doneBundles, registry) {
         // lazy and make main expose it
         if (extractedBundle.has(id)) {
             extractedBundle.delete(id);
-            entry.expose = id;
+            entry.expose = normalizedId;
         }
     });
 

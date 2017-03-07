@@ -37,7 +37,7 @@ function matchVar(entries, multiVariations) {
     }
 }
 
-module.exports = class ManifestOutlet {
+module.exports = class BrowserPackOutlet {
     constructor(options) {
         this.config = options;
     }

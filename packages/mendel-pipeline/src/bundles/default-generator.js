@@ -1,6 +1,7 @@
 module.exports = defaultGenerator;
 function defaultGenerator(bundle, doneBundles, registry) {
-    const entries = bundle.options.entries;
+    const {entries} = bundle.options;
+    const {runtime='browser'} = bundle.options.options;
     const resolvedEntries = bundle.entries || new Map();
 
     // Cannot do anything if entries is missing. Abort.
@@ -8,7 +9,7 @@ function defaultGenerator(bundle, doneBundles, registry) {
 
     registry.getEntriesByGlob(entries).forEach(entry => {
         const {normalizedId, type} = entry;
-        registry.walk(normalizedId, {types: [type, 'node_modules']}, (dep) => {
+        registry.walk(normalizedId, {types: [type, 'node_modules'], runtime}, (dep) => {
             if (resolvedEntries.has(dep.id)) return false;
             if (dep === entry) dep.entry = true;
             resolvedEntries.set(dep.id, dep);

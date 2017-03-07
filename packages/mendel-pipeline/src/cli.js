@@ -2,7 +2,6 @@
 /* eslint max-len: "off" */
 const program = require('commander');
 const chalk = require('chalk');
-process.env.MENDELRC = process.env.MENDELRC || '.mendelrc_v2';
 
 function parseIgnores(val='', previousIgnores) {
     return previousIgnores.concat(
@@ -22,14 +21,7 @@ program
     .parse(process.argv);
 
 
-if (program.outlet) {
-    const MendelClient = require('./client/build-all');
-    const outlets = new MendelClient(program);
-    outlets.run((error) => {
-        if (error) process.exit(1);
-        process.exit(0);
-    });
-} else if (program.watch) {
+if (program.watch) {
     const MendelPipelineDaemon = require('./daemon');
     const daemon = new MendelPipelineDaemon(program);
     daemon.watch();

@@ -42,7 +42,7 @@ class MendelCache extends EventEmitter {
     getInitialType(id) {
         const nodeModule = isNodeModule(id);
         // Find type as if node module was a source
-        if (nodeModule) id = '.' + id.slice(id.indexOf('node_modules') + 12);
+        if (nodeModule) id = '.' + id.slice(id.lastIndexOf('node_modules') + 12);
         const {name} = this._types.find(t => t.test(id)) || {name: '_others'};
         return {
             type: nodeModule ? 'node_modules' : name,

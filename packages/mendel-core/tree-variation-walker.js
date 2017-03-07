@@ -3,7 +3,7 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var util = require("util");
+var util = require('util');
 var xtend = require('xtend');
 
 var MendelWalker = require('./tree-walker');
@@ -61,4 +61,3 @@ MendelVariationWalker.prototype.found = function() {
         conflictList: this.conflictList,
     });
 };
-

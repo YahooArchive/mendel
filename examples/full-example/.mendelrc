@@ -1,72 +1,203 @@
+base-config:
+  id: base
+  dir: ./isomorphic/base
+  outdir: ./build
 
-outdir: ./build
-bundlesoutdir: client
-serveroutdir: server
+shim:
+  fake: ./shim/fake.js
 
-base: base
-basetree: isomorphic/base
+variation-config:
+  variation-dirs:
+    - ./isomorphic/variations
+  # dir names should be unique across all roots or mendel throws
+  variations:
+    unexisting_folder:
+    bucket_A:
+      - unexisting_folder
+    feature_B:
+    partner_C:
+    bucket_D:
+      - partner_C
+
+route-config:
+  # bundle does not have extension has it can be css bundle.
+  variation: /mendel/:variations/:bundle
+  hash: /mendel/:hash/:bundle
+
+transforms: # a list of all available transforms for all envs and types
+  babel:
+    plugin: mendel-transform-babel
+    options:
+      presets:
+        - es2015
+        - react
+  uglyfy: # lazy to write the real one, will be faster if we have real uglify?
+    plugin: mendel-transform-babel
+    options:
+      comments: false # true - Output comments in generated output.
+      compact: true # true - Do not include superfluous whitespace characters and line terminators
+      presets:
+        - es2015
+        - react
+        - babili
+      plugins:
+        - transform-node-env-inline
+  json-parse:
+    plugin: mendel-parser-json
+  less-transform:
+    plugin: mendel-transform-less
+  babel-test:
+    plugin: mendel-transform-babel
+    options:
+      presets:
+        - es2015
+        - react
+      plugins:
+        - istanbul
+
+types:
+  json:
+    extensions:
+      - .json
+    parser: json-parse
+    parser-to-type: js
+    include-node_modules: true
+  js:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - babel
+    glob:
+      - "**/*.{js,jsx}"
+      - "!**/_test_/*"
+  jstest:
+    outlet:
+      plugin: mendel-bundle-browser-pack
+    transforms:
+      - babel
+    glob:
+      - "./**/_test_/*"
+  less:
+    extensions:
+      - .less
+    parser: less-transform
+    parser-to-type: css
+    resource: true
+  css:
+    extensions:
+      - .css
+    resource: true
+
+outlets:
+  - id: manifest
+    plugin: mendel-outlet-manifest
+  - id: css
+    plugin: mendel-outlet-css
+    options:
+      plugin:
+        -
+          - autoprefixer
+          -
+            browsers: "last 2 versions"
+  - id: css-rtl
+    plugin: mendel-outlet-css
+    options:
+      plugin:
+        -
+          - autoprefixer
+          -
+            browsers: "last 2 versions"
+        - rtlcss
+  - id: browser-pack
+    plugin: mendel-outlet-browser-pack
+
+  - id: ssr
+    plugin: mendel-outlet-server-side-render
+    options:
+      dir: server # appended after the "outdir" in base config
+      requireTransform: true
+      includeNodeModules: false # default false
+
+# needs to be array because order is relevant
+# if extract-bundles comes first, some node_modules that
+#     only lazy bundle needs will be part of the lazy bundle
+# if node-modules first, extract-bundles will operate on source files only
+generators: # AKA graph transforms - or graph operations
+  - id: extract-bundles
+    plugin: mendel-generator-extract
+  - id: node-modules-generator
+    plugin: mendel-generator-node-modules
+
+# "outfile" is optional and only needed for single layer generation
 bundles:
-  vendor:
-    require:
-      - react
-      - react-dom
   main:
+    outlet: browser-pack
+    outfile: main.js
     entries:
-      - ./isomorphic/base/main.js
-    external:
-      - react
-      - react-dom
-    transform:
-      - babelify
+      - ./main.js
+  vendor:
+    outlet: browser-pack
+    outfile: vendor.js
+    generator: node-modules-generator
+    from: main # have array of bundleId or keyword "all"
+    entries:
+      # This file either has to be part of dependency graph or source
+      # or it has to be part of a variation's source folder.
+      # Otherwise, it is not added to Mendel at all.
+      - ./vendor/large-code.js
   lazy:
-    require:
-      - ./isomorphic/base/components/lazy.js
-    external:
-      - react
-      - react-dom
-    transform:
-      - babelify
-
-manifestProcessors:
-  -
-    - mendel-manifest-extract-bundles
-    - external: lazy
-      from: main
-
-variationsdir: isomorphic/variations
-variations:
-  unexisting_folder:
-  bucket_A:
-    - unexisting_folder
-  feature_B:
-  partner_C:
-  bucket_D:
-    - partner_C
-
+    outlet: browser-pack
+    outfile: lazy.js
+    generator: extract-bundles
+    from: main
+    entries:
+      - ./components/lazy.js
+  css:
+    outlet: css
+    outfile: main.css
+    entries:
+      - "**/*.css"
+      - "**/*.less"
+      - "!css/reset.css"
+  css-rtl:
+    outlet: css-rtl
+    outfile: main-rtl.css
+    entries:
+      - "**/*.css"
+      - "**/*.less"
+      - "!css/reset.css"
 
 env:
+  test:
+    support: test/**/*.js
+    types:
+      js:
+        transforms:
+          - babel-test
+        glob:
+          - "./**/*.{js,jsx}"
+          - "!./**/_test_/*"
   production:
-    manifestProcessors:
-      -
-        - mendel-manifest-extract-bundles
-        - external: lazy
-          from: main
-      -
-        - mendel-manifest-uglify
+    types:
+      js:
+        transforms:
+          - uglyfy
+        include-node_modules: true
+
     bundles:
-      vendor:
-        transform:
-          -  &envify
-            - envify
-            - global: true
-              NODE_ENV: production
       main:
-        transform:
-          - babelify
-          - *envify
+        outlet: manifest
+        manifest: main.manifest.json
+      vendor:
+        outlet: manifest
+        manifest: vendor.manifest.json
       lazy:
-        transform:
-          - babelify
-          - *envify
-
-
+        outlet: manifest
+        manifest: lazy.manifest.json
+      server:
+        outlet: ssr
+        manifest: ssr.manifest.json
+        outfile: server.js
+        entries:
+          - ./main.js
+        runtime: main # This

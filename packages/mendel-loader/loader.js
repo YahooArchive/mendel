@@ -2,7 +2,8 @@
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
 
-var MendelResolver = require('./resolver');
+const MendelResolver = require('./resolver');
+const path = require('path');
 
 function MendelLoader(trees, opts) {
     if (!(this instanceof MendelLoader)) {
@@ -13,7 +14,10 @@ function MendelLoader(trees, opts) {
 
     var config = trees.config;
 
-    this._serveroutdir = config.serveroutdir || process.cwd();
+    this._serveroutdir = trees.ssrOutlet ?
+        path.join(config.baseConfig.outdir, trees.ssrOutlet.options.dir) :
+        process.cwd();
+
     this._parentModule = opts.parentModule || module.parent;
 
     var bundles = opts.bundles;

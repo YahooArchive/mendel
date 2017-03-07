@@ -4,10 +4,8 @@
    See the accompanying LICENSE file for terms. */
 
 var path = require('path');
-var xtend = require('xtend');
 
 var parseConfig = require('mendel-config');
-var parseVariations = require('mendel-config/variations');
 var MendelVariationWalker = require('./tree-variation-walker');
 var MendelServerVariationWalker = require('./tree-variation-walker-server');
 var MendelHashWalker = require('./tree-hash-walker');
@@ -18,19 +16,21 @@ function MendelTrees(opts) {
     }
 
     var config = parseConfig(opts);
-    var variations = parseVariations(config);
-    variations.push({
-        'id': config.base,
-        chain: [config.basetree],
-    });
 
     this.config = config;
-    this.variations = variations;
+    this.variations = config.variationConfig.variations;
     this._loadBundles();
+
+    this.ssrOutlet = this.config.outlets.find(outletConfig => {
+        return outletConfig._plugin === 'mendel-outlet-server-side-render';
+    });
+    this.ssrBundle = this.config.bundles.find(bundleConfig => {
+        return bundleConfig.outlet === this.ssrOutlet.id;
+    });
 }
 
 MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
-    var finder = new MendelVariationWalker(lookupChains, this.config.base);
+    var finder = new MendelVariationWalker(lookupChains, this.config.baseConfig.id);
 
     this._walkTree(bundle, finder);
 
@@ -38,20 +38,16 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
 };
 
 MendelTrees.prototype.findServerVariationMap = function(bundles, lookupChains) {
-    var self = this;
-    var variationMap = {};
-    var base = self.config.base;
+    if (!this.ssrBundle)
+        throw new Error([
+            'For a server-side render, you must use',
+            '"mendel-outlet-server-side-render"',
+        ].join(' '));
+
+    var base = this.config.baseConfig.dir;
     var finder = new MendelServerVariationWalker(lookupChains, base);
-
-    function selectBundles(key) {
-        return bundles.indexOf(key) !== -1;
-    }
-
-    Object.keys(self.bundles).filter(selectBundles).forEach(function (bundle) {
-        self._walkTree(bundle, finder);
-        variationMap = xtend(variationMap, finder.found());
-    });
-
+    this._walkTree(this.ssrBundle.id, finder);
+    const variationMap = finder.found();
     return variationMap;
 };
 
@@ -67,8 +63,11 @@ MendelTrees.prototype._loadBundles = function() {
     var self = this;
     this.bundles = {};
     var confBundles = self.config.bundles;
-    confBundles.forEach(function(bundle) {
-        var bundlePath = path.join(self.config.outdir, bundle.manifest);
+
+    confBundles
+    .filter(bundle => bundle.manifest)
+    .forEach(function(bundle) {
+        var bundlePath = bundle.manifest;
         try {
             self.bundles[bundle.id] = require(path.resolve(bundlePath));
         } catch (error) {
@@ -113,8 +112,8 @@ MendelTrees.prototype.variationsAndChains = function(lookFor) {
             lookupChains.push(lookupChain);
         }
     }
-    matchingVariations.push(this.config.base);
-    lookupChains.push([this.config.basetree]);
+    matchingVariations.push(this.config.baseConfig.id);
+    lookupChains.push([this.config.baseConfig.dir]);
     return {
         lookupChains: lookupChains,
         matchingVariations: matchingVariations,
@@ -124,6 +123,7 @@ MendelTrees.prototype.variationsAndChains = function(lookFor) {
 function walk(tree, module, pathFinder, _visited) {
     _visited = _visited || [];
     var dep = pathFinder.find(module);
+
     // perf: no hasOwnProperty, it is a JSON, lets shave miliseconds
     for (var key in dep.deps) {
         var index = tree.indexes[dep.deps[key]];

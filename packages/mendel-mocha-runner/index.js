@@ -4,7 +4,6 @@ const {execWithRegistry, exec} = require('mendel-exec');
 const fs = require('fs');
 const glob = require('glob');
 const errorMapper = require('mendel-exec/source-mapper');
-process.env.MENDELRC = '.mendelrc_v2';
 
 const DEFAULT_OPTIONS = {
     watch: false,

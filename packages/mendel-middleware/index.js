@@ -30,21 +30,11 @@ function MendelMiddleware(opts) {
             variations: false,
         };
 
-        req.mendel.getBundleEntries = function() {
-            return Object.keys(trees.bundles).reduce(
-
-                function(outputBundles, id) {
-                    var bundleDeps = trees.bundles[id].bundles;
-                    outputBundles[id] = bundleDeps.filter(function(dep) {
-                        return !!dep.expose || !!dep.entry;
-                    }).map(function(dep) {
-                        return dep.id;
-                    });
-                    return outputBundles;
-                },
-
-                {} // outputBundles
-            );
+        req.mendel.getBundleEntries = function(bundleId) {
+            const bundleDeps = trees.bundles[bundleId].bundles;
+            return bundleDeps
+                .filter(dep =>  !!dep.expose || !!dep.entry)
+                .map(dep => dep.id);
         };
 
         req.mendel.setVariations = function(variations) {

@@ -59,7 +59,6 @@ class MendelGenerators {
         bundles.forEach(bundle => {
             this.perform(bundle, doneBundles);
         });
-
         return doneBundles;
     }
 }

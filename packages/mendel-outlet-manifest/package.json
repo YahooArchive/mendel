@@ -9,6 +9,7 @@
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "debug": "^2.6.0"
+    "debug": "^2.6.0",
+    "shasum": "^1.0.2"
   }
 }
