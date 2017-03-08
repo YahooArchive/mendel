@@ -20,7 +20,6 @@ program
     .option('-o, --outlet', 'Write a mendel v1 compatible manifest', false)
     .parse(process.argv);
 
-
 if (program.watch) {
     const MendelPipelineDaemon = require('./daemon');
     const daemon = new MendelPipelineDaemon(program);
