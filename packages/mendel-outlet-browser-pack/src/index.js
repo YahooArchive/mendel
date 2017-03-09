@@ -1,4 +1,4 @@
-const debug = require('debug')('mendel:outlet:manifest');
+const debug = require('debug')('mendel:outlet:browserpack');
 const fs = require('fs');
 const {Transform} = require('stream');
 const {Buffer} = require('buffer');

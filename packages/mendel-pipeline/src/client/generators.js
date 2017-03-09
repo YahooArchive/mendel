@@ -1,11 +1,17 @@
 const DefaultGenerator = require('../bundles/default-generator');
 const debug = require('debug')('mendel:generators');
+const verbose = require('debug')('verbose:mendel:generators');
 const analyze = require('../helpers/analytics/analytics')('generator');
+const CliTable = require('cli-table');
 
 class MendelGenerators {
     constructor(options, registry) {
         this.registry = registry;
         this.options = options;
+        this.table = new CliTable({
+            head: ['Bundle', 'Generator ID', '# of Entries'],
+            colWidths: [15, 25, 15]
+        });
 
         this.generators = options.generators.map(generator => {
             return Object.assign({}, generator, {
@@ -43,6 +49,8 @@ class MendelGenerators {
                 `${resultBundle.entries.size} entries for`,
                 `bundle, "${bundle.options.id}"`,
             ].join(' '));
+
+            this.table.push([bundle.options.id, bundle.options.generator, resultBundle.entries.size]);
             doneBundles.push(resultBundle);
         }
 
@@ -59,6 +67,10 @@ class MendelGenerators {
         bundles.forEach(bundle => {
             this.perform(bundle, doneBundles);
         });
+
+        // Print number of entries collected by each generator.
+        verbose(this.table.toString());
+
         return doneBundles;
     }
 }
