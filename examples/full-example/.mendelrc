@@ -39,9 +39,6 @@ transforms: # a list of all available transforms for all envs and types
       presets:
         - es2015
         - react
-        - babili
-      plugins:
-        - transform-node-env-inline
   json-parse:
     plugin: mendel-parser-json
   less-transform:
@@ -182,7 +179,6 @@ env:
       js:
         transforms:
           - uglyfy
-        include-node_modules: true
 
     bundles:
       main:

@@ -84,6 +84,7 @@ function MendelMiddleware(opts) {
                 );
                 req.mendel.setVariations(variations);
             }
+
             return loader.resolver(bundles, req.mendel.lookupChains);
         };
 

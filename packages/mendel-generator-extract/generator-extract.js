@@ -1,5 +1,3 @@
-const debug = require('debug')('mendel:generator:extract');
-
 function generatorExtract(bundle, doneBundles, registry) {
     const {entries} = bundle.options;
     const {from} = bundle.options.options;
@@ -7,8 +5,8 @@ function generatorExtract(bundle, doneBundles, registry) {
     const fromBundle = doneBundles.find(d => d.options.id === from);
 
     if (!fromBundle) {
-        return debug([
-            `[${bundle.options.extractFrom}] bundle is not created before`,
+        throw new Error([
+            `[${from}] bundle is not created before`,
             'reaching the extract.',
         ].join(' '));
     }

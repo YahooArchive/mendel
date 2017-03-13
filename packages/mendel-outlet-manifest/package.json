@@ -9,7 +9,10 @@
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "babel-core": "^6.23.1",
+    "babel-plugin-transform-inline-environment-variables": "0.0.2",
     "debug": "^2.6.0",
+    "mendel-manifest-uglify": "3.0.0-alpha.7",
     "shasum": "^1.0.2"
   }
 }

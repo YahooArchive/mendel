@@ -32,9 +32,11 @@ function manifestUglify(manifests, options, next) {
             module.data.forEach(function(variation) {
                 var result = UglifyJS.minify(
                     variation.source,
-                    Object.assign({}, uglifyOptions, {
+                    Object.assign({
+                        root: options.mendelConfig ?
+                            options.mendelConfig.basedir : '',
+                    }, uglifyOptions, {
                         file: variation.file,
-                        root: options.mendelConfig.basedir,
                         sourceMaps: false, // TODO: sourcemaps support
                     })
                 );

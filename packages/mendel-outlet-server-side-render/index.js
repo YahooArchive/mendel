@@ -6,6 +6,7 @@ const ManifestOutlet = require('mendel-outlet-manifest');
 
 module.exports = class ServerSideRenderOutlet extends ManifestOutlet {
     constructor(config, options) {
+        options = Object.assign({envify: true, uglify: false}, options);
         super(config, options, 'main');
         this.config = config;
         this.outletOptions = options;
@@ -14,11 +15,17 @@ module.exports = class ServerSideRenderOutlet extends ManifestOutlet {
     perform({entries, options}) {
         const filterFn = (this.outletOptions.includeNodeModules || false) ?
             () => true :
-            ({type}) => 'node_modules' !== type;
+            ({id}) => id.indexOf('/node_modules') <= 0;
 
-        entries = Array.from(entries.values()).filter(filterFn);
+        entries = new Map(entries.entries());
+        Array.from(entries.keys()).forEach(key => {
+            const entry = entries.get(key);
+            if (!entry) entries.delete(key);
+            else if (!filterFn(entry)) entries.delete(key);
+        });
         super.perform({entries, options});
-        const promises = entries.map(e => this.performFile(e, options));
+        const promises = Array.from(entries.values())
+            .map(e => this.performFile(e, options));
         return Promise.all(promises);
     }
 

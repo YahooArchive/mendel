@@ -30,7 +30,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
         const {entries} = doneBundle;
 
         Array.from(entries.values())
-        .filter(({id}) => isNodeModule(id))
+        .filter(({id}) => isNodeModule(id) || nodeModules.has(id))
         .forEach(entry => {
             // Remove it from main bundle
             entries.delete(entry.id);

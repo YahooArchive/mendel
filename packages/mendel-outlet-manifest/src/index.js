@@ -1,17 +1,33 @@
 const debug = require('debug')('mendel:outlet:manifest');
+const babelCore = require('babel-core');
+const manifestUglify = require('mendel-manifest-uglify');
 const fs = require('fs');
 const shasum = require('shasum');
 
 // Manifest
 module.exports = class ManifestOutlet {
     constructor(config, options, runtime='browser') {
+        // Mendel config
         this.config = config;
+        // outlet options
+        this.options = Object.assign({
+            envify: true,
+            uglify: true,
+        }, options);
         this.runtime = runtime;
     }
 
     perform({entries, options}) {
-        const manifest = this.getV1Manifest(entries);
         const manifestFileName = options.manifest;
+
+        // We are going to mutate this guy; make sure we don't change the original one
+        entries = new Map(entries.entries());
+        if (this.options.envify) this.removeProcess(entries);
+        let manifest = this.getV1Manifest(entries);
+
+        if (this.options.envify) manifest = this.envify(manifest);
+        if (this.options.uglify) manifest = this.uglify(manifest);
+
         fs.writeFileSync(
             manifestFileName,
             JSON.stringify(manifest, null, 2)
@@ -41,6 +57,44 @@ module.exports = class ManifestOutlet {
         return data;
     }
 
+    removeProcess(entries) {
+        Array.from(entries.keys()).forEach(key => {
+            const entry = entries.get(key);
+            if (!entry) return;
+
+            if (entry.normalizedId === 'process') entries.delete(key);
+        });
+    }
+
+    envify(manifest) {
+        manifest.bundles.map(row => {
+            row.data.forEach(data => {
+                if (!data.deps.process) return;
+
+                const {code} = babelCore.transform(data.source, {
+                    plugins: ['transform-inline-environment-variables'],
+                });
+                data.source = code;
+                delete data.deps.process;
+            });
+        });
+
+        return manifest;
+    }
+
+    uglify(manifest) {
+        manifestUglify([manifest], {
+            uglifyOptions: {
+                root: this.config.baseConfig.dir,
+            },
+        }, ([uglifiedManifest]) => {
+            // happens immediately
+            manifest = uglifiedManifest;
+        });
+
+        return manifest;
+    }
+
     getV1Manifest(entries) {
         const manifest = {
             indexes: {},
@@ -48,6 +102,7 @@ module.exports = class ManifestOutlet {
         };
 
         entries.forEach(item => {
+            if (!item) return;
             const id = item.normalizedId;
 
             if (!manifest.indexes[id]) {

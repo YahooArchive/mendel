@@ -86,6 +86,7 @@ MendelTrees.prototype._loadBundles = function() {
 
 MendelTrees.prototype._walkTree = function(bundle, finder) {
     var tree = this.bundles[bundle];
+
     for (var i = 0; i < tree.bundles.length; i++) {
         var module = tree.bundles[i];
         if (module.entry || module.expose) {
