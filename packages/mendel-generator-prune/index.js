@@ -14,7 +14,7 @@ function pruneModules(bundle, doneBundles, registry, generator) {
 function pruneGroup(bundles) {
     const getUniqId = (function() {
         let index = 0;
-        return () => 'u' + index++;
+        return () => '_u' + Number(index++).toString(16);
     })();
 
     const exposeNormToExposeId = new Map();
