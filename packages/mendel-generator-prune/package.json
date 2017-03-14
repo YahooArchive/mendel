@@ -3,8 +3,10 @@
   "version": "3.0.0-alpha.7",
   "description": "Mendel generator that cleans up dangling dependencies and mangles `expose` for shorter names.",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Stephan Lee <stephanwlee@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^2.6.3"
+  }
 }

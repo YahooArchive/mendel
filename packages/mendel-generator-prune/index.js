@@ -1,3 +1,5 @@
+const verbose = require('debug')('verbose:mendel:generator:prune');
+
 // First argument is not needed; just to make it look like normal generator API
 function pruneModules(bundle, doneBundles, registry, generator) {
     const {groups} = generator.options;
@@ -44,7 +46,7 @@ function pruneGroup(bundles) {
                 });
 
                 if (remove) {
-                    console.log(
+                    verbose(
                         '[WARN][generator-prune] Removing ',
                         literal,
                         'from',
