@@ -102,8 +102,9 @@ module.exports = class ManifestOutlet {
             bundles: [],
         };
 
-        entries.forEach(item => {
-            if (!item) return;
+        Array.from(entries.keys()).sort()
+        .forEach(key => {
+            const item = entries.get(key);
             const id = item.normalizedId;
 
             if (!manifest.indexes[id]) {
