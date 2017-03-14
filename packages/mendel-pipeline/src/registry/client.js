@@ -96,9 +96,13 @@ class MendelOutletRegistry {
 
             if (!isPadded)
                 str = path.join(this._options.baseConfig.dir, str);
-            str = (isNegate ? '!./' : './') + str;
+
+            if (!str.startsWith('./')) str = (isNegate ? '!./' : './') + str;
+            else str = (isNegate ? '!' : '') + str;
+
             return new Minimatch(str);
         });
+
         const positives = globs.filter(({negate}) => !negate);
         const negatives = globs.filter(({negate}) => negate);
         return Array.from(this._cache.keys())

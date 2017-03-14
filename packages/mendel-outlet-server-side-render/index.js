@@ -6,8 +6,12 @@ const ManifestOutlet = require('mendel-outlet-manifest');
 
 module.exports = class ServerSideRenderOutlet extends ManifestOutlet {
     constructor(config, options) {
-        options = Object.assign({envify: true, uglify: false}, options);
-        super(config, options, 'main');
+        options = Object.assign(
+            {envify: true, uglify: false},
+            options,
+            {runtime: 'main'}
+        );
+        super(config, options);
         this.config = config;
         this.outletOptions = options;
     }
@@ -64,6 +68,7 @@ module.exports = class ServerSideRenderOutlet extends ManifestOutlet {
 
         if (this.outletOptions.requireTransform === true) {
             source = mendelRequireTransform(dest, entry, (entry, mod) => {
+                if (!entry.deps[mod]) return mod;
                 return entry.deps[mod][runtime];
             });
         }

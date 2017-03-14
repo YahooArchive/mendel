@@ -3,9 +3,6 @@ base-config:
   dir: ./isomorphic/base
   outdir: ./build
 
-shim:
-  fake: ./shim/fake.js
-
 variation-config:
   variation-dirs:
     - ./isomorphic/variations
@@ -37,7 +34,10 @@ transforms: # a list of all available transforms for all envs and types
       comments: false # true - Output comments in generated output.
       compact: true # true - Do not include superfluous whitespace characters and line terminators
       presets:
-        - es2015
+        -
+          - es2015
+          -
+            loose: true
         - react
   json-parse:
     plugin: mendel-parser-json
@@ -132,16 +132,6 @@ bundles:
     outfile: main.js
     entries:
       - ./main.js
-  vendor:
-    outlet: browser-pack
-    outfile: vendor.js
-    generator: node-modules-generator
-    from: main # have array of bundleId or keyword "all"
-    entries:
-      # This file either has to be part of dependency graph or source
-      # or it has to be part of a variation's source folder.
-      # Otherwise, it is not added to Mendel at all.
-      - ./vendor/large-code.js
   lazy:
     outlet: browser-pack
     outfile: lazy.js
@@ -149,6 +139,19 @@ bundles:
     from: main
     entries:
       - ./components/lazy.js
+  vendor:
+    outlet: browser-pack
+    outfile: vendor.js
+    generator: node-modules-generator
+    from:
+      - main # have array of bundleId or keyword "all"
+      - lazy
+    entries:
+      # This file either has to be part of dependency graph or source
+      # or it has to be part of a variation's source folder.
+      # Otherwise, it is not added to Mendel at all.
+      - ./vendor/large-code.js
+
   css:
     outlet: css
     outfile: main.css
@@ -163,6 +166,17 @@ bundles:
       - "**/*.css"
       - "**/*.less"
       - "!css/reset.css"
+
+postgenerators:
+  - id: prune
+    plugin: mendel-generator-prune
+    groups:
+      -
+        # Regard below bundles as one
+        # and do necessary clean ups
+        - main
+        - lazy
+        - vendor
 
 env:
   test:

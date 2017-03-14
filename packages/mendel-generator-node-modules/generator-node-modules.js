@@ -46,7 +46,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
             const {deps} = entry;
             Object.keys(deps)
             .forEach(depLiteral => {
-                const dep = entry.deps[depLiteral]['browser'];
+                const dep = deps[depLiteral]['browser'];
                 if (!nodeModulesNorm.has(dep)) return;
 
                 const depEntry = nodeModulesNorm.get(dep);

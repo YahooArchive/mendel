@@ -48,7 +48,7 @@ module.exports = class CSSOutlet {
             to: options.outfile,
             map: {
                 prev: map,
-                inline: true,
+                inline: options.sourcemap === false,
             },
         }, this.outletOptions);
         delete postCssOptions.plugin;

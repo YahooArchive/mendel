@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "debug": "^2.6.1",
-    "mendel-development": "latest"
+    "mendel-development": "latest",
+    "mendel-outlet-manifest": "^3.0.0-alpha.7"
   }
 }

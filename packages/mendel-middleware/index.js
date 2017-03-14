@@ -34,7 +34,7 @@ function MendelMiddleware(opts) {
             const bundleDeps = trees.bundles[bundleId].bundles;
             return bundleDeps
                 .filter(dep =>  !!dep.expose || !!dep.entry)
-                .map(dep => dep.id);
+                .map(dep => dep.expose || dep.id);
         };
 
         req.mendel.setVariations = function(variations) {

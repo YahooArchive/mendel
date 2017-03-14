@@ -13,6 +13,7 @@ const TransformConfig = require('./transform-config');
 const BundleConfig = require('./bundle-config');
 const VariationConfig = require('./variation-config');
 const GeneratorConfig = require('./generator-config');
+const PostGeneratorConfig = require('./post-generator-config');
 const OutletConfig = require('./outlet-config');
 const BaseConfig = require('./base-config');
 const TypesConfig = require('./types-config');
@@ -57,6 +58,9 @@ module.exports = function(rawConfig) {
     });
     config.generators = config.generators.map(g => {
         return new GeneratorConfig(g, config);
+    });
+    config.postgenerators = config.postgenerators.map(g => {
+        return new PostGeneratorConfig(g, config);
     });
     config.outlets = config.outlets.map(o => {
         return new OutletConfig(o, config);

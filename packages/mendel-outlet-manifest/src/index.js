@@ -6,15 +6,16 @@ const shasum = require('shasum');
 
 // Manifest
 module.exports = class ManifestOutlet {
-    constructor(config, options, runtime='browser') {
+    constructor(config, options) {
         // Mendel config
         this.config = config;
         // outlet options
         this.options = Object.assign({
             envify: true,
             uglify: true,
+            runtime: 'browser',
         }, options);
-        this.runtime = runtime;
+        this.runtime = this.options.runtime;
     }
 
     perform({entries, options}) {

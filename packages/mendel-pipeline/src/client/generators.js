@@ -10,7 +10,7 @@ class MendelGenerators {
         this.options = options;
         this.table = new CliTable({
             head: ['Bundle', 'Generator ID', '# of Entries'],
-            colWidths: [15, 25, 15]
+            colWidths: [15, 25, 15],
         });
 
         this.generators = options.generators.map(generator => {
@@ -25,9 +25,15 @@ class MendelGenerators {
             id: 'default',
             plugin: DefaultGenerator,
         });
+
+        this.postgenerators = options.postgenerators.map(generator => {
+            return Object.assign({}, generator, {
+                plugin: require(generator.plugin),
+            });
+        });
     }
 
-    perform(bundle, doneBundles) {
+    _perform(bundle, doneBundles) {
         const {id, plugin} = this.generators.find(gen => {
             return gen.id === bundle.options.generator;
         }) || {};
@@ -50,11 +56,25 @@ class MendelGenerators {
                 `bundle, "${bundle.options.id}"`,
             ].join(' '));
 
-            this.table.push([bundle.options.id, bundle.options.generator, resultBundle.entries.size]);
+            this.table.push([
+                bundle.options.id,
+                bundle.options.generator,
+                resultBundle.entries.size,
+            ]);
             doneBundles.push(resultBundle);
         }
+    }
 
-        return doneBundles;
+    _performBundleless(generator, doneBundles) {
+        const {plugin, id} = generator;
+
+        analyze.tic(id);
+        // First argument is not needed; conforming to generator API
+        plugin(
+            {}, doneBundles,
+            this.registry, generator
+        );
+        analyze.toc(id);
     }
 
     performAll(bundles) {
@@ -64,9 +84,9 @@ class MendelGenerators {
         });
 
         const doneBundles = [];
-        bundles.forEach(bundle => {
-            this.perform(bundle, doneBundles);
-        });
+        bundles.forEach(bundle => this._perform(bundle, doneBundles));
+        this.postgenerators
+            .forEach(g => this._performBundleless(g, doneBundles));
 
         // Print number of entries collected by each generator.
         verbose(this.table.toString());

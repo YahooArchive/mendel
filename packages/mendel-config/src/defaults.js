@@ -38,6 +38,7 @@ module.exports = function() {
         },
         outlets: [],
         generators: [],
+        postgenerators: [],
         env: {},
         bundles: {},
         config: true,
