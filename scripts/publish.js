@@ -5,6 +5,7 @@ const origCwd = process.cwd();
     'packages/karma-mendel',
     'packages/mendel-config',
     'packages/mendel-deps',
+    'packages/mendel-development-middleware',
     'packages/mendel-exec',
     'packages/mendel-generator-extract',
     'packages/mendel-generator-node-modules',
@@ -20,7 +21,6 @@ const origCwd = process.cwd();
     'packages/mendel-resolver',
     'packages/mendel-transform-babel',
     'packages/mendel-transform-less',
-    'packages/mendel2-development-middleware',
 ].forEach(pkgPath => {
     process.chdir(pkgPath);
     console.log(execSync('npm publish').toString().trim());

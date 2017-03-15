@@ -1,264 +1,149 @@
-/* Copyright 2015, Yahoo Inc.
-   Copyrights licensed under the MIT License.
-   See the accompanying LICENSE file for terms. */
-
-var fs = require('fs');
-var path = require('path');
-var xtend = require('xtend');
-var Module = require('module');
-var pathToRegexp = require('path-to-regexp');
-var browserify = require('browserify');
-var watchify = require('watchify');
-var treenherit = require('mendel-treenherit');
-var requirify = require('mendel-requirify');
-var parseConfig = require('mendel-config');
-var validVariations = require('mendel-config/variations');
-var applyExtraOptions = require('mendel-development/apply-extra-options');
-var resolveVariations = require('mendel-development/resolve-variations');
-var variationMatches = require('mendel-development/variation-matches');
-var CachedStreamCollection = require('./cached-stream-collection');
-var MendelLoader = require('mendel-development-loader');
+const pathToRegExp = require('path-to-regexp');
+const parseConfig = require('mendel-config');
+const resolveVariations = require('mendel-development/resolve-variations');
+const MendelClient = require('mendel-pipeline/client');
+const Stream = require('stream');
+const {execWithRegistry} = require('mendel-exec');
+const path = require('path');
 
 module.exports = MendelMiddleware;
 
 function MendelMiddleware(opts) {
-    var config = parseConfig(opts);
-    var existingVariations = validVariations(config);
-    var base = config.base || 'base';
-
-    existingVariations = existingVariations.concat({
-        id: base,
-        chain: [config.basetree || 'base'],
-    });
-
-    var route = config.variationsroute || '/mendel/:variations/:bundle\.js';
-    var getPath = pathToRegexp.compile(route);
-    var keys = [];
-    var bundleRoute = pathToRegexp(route, keys);
-    var bundles = config.bundles.reduce(function(acc, bundle) {
-        acc[bundle.id] = bundle;
-        return acc;
-    }, {});
-
-    var allDirs = existingVariations.reduce(function(allDirs, variation) {
-        variation.chain.forEach(function(path) {
-            if (-1 === allDirs.indexOf(path)) allDirs.push(path);
-        });
-        return allDirs;
-    }, []);
-
-    var loader = new MendelLoader(existingVariations, config, module.parent);
+    const client = new MendelClient(Object.assign({}, opts, {noout: true}));
+    client.run();
+    const config = parseConfig(opts);
+    const {variations: varsConfig} = config.variationConfig;
+    const route = config.routeConfig.variation || '/mendel/:variations/:bundle';
+    const getPath = pathToRegExp.compile(route);
+    const keys = [];
+    // Populates the key with name of the path variables
+    // i.e., "variations", "bundle"
+    const bundleRoute = pathToRegExp(route, keys);
+    const bundles = new Set();
+    config.bundles.forEach(bundle => bundles.add(bundle.id));
 
     return function(req, res, next) {
-        req.mendel = req.mendel || {
-            variations: false,
+        req.mendel = req.mendel || {variations: false};
+        req.mendel.getBundleEntries = function getBundleEntries(bundleId) {
+            const bundleConfig = config.bundles.find(({id}) => id === bundleId);
+            if (!bundleConfig)
+                throw new Error(`No bundle with id ${bundleId} found`);
+
+            // Without bundling yet, we need to get normalizedIds of entries/entrances
+            const normIds = new Set();
+            client.registry.getEntriesByGlob(bundleConfig.entries || [])
+                .forEach(entry => normIds.add(entry.normalizedId));
+            return Array.from(normIds.keys());
         };
 
-        req.mendel.getBundleEntries = function() {
-            return Object.keys(bundles).reduce(
-
-                function(outputBundles, id) {
-                    var bundle = bundles[id];
-                    var outputEntries = [];
-
-                    [].concat(bundle.entries, bundle.require)
-                    .filter(Boolean)
-                    .forEach(
-                        function(entry) {
-                            var match = variationMatches(existingVariations, entry);
-                            if (match) entry = match.file;
-                            allDirs.forEach(function(dirPath) {
-                                var absolutePath = path.resolve(
-                                    config.basedir, dirPath, entry
-                                );
-                                if (-1 === outputEntries
-                                    .indexOf(absolutePath)
-                                ){
-                                    outputEntries.push(absolutePath);
-                                }
-                            });
-                        }
-                    );
-
-                    outputBundles[id] = outputEntries;
-                    return outputBundles;
-                },
-
-                {} // outputBundles
-            );
-        };
-
-        req.mendel.setVariations = function(variations) {
+        req.mendel.setVariations = function setVariations(variations) {
+            // You can set variation only once
             if (req.mendel.variations === false) {
-                req.mendel.variations = variations;
+                let validVars = variations.filter(variation => {
+                    return varsConfig.some(({id}) => id === variation);
+                });
+
+                if (config.verbose && validVars.length !== variations.length) {
+                    console.log([
+                        `[WARN] Certain variations in ${variations}`,
+                        'does not exist. Defaulted to base variation.',
+                    ].join(' '));
+                }
+
+                if (!validVars.length) {
+                    validVars = [config.baseConfig.id];
+                }
+
+                req.mendel.variations = validVars;
+            } else {
+                console.error('You cannot set variation more than once per request'); //eslint-disable-line max-len
             }
             return req.mendel.variations;
         };
 
-        req.mendel.getURL = function(bundle, variations) {
-            if (!req.mendel.variations && variations) {
-                console.warn(
-                    '[DEPRECATED] Please replace use of '+
-                    'mendel.getURL(bundle, variations).'+
-                    '\nUse mendel.setVariations(variations) followed by'+
-                    ' mendel.getURL(bundle) instead.'
-                );
-                req.mendel.setVariations(variations);
-            }
-            var vars = req.mendel.variations.join(',') || config.base;
-            return getPath({bundle: bundle, variations: vars});
+        req.mendel.getURL = function getURL(bundleId) {
+            const variations = req.mendel.variations.join(',') ||
+                config.baseConfig.id;
+            return getPath({bundle: bundleId, variations});
         };
 
         req.mendel.resolver = function(bundles, variations) {
-            if (!req.mendel.variations && variations) {
-                console.warn(
-                    '[DEPRECATED] Please replace use of '+
-                    'mendel.resolver(bundle, variations).'+
-                    '\nUse mendel.setVariations(variations) followed by'+
-                    ' mendel.resolver(bundle) instead.'
-                );
-                req.mendel.setVariations(variations);
-            }
-            return loader.resolver(bundles, req.mendel.variations);
+            return {
+                require: function mendelRequire(entryId) {
+                    variations = variations ||
+                        req.mendel.variations ||
+                        [config.baseConfig.dir];
+
+                    return execWithRegistry(
+                        client.registry,
+                        entryId,
+                        variations.map(variation => {
+                            return varsConfig.find(({id}) => id === variation);
+                        }).filter(Boolean)
+                    );
+                },
+            };
         };
 
-        req.mendel.isSsrReady = loader.isSsrReady.bind(loader);
+        req.mendel.isSsrReady = () => client.isSynced();
 
         // Match bundle route
-        var reqParams = bundleRoute.exec(req.url);
-        if (!reqParams) {
-            return next();
-        }
-        var params = namedParams(keys, reqParams);
-        if (!(
-            params.bundle &&
-            params.variations &&
-            bundles[params.bundle]
-        )) {
-            return next();
-        }
-        var bundleConfig = bundles[params.bundle];
-        var dirs = params.variations.split(/(,|%2C)/i);
-        dirs = resolveVariations(existingVariations, dirs);
-        if (!dirs.length || !bundleConfig) {
-            return next();
-        }
+        const reqParams = bundleRoute.exec(req.url);
+        // If it is not a bundle route, move on to next so application
+        // can do SSR or whatever
+        if (!reqParams) return next();
+
+        // This is a bundle route. Return a bundle and end
+        const params = namedParams(keys, reqParams);
+        const bundle = params.bundle ? path.parse(params.bundle).name : '';
+
+        if (!bundle || !bundles.has(bundle)) return next();
+
+        const vars = resolveVariations(
+            varsConfig,
+            // %2C is comma done in getURL above
+            (params.variations || []).split(/(,|%2C)/i)
+        );
+
+        // If params.variations does not exist or it does not resolve to
+        // proper chain.
+        if (!vars.length) return next();
 
         // Serve bundle
-        res.header('content-type', 'application/javascript');
+        // req.accepts cannot be used since JS request accepts "*.*"
+        if (req.headers.accept.indexOf('text/css') >= 0) {
+            res.header('content-type', 'text/css');
+        } else {
+            res.header('content-type', 'application/javascript');
+        }
 
-        bundleConfig = xtend(config, bundleConfig, {
-            debug: true,
-            cache: {},
-            packageCache: {},
-        });
+        client.build(bundle, vars)
+        .then(bundle => {
+            if (bundle instanceof Stream) return bundle.pipe(res);
+            else if (typeof bundle === 'string') return res.send(bundle).end();
 
-        cachedStreamBundle(bundleConfig, dirs, function(bundleStream) {
-            bundleStream.on('error', function(e) {
-                console.error(e.stack);
-                res.send('console.error( "Error compiling client bundle", ' +
-                    JSON.stringify({ stack: e.stack }) + ')').end();
-            });
-            bundleStream.pipe(res);
+            console.error(
+                'Build is imcompatible with middleware.',
+                'Bundle: "' + bundle + '"',
+                'Output is: ' + typeof bundle
+            );
+
+            res.status(500)
+            .send('console.error("Error compiling client bundle. Please check Mendel output")') // eslint-disable-line max-len
+            .end();
+        })
+        .catch(e => {
+            console.error(e.stack);
+            res.status(500)
+            .send('console.error("Error compiling client bundle",' + JSON.stringify({stack: e.stack}, null, 2) + ')') // eslint-disable-line max-len
+            .end();
         });
     };
 }
 
 function namedParams(keys, reqParams) {
-    return keys.reduce(function(params, param, index) {
-        params[param.name] = reqParams[index+1];
+    return keys.reduce((params, param, index) => {
+        params[param.name] = reqParams[index + 1];
         return params;
     }, {});
-}
-
-var streamCache = new CachedStreamCollection();
-function cachedStreamBundle(bundleConfig, dirs, cb) {
-    var id = [bundleConfig.id].concat(dirs).join('/');
-    if (streamCache.hasItem(id)) {
-        return cb(streamCache.outputPipe(id));
-    }
-
-    getCachedWatchfy(id, bundleConfig, dirs, function(err, watchBundle) {
-        // multiple kinds of error handling start
-        function boundError(e) {
-            streamCache.sendError(id, e);
-        }
-        if (err) return cb(boundError(err));
-
-        function makeBundle() {
-            var bundle = watchBundle.bundle();
-            // multiple kinds of error handling end
-            bundle.on('error', boundError);
-            bundle.on('transform', function(tr) {
-                tr.on('error', boundError);
-            });
-
-            streamCache.createItem(id);
-            streamCache.inputPipe(id, bundle);
-        }
-
-        watchBundle.on('update', function(srcFiles) {
-            streamCache.invalidateItem(id);
-            invalidateNodeCache(dirs, srcFiles, bundleConfig.serveroutdir);
-            makeBundle();
-        });
-
-        makeBundle();
-
-        cb(streamCache.outputPipe(id));
-    });
-}
-
-var watchfyCache = {};
-function getCachedWatchfy(id, bundleConfig, dirs, cb) {
-    if (watchfyCache[id]) {
-        return cb(null, watchfyCache[id]);
-    }
-
-    // TODO: async lookup of entries
-    bundleConfig.entries = normalizeEntries(bundleConfig.entries||[], bundleConfig);
-
-    var bundler = browserify(bundleConfig);
-    applyExtraOptions(bundler, bundleConfig);
-    bundler.transform(treenherit, { dirs: dirs });
-    bundler.plugin(watchify);
-
-    if (bundleConfig.serveroutdir && bundleConfig.entries.length) {
-        bundler.plugin(requirify, {
-            dirs: dirs,
-            outdir: bundleConfig.serveroutdir,
-        });
-    }
-
-    watchfyCache[id] = bundler;
-    cb(null, watchfyCache[id]);
-}
-
-function normalizeEntries(entries, config) {
-    return [].concat(entries).filter(Boolean)
-    .map(function(entry) {
-        if (typeof entry === 'string') {
-            if(!fs.existsSync(path.join(config.basedir, entry))) {
-                var messages = [
-                    '[warn] paths relative to variation are deprecated',
-                    'you can fix this by changing',
-                    entry,
-                    'in your configuration',
-                ];
-                console.log(messages.join(' '));
-                entry = path.join(config.basedir, config.basetree, entry);
-            }
-        }
-        return entry;
-    });
-}
-
-function invalidateNodeCache(dirs, files, serveroutdir) {
-    files.forEach(function(file) {
-        var match = variationMatches([{chain: dirs}], file);
-        if (match) {
-            var fullPath = path.join(serveroutdir, match.dir, match.file);
-            delete Module._cache[fullPath];
-        }
-    });
 }

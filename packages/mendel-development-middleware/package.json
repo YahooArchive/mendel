@@ -1,34 +1,18 @@
 {
   "name": "mendel-development-middleware",
-  "version": "2.1.1",
-  "description": "express middleware for meldel",
+  "version": "3.0.0-alpha.8",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "mendel",
-    "browserify-transform",
-    "express-middleware"
-  ],
-  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yahoo/mendel"
-  },
   "dependencies": {
-    "browserify": "^13.0.0",
-    "fs-extra": "^0.30.0",
-    "mendel-config": "^1.1.1",
+    "path-to-regexp": "^1.7.0",
+    "mendel-config": "3.0.0-alpha.8",
     "mendel-development": "^1.1.0",
-    "mendel-development-loader": "^2.1.1",
-    "mendel-requirify": "^1.0.6",
-    "mendel-treenherit": "^1.0.6",
-    "stream-cache": "0.0.2",
-    "watch": "^0.18.0",
-    "watchify": "^3.7.0",
-    "xtend": "^4.0.1",
-    "path-to-regexp": "^1.2.1"
+    "mendel-exec": "3.0.0-alpha.8",
+    "mendel-pipeline": "3.0.0-alpha.8"
   }
 }

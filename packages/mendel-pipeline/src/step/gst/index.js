@@ -157,7 +157,9 @@ class GraphSourceTransform extends BaseStep {
             const [main] = chain;
             // We need to create proxy for limiting API surface for plugin writers.
             const context = this.getContext();
-            const chainProxy = chain.map(dep => EntryProxy.getFromEntry(dep));
+            const chainProxy = chain
+                .filter(Boolean)
+                .map(dep => EntryProxy.getFromEntry(dep));
             const [proxiedMain] = chainProxy;
             proxiedMain.filename = convertVariationalPath(
                 this._variations,

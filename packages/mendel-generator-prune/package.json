@@ -1,6 +1,6 @@
 {
   "name": "mendel-generator-prune",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "description": "Mendel generator that cleans up dangling dependencies and mangles `expose` for shorter names.",
   "main": "index.js",
   "scripts": {},

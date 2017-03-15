@@ -167,17 +167,6 @@ bundles:
       - "**/*.less"
       - "!css/reset.css"
 
-postgenerators:
-  - id: prune
-    plugin: mendel-generator-prune
-    groups:
-      -
-        # Regard below bundles as one
-        # and do necessary clean ups
-        - main
-        - lazy
-        - vendor
-
 env:
   test:
     support: test/**/*.js
@@ -193,6 +182,17 @@ env:
       js:
         transforms:
           - uglyfy
+
+    postgenerators:
+      - id: prune
+        plugin: mendel-generator-prune
+        groups:
+          -
+            # Regard below bundles as one
+            # and do necessary clean ups
+            - main
+            - lazy
+            - vendor
 
     bundles:
       main:

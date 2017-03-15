@@ -34,7 +34,7 @@ module.exports = class MendelPipeline extends EventEmitter {
         steps.forEach((curStep, i) => {
             const nextStep = i < steps.length - 1 ? steps[i + 1] : null;
             const name = curStep.constructor.name;
-            curStep.on('done', function({entryId}) {
+            curStep.on('done', ({entryId}) => {
                 const entry = registry.getEntry(entryId);
                 if (!nextStep) return;
                 try {

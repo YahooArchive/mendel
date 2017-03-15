@@ -1,6 +1,6 @@
 {
   "name": "mendel-parser-json",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "description": "Wraps JSON file in a javascript module for bundling with assets in Mendel",
   "main": "index.js",
   "scripts": {

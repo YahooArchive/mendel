@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-browser-pack",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "description": "Mendel outlet for JavaScript bundles using browser-pack.",
   "main": "src/index.js",
   "scripts": {
