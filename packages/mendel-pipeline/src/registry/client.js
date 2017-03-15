@@ -117,7 +117,7 @@ class MendelOutletRegistry {
      * Walks dependency graph of a specific type
      */
     walk(normId, criteria, visitorFunction, _visited=new Set()) {
-        const {types, runtime='browser'} = criteria;
+        let {types, runtime='browser'} = criteria;
         if (_visited.has(normId)) return;
         _visited.add(normId);
 
@@ -130,6 +130,8 @@ class MendelOutletRegistry {
             // not in the browser. Figure out what to do in case of missing deps.
             return;
         }
+
+        types = types.concat('node_modules');
 
         Array.from(entryVariations.values())
         .filter(entry => {

@@ -44,8 +44,9 @@ module.exports = function() {
         config: true,
         shim: {},
         defaultShim: {},
+        ignores: [],
         // This controls whether outlet outputs to a file or a stream
-        noout: false,
+        noout: false, // TODO re-evaluate whether we need this guy
         // In a large project, there are configuration/support related code
         // that is not variatonal or should be bundled to browser.
         // Takes glob as input

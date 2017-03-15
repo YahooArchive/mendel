@@ -11,7 +11,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
     // TODO factor this out to separate sharable component
     registry.getEntriesByGlob(entries).forEach(entry => {
         const {normalizedId, type} = entry;
-        registry.walk(normalizedId, {types: [type, 'node_modules']}, (dep) => {
+        registry.walk(normalizedId, {types: [type]}, (dep) => {
             if (nodeModules.has(dep.id)) return false;
             if (dep === entry) dep.entry = true;
             nodeModules.set(dep.id, dep);

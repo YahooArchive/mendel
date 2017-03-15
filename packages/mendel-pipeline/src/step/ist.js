@@ -17,7 +17,7 @@ class IndependentSourceTransform extends BaseStep {
         this._parserTypeConversion = new Map();
         this._types = options.types;
         this._types.forEach(type => {
-            if (!type.parser || !type.parserToType) return;
+            if (!type.parserToType) return;
             // TODO better cycle detection: cannot have cycle
             if (type.parserToType === type.name) return;
             this._parserTypeConversion.set(type.name, type.parserToType);

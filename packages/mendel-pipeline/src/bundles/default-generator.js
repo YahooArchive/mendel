@@ -9,8 +9,7 @@ function defaultGenerator(bundle, doneBundles, registry) {
 
     registry.getEntriesByGlob(entries).forEach(entry => {
         const {normalizedId, type} = entry;
-        const types = [type, 'node_modules'];
-        registry.walk(normalizedId, {types, runtime}, (dep) => {
+        registry.walk(normalizedId, {types: [type], runtime}, (dep) => {
             if (resolvedEntries.has(dep.id)) return false;
             if (dep === entry) dep.entry = true;
             resolvedEntries.set(dep.id, dep);

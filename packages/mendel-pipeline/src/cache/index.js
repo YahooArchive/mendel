@@ -1,5 +1,6 @@
 const path = require('path');
-const EventEmitter = require('events').EventEmitter;
+const {EventEmitter} = require('events');
+const {Minimatch} = require('minimatch');
 const verbose = require('debug')('verbose:mendel:cache');
 
 const Entry = require('./entry.js');
@@ -36,6 +37,25 @@ class MendelCache extends EventEmitter {
             this._shimPathToId.set(shimId, shimId);
         });
         this._types = config.types;
+
+        const ignores = Array.isArray(config.ignores) ?
+            config.ignores : [config.ignores];
+        this._ignores = ignores.map(ignore => {
+            const negate = ignore[0] === '!';
+            ignore = ignore.slice(negate);
+            let pattern = negate ? '!' : '';
+            if (!ignore.startsWith('**/'))
+                pattern += '**/';
+            pattern += ignore;
+            return new Minimatch(pattern);
+        });
+    }
+
+    _testForIgnore(id) {
+        if (id.startsWith('./')) id = id.slice(2);
+        const globs = this._ignores;
+        return globs.filter(({negate}) => !negate).some(g => g.match(id)) &&
+            globs.filter(({negate}) => negate).every(g => g.match(id));
     }
 
     // Get Type only based on the entryId. IST can convert the types.
@@ -83,8 +103,7 @@ class MendelCache extends EventEmitter {
     }
 
     addEntry(id) {
-        if (this.hasEntry(id)) return;
-
+        if (this._testForIgnore(id) || this.hasEntry(id)) return;
         const entry = new Entry(id);
 
         // normalize based on variation and environment
