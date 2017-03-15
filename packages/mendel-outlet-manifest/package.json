@@ -8,6 +8,10 @@
   },
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "babel-core": "^6.23.1",
     "babel-plugin-transform-inline-environment-variables": "0.0.2",

@@ -8,6 +8,10 @@
   },
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "commander": "^2.9.0",
     "mendel-exec": "3.0.0-alpha.10",
