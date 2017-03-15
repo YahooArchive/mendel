@@ -18,6 +18,7 @@ class VariationalModuleResolver extends ModuleResolver {
         this.projectRoot = projectRoot;
         this.baseConfig = baseConfig;
         this.variationList = variationConfig.variations;
+        this.varDirs = variationConfig.allDirs;
 
         // derivatives
         this.baseVarDir = path.resolve(projectRoot, baseConfig.dir);
@@ -51,12 +52,13 @@ class VariationalModuleResolver extends ModuleResolver {
     }
 
     isNonProjectSource(modulePath) {
-        return this.variationList.every(variation => {
-            return modulePath.indexOf(variation.dir) === -1;
+        return this.varDirs.every(dir => {
+            return modulePath.indexOf(dir) === -1;
         });
     }
 
     resolveFile(modulePath) {
+        // console.log('var-resolve', modulePath);
         if (
             this.isBasePath(modulePath) ||
             isNodeModule(modulePath) ||
@@ -65,12 +67,13 @@ class VariationalModuleResolver extends ModuleResolver {
             return super.resolveFile(modulePath);
         }
 
-        let promise = Promise.reject();
+
         const moduleId = this.getModuleId(modulePath);
-        this.variationChain.forEach(variation => {
-            promise = promise.catch(() => super.resolveFile(path.resolve(variation, moduleId)));
-        });
-        return promise;
+        return this.variationChain.reduce((promise, variation) => {
+            return promise.catch(() => {
+                return super.resolveFile(path.resolve(variation, moduleId));
+            });
+        }, Promise.reject());
     }
 
     _processPackageJson(moduleName, pkg) {
