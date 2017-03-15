@@ -9,6 +9,7 @@ const origCwd = process.cwd();
     'packages/mendel-exec',
     'packages/mendel-generator-extract',
     'packages/mendel-generator-node-modules',
+    'packages/mendel-generator-prune',
     'packages/mendel-manifest-uglify',
     'packages/mendel-middleware',
     'packages/mendel-mocha-runner',
