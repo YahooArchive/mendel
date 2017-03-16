@@ -1,6 +1,6 @@
 {
   "name": "mendel-development-middleware",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-beta.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "path-to-regexp": "^1.7.0",
-    "mendel-config": "3.0.0-alpha.10",
+    "mendel-config": "3.0.0-beta.1",
     "mendel-development": "^1.1.0",
-    "mendel-exec": "3.0.0-alpha.10",
-    "mendel-pipeline": "3.0.0-alpha.10"
+    "mendel-exec": "3.0.0-beta.1",
+    "mendel-pipeline": "3.0.0-beta.1"
   }
 }

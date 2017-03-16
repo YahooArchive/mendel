@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-manifest",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-beta.1",
   "description": "Mendelv2 outlet for generating mendel-core compatible manifest",
   "main": "src/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "babel-core": "^6.23.1",
     "babel-plugin-transform-inline-environment-variables": "0.0.2",
     "debug": "^2.6.0",
-    "mendel-manifest-uglify": "3.0.0-alpha.10",
+    "mendel-manifest-uglify": "3.0.0-beta.1",
     "shasum": "^1.0.2"
   }
 }

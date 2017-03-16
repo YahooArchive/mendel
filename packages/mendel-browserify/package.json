@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "defined": "^1.0.0",
-    "mendel-config": "^3.0.0-alpha.10",
+    "mendel-config": "^3.0.0-beta.1",
     "mendel-development": "^1.1.2",
     "mendel-treenherit": "^1.0.6",
     "mkdirp": "^0.5.1",

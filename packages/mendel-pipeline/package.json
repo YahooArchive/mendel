@@ -1,6 +1,6 @@
 {
   "name": "mendel-pipeline",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-beta.1",
   "description": "Coordenates all async operations for Mendel",
   "main": "src/main.js",
   "bin": {
@@ -22,10 +22,10 @@
     "cli-table": "^0.3.1",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
-    "mendel-config": "^3.0.0-alpha.10",
-    "mendel-deps": "3.0.0-alpha.10",
+    "mendel-config": "^3.0.0-beta.1",
+    "mendel-deps": "3.0.0-beta.1",
     "mendel-development": "^1.1.0",
-    "mendel-resolver": "3.0.0-alpha.10",
+    "mendel-resolver": "3.0.0-beta.1",
     "node-libs-browser": "^2.0.0",
     "pretty-ms": "^2.1.0",
     "resolve": "^1.1.7"

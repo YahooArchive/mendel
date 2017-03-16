@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-server-side-render",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-beta.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,6 @@
   "dependencies": {
     "debug": "^2.6.1",
     "mendel-development": "latest",
-    "mendel-outlet-manifest": "^3.0.0-alpha.10"
+    "mendel-outlet-manifest": "^3.0.0-beta.1"
   }
 }
