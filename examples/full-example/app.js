@@ -9,7 +9,7 @@ var fs = require('fs');
 var cache = true;
 
 if (process.env.NODE_ENV !== 'production') {
-    MendelMiddleware = require('mendel2-development-middleware')
+    MendelMiddleware = require('mendel-development-middleware')
     cache = false;
 }
 

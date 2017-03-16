@@ -1,6 +1,6 @@
 {
   "name": "mendel-exec",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.10",
   "description": "JavaScript executor using VM and Mendelv2 for custom variational resolving.",
   "main": "index.js",
   "scripts": {

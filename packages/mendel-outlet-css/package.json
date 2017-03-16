@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-css",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.10",
   "description": "Mendel Outlet for CSS. From scattered CSS sources, we combine them into one!",
   "main": "index.js",
   "scripts": {

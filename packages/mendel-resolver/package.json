@@ -1,6 +1,6 @@
 {
   "name": "mendel-resolver",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.10",
   "description": "Mendel resolver that is promise based",
   "main": "index.js",
   "scripts": {

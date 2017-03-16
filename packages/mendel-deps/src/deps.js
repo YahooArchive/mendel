@@ -2,6 +2,10 @@ const acorn = require('acorn-jsx/inject')(require('acorn'));
 const {visit} = require('ast-types');
 const GLOBAL_WHITELIST = ['process'];
 
+// {
+//     imports: ['./foo', '../bar', 'baz'],
+//     exports: ['helloWorld', 'cruelWorld']
+// }
 function _depFinder(ast) {
     const imports = {};
     const exports = {};

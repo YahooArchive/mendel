@@ -4,6 +4,7 @@ const origCwd = process.cwd();
 [
     'packages/karma-mendel',
     'packages/mendel-config',
+    'packages/mendel-core',
     'packages/mendel-deps',
     'packages/mendel-development-middleware',
     'packages/mendel-exec',

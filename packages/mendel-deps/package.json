@@ -1,6 +1,6 @@
 {
   "name": "mendel-deps",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.10",
   "description": "Depedency finder based on AST and with fs acess caching",
   "main": "src/deps.js",
   "scripts": {
@@ -20,6 +20,6 @@
   "devDependencies": {
     "glob": "^7.1.1",
     "tap": "^7.1.2",
-    "mendel-resolver": "3.0.0-alpha.8"
+    "mendel-resolver": "3.0.0-alpha.10"
   }
 }

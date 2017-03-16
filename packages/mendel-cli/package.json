@@ -23,7 +23,7 @@
     "commander": "^2.9.0",
     "debug": "^2.3.3",
     "mendel-browserify": "^1.1.2",
-    "mendel-config": "^3.0.0-alpha.8",
+    "mendel-config": "^3.0.0-alpha.10",
     "mendel-development": "^1.1.2",
     "mendel-requirify": "^1.0.7",
     "mkdirp": "^0.5.1",
