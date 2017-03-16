@@ -1,7 +1,7 @@
 base-config:
-  id: base
-  dir: ./isomorphic/base
-  outdir: ./build
+  id: base # Bundle id for default variation
+  dir: ./isomorphic/base # Source dir for default variation
+  outdir: ./build # Base output dir for all artifacts
 
 variation-config:
   variation-dirs:
@@ -18,17 +18,19 @@ variation-config:
 
 route-config:
   # bundle does not have extension has it can be css bundle.
-  variation: /mendel/:variations/:bundle
-  hash: /mendel/:hash/:bundle
+  variation: /mendel/:variations/:bundle # Route pattern during development for variational assets
+  hash: /mendel/:hash/:bundle # Route pattern during production for variational assets
 
+# plugins are declared upfront and used by "types" bellow
+# you can have multiple instances of the same plugin with different ids
 transforms: # a list of all available transforms for all envs and types
-  babel:
-    plugin: mendel-transform-babel
-    options:
+  babel: # id or reference of a plugin instance
+    plugin: mendel-transform-babel # name of the plugin to be used, plugin must be installed in your project
+    options: # configuration object passed to plugin instance, each plugin has it's own format and documentation
       presets:
         - es2015
         - react
-  uglyfy: # lazy to write the real one, will be faster if we have real uglify?
+  uglyfy: # Example configuration for Babel + Uglification
     plugin: mendel-transform-babel
     options:
       comments: false # true - Output comments in generated output.
@@ -37,13 +39,13 @@ transforms: # a list of all available transforms for all envs and types
         -
           - es2015
           -
-            loose: true
+            loose: true # Preset "es2015-loose" is incompatible for mendel
         - react
-  json-parse:
+  json-parse: # Parsing JSON files to be usable in JS
     plugin: mendel-parser-json
   less-transform:
     plugin: mendel-transform-less
-  babel-test:
+  babel-test: # Example configuration for istanbul
     plugin: mendel-transform-babel
     options:
       presets:
@@ -52,24 +54,21 @@ transforms: # a list of all available transforms for all envs and types
       plugins:
         - istanbul
 
+# types of entries to be transformed or parsed
 types:
-  json:
+  json: # Type id. Doesn't have to be file extension.
     extensions:
       - .json
-    parser: json-parse
-    parser-to-type: js
-    include-node_modules: true
+    parser: json-parse # Uses parser defined in transforms. (Optional)
+    parser-to-type: js # Maps to type defined below (Required when parser is defined)
+    include-node_modules: true # Include files matching node_modules/* path.
   js:
-    outlet:
-      plugin: mendel-bundle-browser-pack
     transforms:
       - babel
     glob:
       - "**/*.{js,jsx}"
       - "!**/_test_/*"
   jstest:
-    outlet:
-      plugin: mendel-bundle-browser-pack
     transforms:
       - babel
     glob:
@@ -79,15 +78,16 @@ types:
       - .less
     parser: less-transform
     parser-to-type: css
-    resource: true
+    resource: true # Resources are filtered from executables list (#getExecutableEntries in MendelOutletRegistry)
   css:
     extensions:
       - .css
     resource: true
 
+# Defines the supported ways for outputting bundles
 outlets:
   - id: manifest
-    plugin: mendel-outlet-manifest
+    plugin: mendel-outlet-manifest # Serialization of bundle. Can be deserialized for future use
   - id: css
     plugin: mendel-outlet-css
     options:
@@ -105,11 +105,11 @@ outlets:
           -
             browsers: "last 2 versions"
         - rtlcss
-  - id: browser-pack
+  - id: browser-pack # Outputs stream compatible artifacts
     plugin: mendel-outlet-browser-pack
 
   - id: ssr
-    plugin: mendel-outlet-server-side-render
+    plugin: mendel-outlet-server-side-render # Outputs artifacts for server side render
     options:
       dir: server # appended after the "outdir" in base config
       requireTransform: true
@@ -119,6 +119,7 @@ outlets:
 # if extract-bundles comes first, some node_modules that
 #     only lazy bundle needs will be part of the lazy bundle
 # if node-modules first, extract-bundles will operate on source files only
+#     because all node_modules are extracted by node-modules generators
 generators: # AKA graph transforms - or graph operations
   - id: extract-bundles
     plugin: mendel-generator-extract
@@ -126,17 +127,19 @@ generators: # AKA graph transforms - or graph operations
     plugin: mendel-generator-node-modules
 
 # "outfile" is optional and only needed for single layer generation
+# If "generator" is not present, we use default generator.
+# Default generator walks dependency graph from entries and collects them into bundle.
 bundles:
   main:
     outlet: browser-pack
-    outfile: main.js
+    outfile: main.js # Writes to outdir
     entries:
       - ./main.js
   lazy:
     outlet: browser-pack
     outfile: lazy.js
     generator: extract-bundles
-    from: main
+    from: main # Bundle Id. Extracts these entries from main bundle
     entries:
       - ./components/lazy.js
   vendor:
@@ -154,7 +157,7 @@ bundles:
 
   css:
     outlet: css
-    outfile: main.css
+    outfile: main.css # File gets written to ${outdir}/main.css
     entries:
       - "**/*.css"
       - "**/*.less"
@@ -181,7 +184,7 @@ env:
     types:
       js:
         transforms:
-          - uglyfy
+          - uglyfy # Transform "js" type in this environment
 
     postgenerators:
       - id: prune
@@ -207,7 +210,10 @@ env:
       server:
         outlet: ssr
         manifest: ssr.manifest.json
+        # Following options are used in creating bundle
         outfile: server.js
         entries:
           - ./main.js
-        runtime: main # This
+        # If npm package has multiple entry files, this pulls only
+        # server side entry file defined in "main" field of package.json
+        runtime: main

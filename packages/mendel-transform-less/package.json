@@ -8,6 +8,10 @@
   },
   "author": "Stephan Lee <stephanwlee@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahoo/mendel"
+  },
   "dependencies": {
     "less": "^2.7.1",
     "postcss": "^5.2.8",
