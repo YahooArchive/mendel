@@ -6,7 +6,7 @@ module.exports = function createValidator(schema) {
             var criteria = schema[schemaKey];
             var value = instance[schemaKey];
 
-            if (criteria.required && !value) {
+            if (criteria.required && typeof value === 'undefined') {
                 return error.push('Required ' + schemaKey + ' is not present.');
             }
 

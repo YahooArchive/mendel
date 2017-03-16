@@ -1,11 +1,17 @@
 var createValidator = require('./validator');
-var moduleResolveSync = require('resolve').sync;
+var nodeResolveSync = require('resolve').sync;
 
 function TransformConfig(id, transform, {projectRoot}) {
     this.id = id;
 
-    this.plugin = moduleResolveSync(transform.plugin, {basedir: projectRoot});
-    this.mode = require(this.plugin).mode || 'ist';
+    try {
+        this.plugin = nodeResolveSync(transform.plugin, {basedir: projectRoot});
+        this.mode = require(this.plugin).mode || 'ist';
+    } catch (e) {
+        if (e.code !== 'MODULE_NOT_FOUND') throw e;
+        this.plugin = false;
+        this.mode = 'unknown';
+    }
 
     this.options = transform.options;
 

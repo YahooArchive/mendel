@@ -1,10 +1,19 @@
 var createValidator = require('./validator');
-var moduleResolveSync = require('resolve').sync;
+var nodeResolve = require('resolve').sync;
+
+function resolve(plugin, root) {
+    try {
+        return nodeResolve(plugin, {basedir: root});
+    } catch (e) {
+        if (e.code === 'MODULE_NOT_FOUND') return false;
+        throw e;
+    }
+}
 
 function OutletConfig({id, plugin, options={}}, {projectRoot}) {
     this.id = id;
     this._plugin = plugin;
-    this.plugin = moduleResolveSync(plugin, {basedir: projectRoot});
+    this.plugin = resolve(plugin, projectRoot);
     this.options = options;
 
     if (this.options.plugin) {
@@ -17,9 +26,9 @@ function OutletConfig({id, plugin, options={}}, {projectRoot}) {
             }
 
             if (typeof plugin === 'string')
-                return moduleResolveSync(plugin, {basedir: projectRoot});
+                return resolve(plugin, projectRoot);
 
-            plugin[0] = moduleResolveSync(plugin[0], {basedir: projectRoot});
+            plugin[0] = resolve(plugin[0], projectRoot);
             return plugin;
         });
     }
