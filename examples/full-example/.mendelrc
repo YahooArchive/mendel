@@ -16,21 +16,19 @@ variation-config:
     bucket_D:
       - partner_C
 
-route-config:
-  # bundle does not have extension has it can be css bundle.
-  variation: /mendel/:variations/:bundle # Route pattern during development for variational assets
-  hash: /mendel/:hash/:bundle # Route pattern during production for variational assets
+route-config: # Mendel-middleware related
+  variation: /mendel/:variations/:bundle # Route pattern for variational assets during development
+  hash: /mendel/:hash/:bundle # Route pattern for variational assets during production
 
-# plugins are declared upfront and used by "types" bellow
-# you can have multiple instances of the same plugin with different ids
 transforms: # a list of all available transforms for all envs and types
   babel: # id or reference of a plugin instance
-    plugin: mendel-transform-babel # name of the plugin to be used, plugin must be installed in your project
-    options: # configuration object passed to plugin instance, each plugin has it's own format and documentation
+    plugin: mendel-transform-babel # name of mendel-transform-* package: plugin must be installed in your project
+    options: # Configuration object passed to a plugin instance.
+      # Please refer to mendel-transform-babel documentation for its config
       presets:
         - es2015
         - react
-  uglyfy: # Example configuration for Babel + Uglification
+  babel-min: # Example configuration for Babel + some minification
     plugin: mendel-transform-babel
     options:
       comments: false # true - Output comments in generated output.
@@ -39,13 +37,13 @@ transforms: # a list of all available transforms for all envs and types
         -
           - es2015
           -
-            loose: true # Preset "es2015-loose" is incompatible for mendel
+            loose: true # Note "babel-preset-es2015-loose" is incompatible with mendel
         - react
-  json-parse: # Parsing JSON files to be usable in JS
+  json-parse: # Parsing JSON files to be evaluatable in JS
     plugin: mendel-parser-json
   less-transform:
     plugin: mendel-transform-less
-  babel-test: # Example configuration for istanbul
+  babel-test:
     plugin: mendel-transform-babel
     options:
       presets:
@@ -54,20 +52,22 @@ transforms: # a list of all available transforms for all envs and types
       plugins:
         - istanbul
 
-# types of entries to be transformed or parsed
-types:
-  json: # Type id. Doesn't have to be file extension.
-    extensions:
+types: # Type declaration of entries to be transformed or parsed
+  json: # Type id. Can be any arbitrary name, not file exntension
+    extensions: # Can use `glob` or `extensions`
       - .json
-    parser: json-parse # Uses parser defined in transforms. (Optional)
-    parser-to-type: js # Maps to type defined below (Required when parser is defined)
-    include-node_modules: true # Include files matching node_modules/* path.
+    parser: json-parse # Parser is a special type of transform that runs after all transforms in this type (if declared)
+        # that allows an entry to be regarded as a destination type to be declared below.
+    parser-to-type: js # Defines type conversion: json -> js after running the parsre
+    # Type, by default, excludes `node_modules` but below configuration allows override
+    # By default, the configuration is off.
+    include-node_modules: true
   js:
     transforms:
       - babel
     glob:
       - "**/*.{js,jsx}"
-      - "!**/_test_/*"
+      - "!**/_test_/*" # "!" is an exclusion notation in minimatch
   jstest:
     transforms:
       - babel
@@ -84,12 +84,24 @@ types:
       - .css
     resource: true
 
-# Defines the supported ways for outputting bundles
-outlets:
+# Generator = Bundle former. Can use plugins like code-splitter.
+# ! Important: order is relevant !
+# Scenarios:
+# 1. if extract-bundles comes first, some node_modules that
+#     only lazy bundle needs will be part of the lazy bundle
+# 2. if node-modules first, extract-bundles will operate on source files only
+#     because all node_modules are extracted by node-modules generators
+generators:
+  - id: extract-bundles
+    plugin: mendel-generator-extract
+  - id: node-modules-generator
+    plugin: mendel-generator-node-modules
+
+outlets: # Outlet: defines methods of outputting bundles
   - id: manifest
-    plugin: mendel-outlet-manifest # Serialization of bundle. Can be deserialized for future use
+    plugin: mendel-outlet-manifest # Mendel v1 compatible serialization of a bundle
   - id: css
-    plugin: mendel-outlet-css
+    plugin: mendel-outlet-css # PostCSS-based css outputter
     options:
       plugin:
         -
@@ -105,34 +117,19 @@ outlets:
           -
             browsers: "last 2 versions"
         - rtlcss
-  - id: browser-pack # Outputs stream compatible artifacts
-    plugin: mendel-outlet-browser-pack
-
+  - id: browser-pack
+    plugin: mendel-outlet-browser-pack # Outputs stream compatible JS bundles
   - id: ssr
     plugin: mendel-outlet-server-side-render # Outputs artifacts for server side render
     options:
-      dir: server # appended after the "outdir" in base config
+      dir: server
       requireTransform: true
       includeNodeModules: false # default false
 
-# needs to be array because order is relevant
-# if extract-bundles comes first, some node_modules that
-#     only lazy bundle needs will be part of the lazy bundle
-# if node-modules first, extract-bundles will operate on source files only
-#     because all node_modules are extracted by node-modules generators
-generators: # AKA graph transforms - or graph operations
-  - id: extract-bundles
-    plugin: mendel-generator-extract
-  - id: node-modules-generator
-    plugin: mendel-generator-node-modules
-
-# "outfile" is optional and only needed for single layer generation
-# If "generator" is not present, we use default generator.
-# Default generator walks dependency graph from entries and collects them into bundle.
-bundles:
+bundles: # Definition of a bundle
   main:
     outlet: browser-pack
-    outfile: main.js # Writes to outdir
+    outfile: main.js
     entries:
       - ./main.js
   lazy:
@@ -184,7 +181,7 @@ env:
     types:
       js:
         transforms:
-          - uglyfy # Transform "js" type in this environment
+          - babel-min # Transform "js" type in this environment
 
     postgenerators:
       - id: prune
