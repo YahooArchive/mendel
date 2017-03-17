@@ -1,7 +1,7 @@
 {
   "name": "mendel-outlet-manifest",
   "version": "3.0.0-beta.1",
-  "description": "Mendelv2 outlet for generating mendel-core compatible manifest",
+  "description": "Mendel outlet for generating mendel-core (Mendel v1) compatible manifest. Manifest is a serialization of a Mendel cache.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

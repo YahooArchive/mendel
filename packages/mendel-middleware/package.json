@@ -1,7 +1,7 @@
 {
   "name": "mendel-middleware",
   "version": "3.0.0-beta.1",
-  "description": "Mendel Middleware that uses generated manifests to output multilayer resolution of isomorphic applications.",
+  "description": "Mendel middleware that uses manifests to output multilayer resolution of isomorphic applications.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

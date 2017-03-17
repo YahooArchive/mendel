@@ -1,7 +1,7 @@
 {
   "name": "mendel-development-middleware",
   "version": "3.0.0-beta.1",
-  "description": "",
+  "description": "Mendel middleware that executes and builds based on a Mendel client appropriate for during development.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

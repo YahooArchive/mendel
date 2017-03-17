@@ -1,7 +1,7 @@
 {
   "name": "mendel-parser-json",
   "version": "3.0.0-beta.1",
-  "description": "Wraps JSON file in a javascript module for bundling with assets in Mendel",
+  "description": "Wraps JSON file in a JavaScript module for bundling with assets in Mendel",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

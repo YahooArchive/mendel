@@ -1,7 +1,7 @@
 {
   "name": "mendel-config",
   "version": "3.0.0-beta.1",
-  "description": "Mendel core configuration parser",
+  "description": "Mendel configuration parser",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

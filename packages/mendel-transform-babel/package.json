@@ -1,7 +1,7 @@
 {
   "name": "mendel-transform-babel",
   "version": "3.0.0-beta.1",
-  "description": "Mendel plugin for transforms using babel-core",
+  "description": "Mendel transforms that uses babel-core",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

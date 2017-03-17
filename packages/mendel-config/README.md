@@ -203,27 +203,3 @@ bundles:
     entries:
       - /apps/main
 ```
-
-```yml
-# Mendel v1
-bundles:
-
-  vendor:
-    require: &vendor_list
-      - react
-      - react-dom
-
-  main:
-    entries:
-      - ./src/base/main.js
-    require: &main_files # make utils available to logged_in_bundle
-      - ./src/base/utils.js
-    external: *vendor_list
-
-  logged_in_bundle:
-    entries:
-      - ./src/base/logged_in.js
-    external: # following arrays are flattened
-      - *main_files
-      - *vendor_list
-```

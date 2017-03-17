@@ -1,7 +1,7 @@
 {
   "name": "mendel-generator-prune",
   "version": "3.0.0-beta.1",
-  "description": "Mendel generator that cleans up dangling dependencies and mangles `expose` for shorter names.",
+  "description": "Mendel post-generator that cleans up dangling dependencies and mangles `expose` for shorter names.",
   "main": "index.js",
   "scripts": {},
   "author": "Stephan Lee <stephanwlee@gmail.com>",
