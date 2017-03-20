@@ -1,6 +1,6 @@
 {
   "name": "mendel-resolver",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "description": "node-resolve + browser-resolve that is promise based in an OOP fashion",
   "main": "index.js",
   "scripts": {

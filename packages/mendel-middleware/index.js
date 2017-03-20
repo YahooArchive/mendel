@@ -11,8 +11,7 @@ module.exports = MendelMiddleware;
 
 function MendelMiddleware(opts) {
     var trees = MendelTrees(opts);
-
-    var route = trees.config.hashroute || '/mendel/:hash/:bundle.js';
+    var route = trees.config.routeConfig.hash || '/mendel/:hash/:bundle.js';
     var getPath = pathToRegexp.compile(route);
     var keys = [];
     var bundleRoute = pathToRegexp(route, keys);
