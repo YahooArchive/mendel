@@ -7,6 +7,7 @@ function BundleConfig(id, options, config) {
     this.generator = options.generator || 'default';
 
     const {outdir} = config.baseConfig;
+
     this.outfile = options.outfile ?
         path.resolve(outdir, options.outfile) : '';
 
@@ -23,6 +24,7 @@ function BundleConfig(id, options, config) {
         options,
         ['generator', 'outfile', 'outlet', 'entries', 'require', 'external']
     );
+
     this.options = undash(this.options);
 
     BundleConfig.validate(this);
@@ -30,6 +32,19 @@ function BundleConfig(id, options, config) {
 
 BundleConfig.validate = createValidator({
     id: {required: true},
+    supportedOptionFields: [
+        'allBundles',
+        'entries',
+        'external',
+        'from',
+        'generator',
+        'manifest',
+        'outfile',
+        'outlet',
+        'require',
+        'runtime',
+        'sourcemap',
+    ],
 });
 
 function flattenArrays(inArray) {

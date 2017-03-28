@@ -25,6 +25,16 @@ module.exports = function createValidator(schema) {
             }
         });
 
+        if (instance.options && Array.isArray(schema.supportedOptionFields)) {
+            const unsupportedOptionFields = Object.keys(instance.options).filter(field => {
+                return schema.supportedOptionFields.indexOf(field) === -1;
+            });
+
+            if (unsupportedOptionFields.length > 0) {
+                error.push('Found unsupported options `' + unsupportedOptionFields.join('`, `') + '`');
+            }
+        }
+
         if (error.length) {
             throw new Error(
                 error.filter(Boolean).reduce(function(reduced, error) {
