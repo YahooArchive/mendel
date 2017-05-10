@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-manifest",
-  "version": "3.0.0-beta.2",
+  "version": "3.0.0",
   "description": "Mendel outlet for generating mendel-core (Mendel v1) compatible manifest. Manifest is a serialization of a Mendel cache.",
   "main": "src/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "babel-core": "^6.23.1",
     "babel-plugin-transform-inline-environment-variables": "0.0.2",
     "debug": "^2.6.0",
-    "mendel-manifest-uglify": "3.0.0-beta.2",
+    "mendel-manifest-uglify": "3.0.0",
     "shasum": "^1.0.2"
   }
 }

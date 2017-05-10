@@ -1,6 +1,6 @@
 {
   "name": "mendel-transform-less",
-  "version": "3.0.0-beta.2",
+  "version": "3.0.0",
   "description": "Mendel transformer for LESS",
   "main": "index.js",
   "scripts": {
