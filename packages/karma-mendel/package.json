@@ -1,6 +1,6 @@
 {
   "name": "karma-mendel",
-  "version": "3.0.0-beta.2",
+  "version": "3.0.0",
   "description": "Karma plugin for mendel",
   "main": "lib/plugin.js",
   "scripts": {
