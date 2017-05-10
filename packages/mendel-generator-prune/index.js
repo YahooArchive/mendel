@@ -1,4 +1,5 @@
 const verbose = require('debug')('verbose:mendel:generator:prune');
+const shasum = require('shasum');
 
 // First argument is not needed; just to make it look like normal generator API
 function pruneModules(bundle, doneBundles, registry, generator) {
@@ -12,11 +13,6 @@ function pruneModules(bundle, doneBundles, registry, generator) {
 }
 
 function pruneGroup(bundles) {
-    const getUniqId = (function() {
-        let index = 0;
-        return () => '_u' + Number(index++).toString(16);
-    })();
-
     const exposeNormToExposeId = new Map();
     const allNorms = new Set();
 
@@ -25,8 +21,9 @@ function pruneGroup(bundles) {
             const norm = entry.normalizedId;
             allNorms.add(norm);
 
-            if (entry.expose && !exposeNormToExposeId.has(entry.expose))
-                exposeNormToExposeId.set(entry.expose, getUniqId());
+            if (entry.expose && !exposeNormToExposeId.has(entry.expose)) {
+                exposeNormToExposeId.set(entry.expose, shasum(norm));
+            }
         });
     });
 
@@ -57,8 +54,10 @@ function pruneGroup(bundles) {
             });
 
             // Remap externals
-            if (exposeNormToExposeId.has(entry.expose))
+            if (exposeNormToExposeId.has(entry.expose)) {
                 clone.expose = exposeNormToExposeId.get(entry.expose);
+            }
+
             Object.keys(clone.deps).forEach(literal => {
                 const deps = clone.deps[literal];
                 Object.keys(deps).forEach(runtime => {
