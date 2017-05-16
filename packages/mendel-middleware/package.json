@@ -1,6 +1,6 @@
 {
   "name": "mendel-middleware",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Mendel middleware that uses manifests to output multilayer resolution of isomorphic applications.",
   "main": "index.js",
   "scripts": {
