@@ -6,6 +6,7 @@ var pathToRegexp = require('path-to-regexp');
 var bpack = require('browser-pack');
 var MendelTrees = require('mendel-core');
 var MendelLoader = require('mendel-loader');
+var debug = require('debug')('mendel:middleware');
 
 module.exports = MendelMiddleware;
 
@@ -106,7 +107,17 @@ function MendelMiddleware(opts) {
         var pack = bpack({raw: true, hasExports: true});
         var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
         if (!decodedResults || decodedResults.error) {
-            return notFound(res, decodedResults && decodedResults.error);
+            return bundleError(res, 404, decodedResults && decodedResults.error, params);
+        }
+
+        var modules = indexedDeps(decodedResults.deps.filter(Boolean));
+
+        if (!modules.length) {
+            // Something wrong, modules shouldn't be zero
+            return bundleError(res, 500, {
+                code: 'EMPTYBUNDLE',
+                message: 'Tree contents are empty'
+            }, params);
         }
 
         // Serve bundle
@@ -116,7 +127,6 @@ function MendelMiddleware(opts) {
         });
 
         pack.pipe(res);
-        var modules = indexedDeps(decodedResults.deps.filter(Boolean));
         for (var i = 0; i < modules.length; i++) {
             pack.write(modules[i]);
         }
@@ -277,14 +287,17 @@ function indexedDeps(mods) {
 
 ****/
 
-function notFound(res, error) {
+function bundleError(res, statusCode, error, params) {
     var message = "Mendel: ";
     if (!error) {
-        message += 'Bundle not found';
+        message += (statusCode === 404 ? 'Bundle not found' : 'Unable to create Bundle');
     } else {
         message += error.code + ' - ' + error.message;
     }
-    res.status(404).send(message);
+
+    debug([(error ? error.code : 'UNKNOWN'), 'hash=' + params.hash, 'bundle=' + params.bundle].join(' '));
+
+    res.status(statusCode).send(message);
 }
 
 function namedParams(keys, reqParams) {
