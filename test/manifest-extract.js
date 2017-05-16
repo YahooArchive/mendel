@@ -12,7 +12,7 @@ var realSamples = path.join(__dirname, './manifest-samples/');
 var copySamples = tmp.dirSync().name;
 
 var postProcessManifests = require(
-    '../packages/mendel-cli/post-process-manifest');
+    'mendel-development/post-process-manifest');
 var extract = require('../packages/mendel-manifest-extract-bundles');
 
 test('postProcessManifests applying post-processors', function (t) {
