@@ -12,7 +12,7 @@ var realSamples = path.join(__dirname, './manifest-samples/');
 var copySamples = tmp.dirSync().name;
 
 var postProcessManifests = require(
-    '../packages/mendel-cli/post-process-manifest');
+    '../packages/mendel-development/post-process-manifest');
 
 test('postProcessManifests loads manifests', function (t) {
     copyRecursiveSync(realSamples, copySamples);
