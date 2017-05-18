@@ -1,5 +1,4 @@
-const verbose = require('debug')('verbose:mendel:generator:prune');
-const shasum = require('shasum');
+const debug = require('debug')('mendel:generator:prune');
 
 // First argument is not needed; just to make it look like normal generator API
 function pruneModules(bundle, doneBundles, registry, generator) {
@@ -22,7 +21,7 @@ function pruneGroup(bundles) {
             allNorms.add(norm);
 
             if (entry.expose && !exposeNormToExposeId.has(entry.expose)) {
-                exposeNormToExposeId.set(entry.expose, shasum(norm));
+                exposeNormToExposeId.set(entry.expose, norm);
             }
         });
     });
@@ -43,12 +42,7 @@ function pruneGroup(bundles) {
                 });
 
                 if (remove) {
-                    verbose(
-                        '[WARN][generator-prune] Removing ',
-                        literal,
-                        'from',
-                        entry.id
-                    );
+                    debug('[WARN] Removing ', literal, 'from', entry.id);
                     delete clone.deps[literal];
                 }
             });
