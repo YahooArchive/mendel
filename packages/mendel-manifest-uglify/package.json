@@ -1,6 +1,6 @@
 {
   "name": "mendel-manifest-uglify",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Walks all manifest and apply UglifyJS to source",
   "main": "manifest-uglify.js",
   "scripts": {
