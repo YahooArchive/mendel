@@ -12,8 +12,8 @@ function manifestUglify(manifests, options, next) {
     // `compress` and `mangle` are set to `true` on uglifyify
     // just making sure we have the same defaults
     var uglifyOptions = Object.assign({
-        compress: true,
-        mangle: true,
+        compress: options.uglifyOptions.compress ? options.uglifyOptions.compress : true,
+        mangle: options.uglifyOptions.mangle ? options.uglifyOptions.mangle: true
     }, options.uglifyOptions, {
         fromString: true,
     });

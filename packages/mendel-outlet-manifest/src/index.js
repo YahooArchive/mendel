@@ -87,6 +87,8 @@ module.exports = class ManifestOutlet {
         manifestUglify([manifest], {
             uglifyOptions: {
                 root: this.config.baseConfig.dir,
+                compress: this.options.compress,
+                mangle: this.options.mangle
             },
         }, ([uglifiedManifest]) => {
             // happens immediately
