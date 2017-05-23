@@ -9,14 +9,7 @@ module.exports = manifestUglify;
 
 function manifestUglify(manifests, options, next) {
     var optBundles = [].concat(options.bundles).filter(Boolean);
-    // `compress` and `mangle` are set to `true` on uglifyify
-    // just making sure we have the same defaults
-    var uglifyOptions = Object.assign({
-        compress: options.uglifyOptions.compress ? options.uglifyOptions.compress : true,
-        mangle: options.uglifyOptions.mangle ? options.uglifyOptions.mangle: true
-    }, options.uglifyOptions, {
-        fromString: true,
-    });
+    var uglifyOptions = Object.assign({}, options.uglifyOptions, {fromString: true});
 
     function whichManifests(manifest) {
         // default to all bundles
