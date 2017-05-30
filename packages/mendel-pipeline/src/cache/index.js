@@ -3,7 +3,7 @@ const {EventEmitter} = require('events');
 const {Minimatch} = require('minimatch');
 const verbose = require('debug')('verbose:mendel:cache');
 
-const Entry = require('./entry.js');
+const Entry = require('./entry');
 const variationMatches = require('mendel-development/variation-matches');
 const RUNTIME = ['main', 'browser'];
 
@@ -63,11 +63,11 @@ class MendelCache extends EventEmitter {
         const nodeModule = isNodeModule(id);
         // Find type as if node module was a source
         if (nodeModule) id = '.' + id.slice(id.lastIndexOf('node_modules') + 12);
-        const {name} = this._types.find(t => t.test(id)) || {name: '_others'};
+        const type = Entry.getTypeForConfig(this._types, id);
         return {
-            type: nodeModule ? 'node_modules' : name,
+            type: nodeModule ? 'node_modules' : type,
             // Secondary type: type as if node_modules was a source
-            _type: name,
+            _type: type,
         };
     }
 

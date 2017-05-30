@@ -1,4 +1,10 @@
 class Entry {
+    static getTypeForConfig(typeConfigs, id) {
+        if (isNodeModule(id)) return 'node_modules';
+        const type = typeConfigs.find(type => type.test(id));
+        return type ? type.name : '_others';
+    }
+
     constructor(id) {
         this.id = id;
 
@@ -50,13 +56,6 @@ class Entry {
 
     getDependency() {
         return this.deps;
-    }
-
-    getTypeForConfig(config) {
-        const id = this.id;
-        if (isNodeModule(id)) return 'node_modules';
-        const type = config.types.find(type => type.test(id));
-        return type ? type.name : 'others';
     }
 
     reset() {
