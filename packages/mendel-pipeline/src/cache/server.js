@@ -20,18 +20,25 @@ class CacheServer extends EventEmitter {
         this.cacheManager = cacheManager;
         this.initCache();
 
-        this.server = network.getServer(config.cacheConnection);
-        this.initServer();
+        network.getServer(config.cacheConnection)
+        .then(server => {
+            this.server = server;
+            this.initServer();
 
-        debug('listening', config.cacheConnection);
+            debug('listening', config.cacheConnection);
+        }).catch(err => {
+            debug('Cache server could not come up', err);
+        });
     }
 
     onExit() {
-        this.server.close();
+        if (this.server)
+            this.server.close();
     }
 
     onForceExit() {
-        this.server.close();
+        if (this.server)
+            this.server.close();
     }
 
     send(client, data) {
