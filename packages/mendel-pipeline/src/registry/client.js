@@ -92,7 +92,8 @@ class MendelOutletRegistry {
 
             const isPadded = this._options.variationConfig.allVariationDirs
                 .some(varDir => str.indexOf(varDir) >= 0) ||
-                str.indexOf(this._options.baseConfig.dir) >= 0;
+                str.indexOf(this._options.baseConfig.dir) >= 0 ||
+                this._options.environment === 'test';
 
             if (!isPadded)
                 str = path.join(this._options.baseConfig.dir, str);
