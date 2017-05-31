@@ -72,7 +72,8 @@ types: # Type declaration of entries to be transformed or parsed
     transforms:
       - babel
     glob:
-      - "./**/_test_/*"
+      # Test files themselves should not be be instrumented.
+      - "**/_test_/*"
   less:
     extensions:
       - .less
@@ -175,8 +176,8 @@ env:
         transforms:
           - babel-test
         glob:
-          - "./**/*.{js,jsx}"
-          - "!./**/_test_/*"
+          - "**/*.{js,jsx}"
+          - "!**/_test_/*"
   production:
     types:
       js:
