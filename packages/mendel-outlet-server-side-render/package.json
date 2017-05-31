@@ -1,7 +1,7 @@
 {
   "name": "mendel-outlet-server-side-render",
+  "description": "Writes out server-side compatible files for mendel-middleware in production mode",
   "version": "3.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

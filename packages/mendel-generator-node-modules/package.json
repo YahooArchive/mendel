@@ -17,6 +17,5 @@
     "type": "git",
     "url": "https://github.com/yahoo/mendel"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

@@ -46,9 +46,7 @@
       "test/**"
     ]
   },
-  "dependencies": {
-    "mkdirp": "^0.5.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "async": "^2.1.2",
     "browserify": "^13.1.1",

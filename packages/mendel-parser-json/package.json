@@ -12,8 +12,7 @@
     "type": "git",
     "url": "https://github.com/yahoo/mendel"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "engines": {
     "node": ">=6.0"
   }
