@@ -19,6 +19,11 @@ module.exports = function() {
             variations: {},
         },
         'cache-connection': {
+            type: 'unix',
+            // Host and port are used for TCP-based - e.g., WebSocket.
+            host: '',
+            port: 0,
+            // Used for unix socket.
             path: '.mendelipc',
         },
         'environment': mendelEnv,
