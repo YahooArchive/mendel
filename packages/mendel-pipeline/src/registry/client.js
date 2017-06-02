@@ -89,18 +89,12 @@ class MendelOutletRegistry {
         const globs = globStrings.map(str => {
             const isNegate = str[0] === '!';
             str = isNegate ? str.slice(1) : str;
+            // Strip "./" in case it is prepended already.
+            str = str.startsWith('./') ? str.slice(2) : str;
 
-            const isPadded = this._options.variationConfig.allVariationDirs
-                .some(varDir => str.indexOf(varDir) >= 0) ||
-                str.indexOf(this._options.baseConfig.dir) >= 0;
-
-            if (!isPadded)
-                str = path.join(this._options.baseConfig.dir, str);
-
-            if (!str.startsWith('./')) str = (isNegate ? '!./' : './') + str;
-            else str = (isNegate ? '!' : '') + str;
-
-            return new Minimatch(str);
+            // Have to prepend "./" because entry Ids starts with "./".
+            const pattern = `${isNegate ? '!' : ''}./**/${str}`;
+            return new Minimatch(pattern);
         });
 
         const positives = globs.filter(({negate}) => !negate);
