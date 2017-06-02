@@ -2,7 +2,7 @@ const analyticsCollector = require('../helpers/analytics/analytics-collector');
 const analyzeIpc = require('../helpers/analytics/analytics')('ipc');
 const {fork} = require('child_process');
 // After 4, there is a diminishing marginal utility at cost of memory.
-const RECOMMENDED_CPUS = Math.min(2, Math.max(4, require('os').cpus().length));
+const RECOMMENDED_CPUS = Math.max(2, Math.min(4, require('os').cpus().length));
 const Protocol = require('./protocol');
 const path = require('path');
 
