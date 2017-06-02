@@ -33,7 +33,6 @@ function generatorExtract(bundle, doneBundles, registry) {
     // Collect dependencies of main as if lazy was not there
     registry.getEntriesByGlob(fromBundle.options.entries)
     .forEach(({normalizedId, type}) => {
-        console.log(normalizedId, type)
         registry.walk(normalizedId, {types: [type]}, dep => {
             // Returning false stops from walking further
             // Since this code path is already visited; short circuit out of the

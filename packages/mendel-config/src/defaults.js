@@ -47,9 +47,11 @@ module.exports = function() {
         ignores: [],
         // This controls whether outlet outputs to a file or a stream
         noout: false, // TODO re-evaluate whether we need this guy
-        // In a large project, there are configuration/support related code
-        // that is not variatonal or should be bundled to browser.
-        // Takes glob as input
+        // In a large project, there are configuration/support/bootstrap code
+        // that is not variational or should be bundled to browser.
+        // Especially useful when the support code pulls in large dependency
+        // that you do not want to process/transpile in all environments.
+        // Takes (glob|path) as input.
         support: '',
     };
 };
