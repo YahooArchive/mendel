@@ -16,18 +16,14 @@ glob(__dirname + '/fixtures/**/*.js', null, function(err, files) {
     files
     .filter(file => file.endsWith('index.js'))
     .forEach(file => {
-        resolver.setBaseDir(path.dirname(file));
+        const dirname = path.dirname(file);
+        resolver.setBaseDir(dirname);
 
-        test(file, function(t) {
+        test(dirname, function(t) {
             return deps({source: readFileSync(file, 'utf8'), resolver})
             .then(deps => {
-                if (file.indexOf('no-global') >= 0) {
-                    // foo, Object
-                    t.equal(Object.keys(deps).length, 2);
-                } else {
-                    // foo, console, and process
-                    t.equal(Object.keys(deps).length, 3);
-                }
+                // foo, process, and global
+                t.equal(Object.keys(deps).length, 3);
 
                 const fooDep = deps['./foo'];
                 t.match(fooDep.browser, /foo\/browser.js$/);
