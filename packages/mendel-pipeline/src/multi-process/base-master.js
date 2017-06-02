@@ -1,7 +1,8 @@
 const analyticsCollector = require('../helpers/analytics/analytics-collector');
 const analyzeIpc = require('../helpers/analytics/analytics')('ipc');
 const {fork} = require('child_process');
-const numCPUs = require('os').cpus().length;
+// After 4, there is a diminishing marginal utility at cost of memory.
+const RECOMMENDED_CPUS = Math.max(2, Math.min(4, require('os').cpus().length));
 const Protocol = require('./protocol');
 const path = require('path');
 
@@ -12,7 +13,7 @@ class BaseMasterProcess {
 
     constructor(workerFileName, options={}) {
         this._name = options.name || 'unamed_multi_process';
-        this._workers = Array.from(Array(options.numWorker || numCPUs))
+        this._workers = Array.from(Array(options.numWorker || RECOMMENDED_CPUS))
             .map(() => {
                 return fork(
                     path.join(__dirname, 'worker.js'),
