@@ -31,7 +31,6 @@ class BaseMendelClient extends EventEmitter {
         this.registry = new MendelClientRegistry(this.config);
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
-        this._setupClient();
         this.synced = false;
     }
 
@@ -41,7 +40,7 @@ class BaseMendelClient extends EventEmitter {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
                 console.error([
                     'Please, use --outlet only when you have another',
-                    'mendel process running on --watch mode.',
+                    'mendel process running on --watch mode.\n',
                 ].join(' '));
                 process.exit(1);
             }
@@ -66,6 +65,8 @@ class BaseMendelClient extends EventEmitter {
     }
 
     run(callback=()=>{}) {
+        this._setupClient();
+
         // Print a message if it does not sync within a second.
         if (this._verbose) {
             this.initSyncMessage = setTimeout(() => {

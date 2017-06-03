@@ -58,7 +58,6 @@ class VariationalModuleResolver extends ModuleResolver {
     }
 
     resolveFile(modulePath) {
-        // console.log('var-resolve', modulePath);
         if (
             this.isBasePath(modulePath) ||
             isNodeModule(modulePath) ||

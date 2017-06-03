@@ -42,7 +42,6 @@ class Worker {
     }
 
     dispatchDone(result) {
-        // console.log('sending?!', result);
         this._send(Protocol.DONE, result);
     }
 

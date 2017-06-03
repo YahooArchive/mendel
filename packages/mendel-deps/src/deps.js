@@ -33,7 +33,6 @@ function _depFinder(ast) {
             return this.traverse(nodePath);
         },
         visitMemberExpression(nodePath) {
-            // console.log(nodePath.parentPath.node)
             const node = nodePath.value;
             if (node.object.type === 'Identifier' &&
                 !nodePath.scope.lookup(node.object.name) &&
