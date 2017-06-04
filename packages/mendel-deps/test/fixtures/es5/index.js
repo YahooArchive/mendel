@@ -1,5 +1,7 @@
-const {hi} = require('./foo');
-console.log(process.env.NODE_ENV);
+const hi = require('./foo');
+function foo() {
+    global.console.log(process.env.NODE_ENV);
+}
 
 function bar() {}
 console.log(bar);

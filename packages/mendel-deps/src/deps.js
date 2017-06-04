@@ -1,6 +1,10 @@
 const acorn = require('acorn-jsx/inject')(require('acorn'));
 const {visit} = require('ast-types');
-const GLOBAL_WHITELIST = ['process'];
+// `console` is not included as it works flawlessly in Node and browser.
+const GLOBAL_WHITELIST = [
+    'global',
+    'process',
+];
 
 // {
 //     imports: ['./foo', '../bar', 'baz'],

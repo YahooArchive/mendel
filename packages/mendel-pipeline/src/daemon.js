@@ -1,4 +1,5 @@
 const debug = require('debug')('mendel:daemon');
+const path = require('path');
 const mendelConfig = require('mendel-config');
 
 const EventEmitter = require('events').EventEmitter;
@@ -72,7 +73,10 @@ class CacheManager extends EventEmitter {
 
 module.exports = class MendelPipelineDaemon {
     constructor(options) {
-        options = Object.assign({defaultShim: DefaultShims}, options);
+        const defaultShim = Object.assign({
+            global: path.join(__dirname, 'default-shims', 'global.js'),
+        }, DefaultShims);
+        options = Object.assign({defaultShim}, options);
         const config = mendelConfig(options);
         this.config = config;
 

@@ -1,2 +1,7 @@
 import {hi} from './foo';
-console.log(process.env.NODE_ENV);
+
+function foo() {
+    global.console.log(process.env.NODE_ENV);
+}
+
+console.log(hi);

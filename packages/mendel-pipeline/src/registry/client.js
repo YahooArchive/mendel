@@ -125,7 +125,7 @@ class MendelOutletRegistry {
             return;
         }
 
-        types = types.concat('node_modules');
+        types = types.concat('node_modules', '_others');
 
         Array.from(entryVariations.values())
         .filter(entry => {

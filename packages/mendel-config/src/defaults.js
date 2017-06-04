@@ -1,6 +1,7 @@
 /* Copyright 2015, Yahoo Inc.
    Copyrights licensed under the MIT License.
    See the accompanying LICENSE file for terms. */
+const path = require('path');
 
 module.exports = function() {
     const mendelEnv = process.env.MENDEL_ENV ||
@@ -47,8 +48,17 @@ module.exports = function() {
         env: {},
         bundles: {},
         config: true,
-        shim: {},
-        defaultShim: {},
+        shim: {
+            // Can pass any shim that would resolve modules differently.
+            // For instance, you can pass "fs" and name of the package
+            // to inject different implementation of "fs" instead of that of
+            // the browser.
+            // This would override "defaultShim" below.
+        },
+        defaultShim: {
+            // For Mendelv2, the default set of shim is listed in
+            // https://github.com/webpack/node-libs-browser.
+        },
         ignores: [],
         // This controls whether outlet outputs to a file or a stream
         noout: false, // TODO re-evaluate whether we need this guy
