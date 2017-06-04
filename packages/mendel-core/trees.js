@@ -24,9 +24,11 @@ function MendelTrees(opts) {
     this.ssrOutlet = this.config.outlets.find(outletConfig => {
         return outletConfig._plugin === 'mendel-outlet-server-side-render';
     });
-    this.ssrBundle = this.config.bundles.find(bundleConfig => {
-        return bundleConfig.outlet === this.ssrOutlet.id;
-    });
+    if (this.ssrOutlet) {
+        this.ssrBundle = this.config.bundles.find(bundleConfig => {
+            return bundleConfig.outlet === this.ssrOutlet.id;
+        });
+    }
 }
 
 MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
