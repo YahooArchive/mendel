@@ -4,9 +4,9 @@
   "description": "Example of app using mendel, es6, jsx, react, server-side-rendering, multivariant and multilayer support.",
   "main": "index.js",
   "scripts": {
-    "test": "mendel-mocha --prelude test/setup/jsdom.js **/_test_/*.js",
-    "test-dev": "mendel-mocha --prelude test/setup/jsdom.js **/_test_/*.js --watch",
-    "coverage": "mendel-mocha --prelude test/setup/jsdom.js **/_test_/*.js --reporter=mocha-istanbul-reporter --reporter-options=text,text-summary",
+    "test": "mendel-mocha --prelude 'test/setup.js' **/_test_/*.js",
+    "test-dev": "mendel-mocha --prelude 'test/setup/*.js' **/_test_/*.js --watch",
+    "coverage": "mendel-mocha --prelude 'test/setup/*.js' **/_test_/*.js --reporter=mocha-istanbul-reporter --reporter-options=text,text-summary",
     "build": "NODE_ENV=production mendel",
     "daemon": "mendel --watch",
     "development": "nodemon index.js",

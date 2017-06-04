@@ -37,6 +37,13 @@ function matchVar(entries, multiVariations) {
     }
 }
 
+function entriesHaveGlobalDep(entryMap, globalName) {
+    return Array.from(entryMap.values())
+        .some(({deps}) => {
+            return Object.values(deps).some(dep => dep.browser === globalName);
+        });
+}
+
 module.exports = class BrowserPackOutlet {
     constructor(options) {
         this.config = options;
@@ -45,9 +52,9 @@ module.exports = class BrowserPackOutlet {
     perform({entries, options, id}, variations) {
         return new Promise((resolve, reject) => {
             // globals like, "process", handling
-            const processEntries = Array.from(entries.values())
-                .filter(({normalizedId}) => normalizedId === 'process');
-            const hasProcess = processEntries.length > 0;
+            const hasProcess = entriesHaveGlobalDep(entries, 'process');
+            const hasGlobal = entriesHaveGlobalDep(entries, 'global');
+
             const bundles = this.getPackJSON(entries);
 
             debug(bundles.map(({data}) => `[${id}] ${data[0].file} - ${data[0].runtime}`));
@@ -65,10 +72,12 @@ module.exports = class BrowserPackOutlet {
             let prelude = '';
             let appendix = '';
 
-            if (hasProcess) {
-                prelude = '(function(){var process={env: {}};';
+            if (hasProcess || hasGlobal) {
+                prelude = '(function(){';
                 appendix = '})();';
             }
+            if (hasGlobal || hasProcess) prelude += 'var global=window;';
+            if (hasProcess) prelude += 'var process=global.process||{env: {}};';
 
             if (!this.config.noout && options.outfile) {
                 let source = '';

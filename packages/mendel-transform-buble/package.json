@@ -1,0 +1,30 @@
+{
+  "name": "mendel-transform-buble",
+  "version": "1.0.0",
+  "description": "Mendel Transform for bublé",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahoo/mendel.git"
+  },
+  "keywords": [
+    "mendel",
+    "plugin",
+    "mendel-transform",
+    "transform",
+    "buble",
+    "es6"
+  ],
+  "author": "Irae Carvalho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yahoo/mendel/issues"
+  },
+  "homepage": "https://github.com/yahoo/mendel#readme",
+  "dependencies": {
+    "buble": "^0.15.2"
+  }
+}

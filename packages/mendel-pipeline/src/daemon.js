@@ -1,4 +1,5 @@
 const debug = require('debug')('mendel:daemon');
+const path = require('path');
 const mendelConfig = require('mendel-config');
 
 const EventEmitter = require('events').EventEmitter;
@@ -73,8 +74,11 @@ class CacheManager extends EventEmitter {
 module.exports = class MendelPipelineDaemon extends EventEmitter {
     constructor(options) {
         super();
+        const defaultShim = Object.assign({
+            global: path.join(__dirname, 'default-shims', 'global.js'),
+        }, DefaultShims);
+        options = Object.assign({defaultShim}, options);
 
-        options = Object.assign({defaultShim: DefaultShims}, options);
         const config = mendelConfig(options);
         this.config = config;
 
@@ -166,6 +170,12 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
 
             this.cacheManager.sync(cache);
             this.pipelines[environment].watch();
+
+            // `config.support` is a special configuration
+            // that can dynamically add more entries to the pipeline.
+            if (envConf.support) {
+                this.watcher.subscribe([envConf.support]);
+            }
         }
         return this.pipelines[environment];
     }

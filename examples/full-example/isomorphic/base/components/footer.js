@@ -4,9 +4,20 @@
 
 import React from 'react';
 
+global.foo = function() {
+    const env = process.env.NODE_ENV || 'development';
+    console.log(env);
+    return env;
+};
+
 class Footer extends React.Component {
     render() {
-        return <footer>--- footer stuff ---</footer>;
+        return (
+            <footer>
+                <div>--- footer stuff ---</div>
+                <div>Current NODE_ENV is {global.foo()}</div>
+            </footer>
+        );
     }
 }
 

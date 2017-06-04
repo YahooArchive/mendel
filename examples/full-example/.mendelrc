@@ -170,6 +170,9 @@ bundles: # Definition of a bundle
 
 env:
   test:
+    # test/setup/*.js are used only in test environment.
+    # Since they may pull in large test-related dependency in test environment,
+    # otherwise useless, Mendel supports "support" configuration.
     support: test/**/*.js
     types:
       js:
