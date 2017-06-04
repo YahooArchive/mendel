@@ -38,12 +38,12 @@ function matchVar(entries, multiVariations) {
 }
 
 function entriesHaveGlobalDep(entryMap, globalName) {
-    return Array.from(entryMap.values())
-        .some(({deps}) => {
-            return Object.values(deps).some(dep => dep.browser === globalName);
-        });
+    return Array.from(entryMap.values()).some(({deps}) => {
+        return Object.keys(deps)
+            .map(key => deps[key])
+            .some(dep => dep.browser === globalName);
+    });
 }
-
 module.exports = class BrowserPackOutlet {
     constructor(options) {
         this.config = options;
