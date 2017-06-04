@@ -71,12 +71,14 @@ class CacheManager extends EventEmitter {
 
 }
 
-module.exports = class MendelPipelineDaemon {
+module.exports = class MendelPipelineDaemon extends EventEmitter {
     constructor(options) {
+        super();
         const defaultShim = Object.assign({
             global: path.join(__dirname, 'default-shims', 'global.js'),
         }, DefaultShims);
         options = Object.assign({defaultShim}, options);
+
         const config = mendelConfig(options);
         this.config = config;
 
@@ -103,6 +105,7 @@ module.exports = class MendelPipelineDaemon {
         });
 
         this.server.on('environmentRequested', (env) => this._watch(env));
+        this.server.once('ready', () => this.emit('ready'));
         this.watcher.subscribe([config.variationConfig.allDirs, config.support].filter(Boolean));
     }
 
@@ -142,8 +145,8 @@ module.exports = class MendelPipelineDaemon {
         // In case of non-watch mode, nothing is recoverable. Exit.
         this.cacheManager.once('entryErrored', () => process.exit(1));
         pipeline.on('idle', () => {
-            this.onExit();
-            callback();
+            if (this.server.isReady()) callback();
+            else this.server.once('ready', callback);
         });
     }
 
