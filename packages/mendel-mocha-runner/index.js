@@ -38,6 +38,8 @@ function MendelRunner(filePaths, options={}) {
 
         const entries = client.registry.getEntriesByGlob(filePaths);
         entries.forEach(entry => {
+            // Pre-require populates mocha globals like before, beforeEach, and
+            // etc...
             mocha.suite.emit('pre-require', sandbox, entry.id, mocha);
 
             options.prelude.forEach(file => {

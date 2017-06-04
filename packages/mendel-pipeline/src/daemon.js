@@ -163,6 +163,12 @@ module.exports = class MendelPipelineDaemon {
 
             this.cacheManager.sync(cache);
             this.pipelines[environment].watch();
+
+            // `config.support` is a special configuration
+            // that can dynamically add more entries to the pipeline.
+            if (envConf.support) {
+                this.watcher.subscribe([envConf.support]);
+            }
         }
         return this.pipelines[environment];
     }

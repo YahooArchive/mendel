@@ -12,8 +12,8 @@ import {expect} from 'chai';
 
 describe("Button", function() {
     it("renders with children", function() {
-        const button = renderIntoDocument(<Button>foo</Button>);
+        const button = renderIntoDocument(<Button>{this.sayMeow()}</Button>);
 
-        expect(findDOMNode(button).innerText).to.equal('foo');
+        expect(findDOMNode(button).innerText).to.equal('meow');
     });
 });
