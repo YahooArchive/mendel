@@ -136,6 +136,11 @@ module.exports = {
 
                     let normId = parent.deps[depLiteral][runtime];
                     if (typeof normId === 'object') normId = normId[runtime];
+
+                    // If we get _noop from cache, this depLiteral doesn't exist
+                    if (normId === '_noop')
+                        throw new Error(`Cannot find ${depLiteral} from ${mainEntry.id}`); // eslint-disable-line max-len
+
                     return resolve(normId);
                 },
             });

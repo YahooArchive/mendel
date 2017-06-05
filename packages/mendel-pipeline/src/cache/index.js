@@ -319,7 +319,7 @@ class MendelCache extends EventEmitter {
 
             normDep[mod] = {};
             RUNTIME.forEach(runtime => {
-                let rtDep = dep[runtime];
+                let rtDep = dep && dep[runtime];
                 if (rtDep === false)
                     return normDep[mod][runtime] = false;
 
