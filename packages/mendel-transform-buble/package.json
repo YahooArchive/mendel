@@ -1,11 +1,12 @@
 {
   "name": "mendel-transform-buble",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mendel Transform for bublé",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "mode": "ist",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yahoo/mendel.git"
@@ -13,6 +14,7 @@
   "keywords": [
     "mendel",
     "plugin",
+    "mendel-ift",
     "mendel-transform",
     "transform",
     "buble",
