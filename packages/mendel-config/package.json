@@ -1,6 +1,6 @@
 {
   "name": "mendel-config",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Mendel configuration parser",
   "main": "index.js",
   "scripts": {
@@ -16,6 +16,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
+    "debug": "^2.6.8",
     "js-yaml": "^3.6.1",
     "minimatch": "^3.0.3",
     "resolve": "^1.1.7",
