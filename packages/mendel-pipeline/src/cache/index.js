@@ -304,7 +304,8 @@ class MendelCache extends EventEmitter {
 
     setSource(id, source, deps, map) {
         const entry = this.getEntry(id);
-        const normDep = {};
+        const normDep = new Dependencies();
+
         Object.keys(deps)
         // mod = module name or require literal
         .forEach(mod => {
@@ -317,7 +318,7 @@ class MendelCache extends EventEmitter {
             }
             this._handleDependency(dep);
 
-            normDep[mod] = {};
+            normDep[mod] = new Dependency();
             RUNTIME.forEach(runtime => {
                 let rtDep = dep && dep[runtime];
                 if (rtDep === false)
@@ -365,3 +366,9 @@ function isNodeModule(id) {
 }
 
 module.exports = MendelCache;
+
+class Dependency {
+}
+
+class Dependencies {
+}

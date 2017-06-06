@@ -1,5 +1,6 @@
 const path = require('path');
 const chokidar = require('chokidar');
+const FS_CHANGE_DELAY = process.env.MENDEL_FS_CHANGE_DELAY || 100;
 
 class FsWatcher {
     constructor({projectRoot, ignore}, cacheManager) {
@@ -10,6 +11,8 @@ class FsWatcher {
         // file size priority
         this.isInitialized = false;
         this.initialProrityQueue = [];
+        this._changeSet = new Set();
+        this._changeDelay = null;
 
         this.watcher = new chokidar.FSWatcher({
             cwd: projectRoot,
@@ -19,8 +22,17 @@ class FsWatcher {
         this.watcher
         .on('change', (path) => {
             path = withPrefix(path);
-            this.cacheManager.removeEntry(path);
-            this.cacheManager.addEntry(path);
+            this._changeSet.add(path);
+            if (!this._changeDelay) {
+                this._changeDelay = setTimeout(() => {
+                    for (let path of this._changeSet.keys()) {
+                        this.cacheManager.removeEntry(path);
+                        this.cacheManager.addEntry(path);
+                    }
+                    this._changeDelay = null;
+                    this._changeSet.clear();
+                }, FS_CHANGE_DELAY);
+            }
         })
         .on('unlink', (path) => {
             this.cacheManager.removeEntry(withPrefix(path));

@@ -18,12 +18,11 @@ class GraphSourceTransform extends BaseStep {
      * @param {MendelRegistry} tool.registry
      * @param {DepsManager} tool.depsResolver
      */
-    constructor({registry, depsResolver, cache}, options) {
+    constructor({registry, cache}, options) {
         super();
 
         this._cache = cache;
         this._registry = registry;
-        this._depsResolver = depsResolver;
         this._baseVariationId = options.baseConfig.id;
         this._variations = options.variationConfig.variations;
 
