@@ -6,7 +6,7 @@ base-config:
 variation-config:
   variation-dirs:
     - ./isomorphic/variations
-  # dir names should be unique across all roots or mendel throws
+  # dir names should be unique across all roots or Mendel throws
   variations:
     unexisting_folder:
     bucket_A:
@@ -53,12 +53,12 @@ transforms: # a list of all available transforms for all envs and types
         - istanbul
 
 types: # Type declaration of entries to be transformed or parsed
-  json: # Type id. Can be any arbitrary name, not file exntension
+  json: # Type id. Can be any arbitrary name, not file extension
     extensions: # Can use `glob` or `extensions`
       - .json
     parser: json-parse # Parser is a special type of transform that runs after all transforms in this type (if declared)
         # that allows an entry to be regarded as a destination type to be declared below.
-    parser-to-type: js # Defines type conversion: json -> js after running the parsre
+    parser-to-type: js # Defines type conversion: json -> js after running the parser
     # Type, by default, excludes `node_modules` but below configuration allows override
     # By default, the configuration is off.
     include-node_modules: true
@@ -102,7 +102,7 @@ outlets: # Outlet: defines methods of outputting bundles
   - id: manifest
     plugin: mendel-outlet-manifest # Mendel v1 compatible serialization of a bundle
   - id: css
-    plugin: mendel-outlet-css # PostCSS-based css outputter
+    plugin: mendel-outlet-css # PostCSS-based css output
     options:
       plugin:
         -
