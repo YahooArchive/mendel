@@ -37,7 +37,7 @@ Both of the above are covered by existing open source tools, such as [PlanOut](h
 
 ## Advantages of using Mendel
 
-Mendel is built on top of solid [design principles](docs/Design.mdown) and is hardened by years of using the same strategy inside Yahoo, from teams ranging from 3 to 30+ developers contributing daily to large applications. Here are a few of the advantages of using Mendel:
+Mendel is built on top of solid [design principles](docs/Design.md) and is hardened by years of using the same strategy inside Yahoo, from teams ranging from 3 to 30+ developers contributing daily to large applications. Here are a few of the advantages of using Mendel:
 
   * **Maintainability**: All variation/experimentation code is organized and compiled in a way to be immediately disposable, impose no maintenance overhead, and be very easy to debug and analyze.
   * **Performance**: Server side resolution is synchronous and fast, and client side code will have no payload overhead.
@@ -113,16 +113,16 @@ from "src/" tree.
 
 ## Stability and Roadmap
 
-The way Mendel experiments are built has been quite stable since mid 2014, and Mendel implementation just improves how it is compiled and adds several features, like multi-layer. Mendel 1.x can be considered stable and is used by production applications at Yahoo. We are also [building Mendel 2.x](docs/Roadmap.mdown), in which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will have breaking changes in 2.0.
+The way Mendel experiments are built has been quite stable since mid 2014, and Mendel implementation just improves how it is compiled and adds several features, like multi-layer. Mendel 1.x can be considered stable and is used by production applications at Yahoo. We are also [building Mendel 2.x](docs/Roadmap.md), in which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will have breaking changes in 2.0.
 
 
-Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.mdown) to get you started.
+Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.md) to get you started.
 
 ## Why is is Mendel so different?
 
 Mendel is the result of extensive research done by Yahoo on how to achieve not only the aforementioned performance goals, but also on how to effectively address development across large teams. We found that conditionals in the code base resulted in experiments which were hard to dispose of after they had run their course, which led to [technical debt](https://en.wikipedia.org/wiki/Technical_debt) and poor performance in our code bases.
 
-The main goal for Mendel is to be sustainable. Sustainability comes from being able to test the experiments correctly, keeping experiments up-to-date with our "base/master/default" application code, and keeping front-end performance unchanged throughout experimentation and adoption of experiment results. There is a full [design document](docs/Design.mdown) available if you are curious about the details.
+The main goal for Mendel is to be sustainable. Sustainability comes from being able to test the experiments correctly, keeping experiments up-to-date with our "base/master/default" application code, and keeping front-end performance unchanged throughout experimentation and adoption of experiment results. There is a full [design document](docs/Design.md) available if you are curious about the details.
 
 ## Why is it called "Mendel"?
 
@@ -134,7 +134,7 @@ Mendel is a monorepo. In order to develop for Mendel you will need to create a l
 
 Mendel follows Browserify's plugin pattern and NPM small packages style. Whitespace conventions are on `.editorconfig` file, please use [editor config plugin for your code editor](http://editorconfig.org).
 
-We also have some [test documentation](docs/Tests.mdown) in case you want to make a pull request.
+We also have some [test documentation](docs/Tests.md) in case you want to make a pull request.
 
 ## License
 

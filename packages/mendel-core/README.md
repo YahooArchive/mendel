@@ -5,7 +5,7 @@ Mendel Core is the brain behind `mendel-middleware`. It is used to resolve hundr
   1. Given a variation array, it resolves which files should be used for a given user session. It outputs an "application tree" and a deterministic hash.
   2. Given a hash generated in step 1, it can recover all file dependencies for the same user session, resulting in the same exact "application tree" as step 1.
 
-Mendel Core works by loading [Mendel Manifests](../../docs/Design.mdown) on a per-process basis, and resolves "application trees" on a per request (or per user session) basis.
+Mendel Core works by loading [Mendel Manifests](../../docs/Design.md) on a per-process basis, and resolves "application trees" on a per request (or per user session) basis.
 
 ```
 +-----------------------------------------------+
