@@ -1,6 +1,6 @@
 {
   "name": "mendel-core",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Mendel shared dependencies production use",
   "main": "trees.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "dependencies": {
     "concentrate": "^0.2.3",
     "dissolve": "^0.3.3",
-    "mendel-config": "^3.0.0",
+    "mendel-config": "^3.1.0",
     "stream-browserify": "^2.0.1",
     "urlsafe-base64": "^1.0.0",
     "xtend": "^4.0.1"

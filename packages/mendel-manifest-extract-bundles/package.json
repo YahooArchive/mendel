@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "debug": "^2.3.3",
-    "mendel-development": "^1.0.10"
+    "mendel-development": "^3.0.0"
   },
   "devDependencies": {}
 }

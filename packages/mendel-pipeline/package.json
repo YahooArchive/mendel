@@ -1,6 +1,6 @@
 {
   "name": "mendel-pipeline",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "The mendel package",
   "main": "src/main.js",
   "bin": {
@@ -25,8 +25,8 @@
     "figures": "^2.0.0",
     "mendel-config": "^3.1.0",
     "mendel-deps": "^3.1.0",
-    "mendel-development": "^1.1.0",
-    "mendel-resolver": "^3.0.0",
+    "mendel-development": "^3.0.0",
+    "mendel-resolver": "^3.0.2",
     "mkdirp": "^0.5.1",
     "node-libs-browser": "^2.0.0",
     "pretty-ms": "^2.1.0",

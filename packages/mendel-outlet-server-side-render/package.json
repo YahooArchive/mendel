@@ -1,7 +1,7 @@
 {
   "name": "mendel-outlet-server-side-render",
   "description": "Writes out server-side compatible files for mendel-middleware in production mode",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,7 @@
   "dependencies": {
     "debug": "^2.6.1",
     "falafel": "^2.1.0",
-    "mendel-development": "latest",
-    "mendel-outlet-manifest": "^3.0.0"
+    "mendel-development": "^3.0.0",
+    "mendel-outlet-manifest": "^3.0.3"
   }
 }
