@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "description": "Wraps JSON file in a JavaScript module for bundling with assets in Mendel",
   "main": "index.js",
+  "mode": "ist",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
