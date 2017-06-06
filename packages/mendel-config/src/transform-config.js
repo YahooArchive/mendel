@@ -1,33 +1,13 @@
 var createValidator = require('./validator');
-var nodeResolveSync = require('resolve').sync;
-var path = require('path');
-
-function _resolve(pluginPath, opt) {
-    try {
-        return nodeResolveSync(pluginPath, opt);
-    } catch (e) {
-        return false;
-    }
-}
-
+var resolvePlugin = require('./resolve-plugin');
 
 function TransformConfig(id, transform, {projectRoot}) {
     this.id = id;
-    const basedir = projectRoot;
-    const pluginPackagePath = _resolve(path.join(transform.plugin, 'package.json'), {basedir});
-    const pluginPath = _resolve(transform.plugin, {basedir});
-
-    if (pluginPath) {
-        this.mode = [pluginPackagePath, pluginPath]
-            .filter(Boolean)
-            .map(plugin => require(plugin).mode)
-            .filter(Boolean)[0] || 'ist';
-    } else {
-        this.mode = 'unknown';
-    }
-
-    this.plugin = pluginPath;
     this.options = transform.options;
+
+    var resolved = resolvePlugin(transform.plugin, projectRoot);
+    this.plugin = resolved.plugin;
+    this.mode = resolved.mode;
 
     TransformConfig.validate(this);
 }
