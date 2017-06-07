@@ -1,5 +1,3 @@
-const acorn = require('acorn-jsx/inject')(require('acorn'));
-const {visit} = require('ast-types');
 // `console` is not included as it works flawlessly in Node and browser.
 const GLOBAL_WHITELIST = [
     'global',
@@ -11,6 +9,7 @@ const GLOBAL_WHITELIST = [
 //     exports: ['helloWorld', 'cruelWorld']
 // }
 function _depFinder(ast) {
+    const {visit} = require('ast-types');
     const imports = {};
     const exports = {};
     const globals = {};
@@ -99,30 +98,16 @@ function _depFinder(ast) {
  *   "../baz.js": "./baz.js"
  * }
  */
-module.exports = function deps({resolver, source}) {
-    return Promise.resolve()
-    .then(() => {
-        const ast = acorn.parse(source, {
-            plugins: {jsx: true},
-            ecmaVersion: 6,
-            sourceType: 'module',
-            allowReturnOutsideFunction: true,
-            allowHashBang: true,
-        });
-        // TODO do something useful with the `exports`
-        const {imports} = _depFinder(ast);
-        const promises = imports.map(importLiteral => {
-            return resolver.resolve(importLiteral).catch(() => false);
-        });
-
-        return Promise.all(promises)
-        .then((resolvedImports) => {
-            const importMap = {};
-            resolvedImports.forEach((resolvedImport, index) => {
-                importMap[imports[index]] = resolvedImport;
-            });
-
-            return importMap;
-        });
+module.exports = function jsDependency(source) {
+    const acorn = require('acorn-jsx/inject')(require('acorn'));
+    const ast = acorn.parse(source, {
+        plugins: {jsx: true},
+        ecmaVersion: 6,
+        sourceType: 'module',
+        allowReturnOutsideFunction: true,
+        allowHashBang: true,
     });
+    return _depFinder(ast);
 };
+
+module.exports.supports = new Set(['.js', '.jsx', '.esnext']);

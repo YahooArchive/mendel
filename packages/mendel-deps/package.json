@@ -2,7 +2,7 @@
   "name": "mendel-deps",
   "version": "3.1.0",
   "description": "Depedency detector based on AST. Supports custom cache and custom resolver.",
-  "main": "src/deps.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "tap test/*.js"
   },
@@ -15,7 +15,8 @@
   "dependencies": {
     "acorn": "^4.0.3",
     "acorn-jsx": "^3.0.1",
-    "ast-types": "^0.9.11"
+    "ast-types": "^0.9.11",
+    "css": "^2.2.1"
   },
   "devDependencies": {
     "glob": "^7.1.1",

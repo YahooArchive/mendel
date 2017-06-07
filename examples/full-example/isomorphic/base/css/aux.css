@@ -2,3 +2,14 @@ html {
     padding: 0;
     margin: 0;
 }
+
+body {
+    background: white;
+    color: blue;
+    font-family: sans-serif;
+}
+
+header {
+    font-size: x-large;
+    font-family: serif;
+}
