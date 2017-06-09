@@ -4,9 +4,7 @@
 
 module.exports = sortManifest;
 
-function sortManifest(manifest) {
-    var inputIndexes = manifest.indexes;
-    var inputBundles = manifest.bundles;
+function sortManifest(inputIndexes, inputBundles) {
     var sortedManifest = {
         indexes: {},
         bundles: [],

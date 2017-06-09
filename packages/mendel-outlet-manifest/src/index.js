@@ -3,8 +3,6 @@ const babelCore = require('babel-core');
 const manifestUglify = require('mendel-manifest-uglify');
 const fs = require('fs');
 const shasum = require('shasum');
-const sortManifest = require('mendel-development/sort-manifest');
-const validateManifest = require('mendel-development/validate-manifest');
 
 // Manifest
 module.exports = class ManifestOutlet {
@@ -18,7 +16,6 @@ module.exports = class ManifestOutlet {
             runtime: 'browser',
         }, options);
         this.runtime = this.options.runtime;
-        this.name = 'mendel-outlet-manifest';
     }
 
     perform({entries, options}) {
@@ -31,9 +28,6 @@ module.exports = class ManifestOutlet {
 
         if (this.options.envify) manifest = this.envify(manifest);
         if (this.options.uglify) manifest = this.uglify(manifest);
-        manifest = sortManifest(manifest);
-
-        validateManifest(manifest, manifestFileName, this.name);
 
         fs.writeFileSync(
             manifestFileName,

@@ -83,7 +83,10 @@ function loadManifests(bundles, config, next) {
 
 function sortManifestProcessor(manifests, config, next) {
     Object.keys(manifests).forEach(function(bundleName) {
-        manifests[bundleName] = sortManifest(manifests[bundleName]);
+        manifests[bundleName] = (sortManifest(
+            manifests[bundleName].indexes,
+            manifests[bundleName].bundles
+        ));
     });
     next(manifests);
 }
