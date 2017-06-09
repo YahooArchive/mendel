@@ -2,6 +2,7 @@ const BaseNetwork = require('./base-network');
 const net = require('net');
 const fs = require('fs');
 const {resolve} = require('path');
+const chalk = require('chalk');
 
 function patchSocket(socket) {
     const realWrite = net.Socket.prototype.write;
@@ -56,14 +57,15 @@ class UnixSocketNetwork extends BaseNetwork {
         .then(() => fs.unlinkSync(path))
         // If connection was made OR unlink was unsuccessful
         // throw and exit -- cannot recover.
-        .catch(err => {
-            console.error([
-                'Server cannot start when another server is active.\n',
-                'If no server process is active, please remove or kill',
-                    `"${path}" manually.\n`,
-                'This is a symptom of server process exiting preemptively.',
-            ].join(' '));
-            throw err;
+        .catch(() => {
+            console.error(chalk.red([
+                '==================================================',
+                'Server cannot start when another server is active.',
+                'If no server process is active, ',
+                `please remove or kill "${chalk.bold(path)}" manually.`,
+                '==================================================',
+            ].join('\n')));
+            throw new ReferenceError('Other Daemon Active');
         });
     }
 

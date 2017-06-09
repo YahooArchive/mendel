@@ -28,6 +28,7 @@ class CacheServer extends EventEmitter {
             debug('listening', config.cacheConnection);
             this.emit('ready');
         }).catch(err => {
+            this.emit('error', err);
             debug('Cache server could not come up', err);
         });
     }
