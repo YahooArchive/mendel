@@ -87,6 +87,7 @@ module.exports = function mendelBrowserPack(bundleEntries, browserPackOptions) {
     });
     const hasGlobalDep = globalDepKeys.some(h => h);
     if (hasGlobalDep) bundleEntries = removeGlobalDep(bundleEntries);
+
     bundleEntries = indexedDeps(bundleEntries);
 
     let prelude = '';

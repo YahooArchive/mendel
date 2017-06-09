@@ -31,7 +31,7 @@ module.exports = class BrowserPackOutlet {
                 // If `outfile` exists, output it to appropriate file
                 const outStream = fs.createWriteStream(options.outfile);
                 stream.pipe(outStream);
-                outStream.on('end', resolve);
+                outStream.on('close', resolve);
                 outStream.on('error', reject);
                 stream.on('error', reject);
             } else {
