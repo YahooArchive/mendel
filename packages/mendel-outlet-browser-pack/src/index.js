@@ -1,31 +1,7 @@
 const debug = require('debug')('mendel:outlet:browserpack');
 const fs = require('fs');
-const {Transform} = require('stream');
-const {Buffer} = require('buffer');
-const browserpack = require('browser-pack');
+const browserpack = require('mendel-browser-pack');
 const INLINE_MAP_PREFIX = '//# sourceMappingURL=data:application/json;base64,';
-
-class PaddedStream extends Transform {
-    constructor({prelude='', appendix=''}, options) {
-        super(options);
-        this.prelude = prelude;
-        this.appendix = appendix;
-        this.started = false;
-    }
-    // Called on every chunk
-    _transform(chunk, encoding, cb) {
-        if (!this.started) {
-            this.started = true;
-            chunk = Buffer.concat([Buffer.from(this.prelude), chunk]);
-        }
-        cb(null, chunk);
-    }
-    // Called right before it wants to end
-    _flush(cb) {
-        this.push(Buffer.from(this.appendix));
-        cb();
-    }
-}
 
 function matchVar(entries, multiVariations) {
     for (let i = 0; i < multiVariations.length; i++) {
@@ -37,13 +13,6 @@ function matchVar(entries, multiVariations) {
     }
 }
 
-function entriesHaveGlobalDep(entryMap, globalName) {
-    return Array.from(entryMap.values()).some(({deps}) => {
-        return Object.keys(deps)
-            .map(key => deps[key])
-            .some(dep => dep.browser === globalName);
-    });
-}
 module.exports = class BrowserPackOutlet {
     constructor(options) {
         this.config = options;
@@ -51,79 +20,24 @@ module.exports = class BrowserPackOutlet {
 
     perform({entries, options, id}, variations) {
         return new Promise((resolve, reject) => {
-            // globals like, "process", handling
-            const hasProcess = entriesHaveGlobalDep(entries, 'process');
-            const hasGlobal = entriesHaveGlobalDep(entries, 'global');
-
             const bundles = this.getPackJSON(entries);
-
-            debug(bundles.map(({data}) => `[${id}] ${data[0].file} - ${data[0].runtime}`));
-            const pack = browserpack(
-                Object.assign(
-                    {},
-                    options.browserPackOptions,
-                    {
-                        raw: true, // since we pass Object instead of JSON string
-                        hasExports: true, // exposes `require` globally. Required for multi-bundles.
-                    }
-                )
-            );
-
-            let prelude = '';
-            let appendix = '';
-
-            if (hasProcess || hasGlobal) {
-                prelude = '(function(){';
-                appendix = '})();';
-            }
-            if (hasGlobal || hasProcess) prelude += 'var global=window;';
-            if (hasProcess) prelude += 'var process=global.process||{env: {}};';
-
-            if (!this.config.noout && options.outfile) {
-                let source = '';
-                // If `outfile` exists, output it to appropriate file
-                pack.on('error', reject);
-                pack.on('data', buf => source += buf.toString());
-                pack.on('end', () => {
-                    source += appendix;
-                    fs.writeFileSync(options.outfile, source);
-                    resolve();
-                });
-            } else {
-                // Return a stream back if outfile is not declared.
-                // You can pipe it or do whatever with it.
-                const stream = new PaddedStream({appendix, prelude});
-                pack.pipe(stream);
-                setImmediate(() => resolve(stream));
-            }
-
             const arrData = bundles
                 .map(({data}) => matchVar(data, variations))
                 // There can be bundle that does not pertain to certain variational chain (and no entry on base var)
                 .filter(Boolean);
-            this.writeToStream(pack, arrData);
+            const stream = browserpack(arrData, options.browserPackOptions);
+
+            if (!this.config.noout && options.outfile) {
+                // If `outfile` exists, output it to appropriate file
+                const outStream = fs.createWriteStream(options.outfile);
+                stream.pipe(outStream);
+                outStream.on('end', resolve);
+                outStream.on('error', reject);
+                stream.on('error', reject);
+            } else {
+                setImmediate(() => resolve(stream));
+            }
         });
-    }
-
-    writeToStream(stream, arrData) {
-        if (!arrData.length) {
-            stream.end();
-            return;
-        }
-
-        // Writing null terminates the stream. It is equal to EOF for streams.
-        while (arrData.length && stream.write(arrData[0])) {
-            // If successfully written, remove written one from the arrData.
-            arrData.shift();
-        }
-        if (arrData.length) {
-            stream.once(
-                'drain',
-                this.writeToStream.bind(this, stream, arrData)
-            );
-        } else {
-            stream.end();
-        }
     }
 
     dataFromItem(item) {
@@ -133,6 +47,7 @@ module.exports = class BrowserPackOutlet {
         });
         const data = {
             id: item.normalizedId,
+            normalizedId: item.normalizedId,
             // Clone the object so mutating it does not mutate source entry
             deps,
             runtime: item.runtime,
