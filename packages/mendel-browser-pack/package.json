@@ -1,6 +1,6 @@
 {
   "name": "mendel-browser-pack",
-  "version": "3.0.0",
+  "version": "3.1.1",
   "description": "Mendel internal package for wrapping browser-pack for applying global shims.",
   "main": "index.js",
   "scripts": {
