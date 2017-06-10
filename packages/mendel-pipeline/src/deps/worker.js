@@ -52,7 +52,7 @@ module.exports = function(done) {
             }
 
             debug(`Detecting dependencies for ${filePath}`);
-            dep({source, resolver})
+            dep({file: filePath, source, resolver})
             // mendel-resolver throws in case nothing was found
             .catch(() => {
                 return RUNTIME.reduce((reduced, name) => {

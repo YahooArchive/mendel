@@ -2,14 +2,90 @@ const debug = require('debug')('mendel:outlet:css');
 const fs = require('fs');
 const postcss = require('postcss');
 const Concat = require('concat-with-sourcemaps');
+const postcssRemoveImportPlugin = require('./mendel-postcss-remove-import');
+
+module.exports = class CSSOutlet {
+    constructor(config, options) {
+        this.config = config;
+        this.outletOptions = options;
+    }
+
+    perform({entries, options}) {
+        const plugins = !this.outletOptions.plugin ? [] :
+            this.outletOptions.plugin.map(p => {
+                if (typeof p === 'string') return require(p);
+                // Option to plugin support
+                return require(p[0])(p[1]);
+            });
+
+        return this._preprocess(entries)
+        .then(procssedEntries => combineCss(procssedEntries, options.outfile))
+        .then(({source, map}) => {
+           const postCssOptions = Object.assign({
+               // Sourcemap url will be generated using this property.
+               // E.g., ./app.css.map
+               to: options.outfile,
+               map: {
+                   prev: map,
+                   inline: options.sourcemap === false,
+               },
+           }, this.outletOptions);
+           delete postCssOptions.plugin;
+
+           return this._transform(source, plugins, postCssOptions)
+           .then(({css}) => {
+               debug(`Outputted: ${options.outfile}`);
+
+               if (this.config.noout !== true && options.outfile) {
+                   fs.writeFileSync(options.outfile, css);
+               } else {
+                   return css;
+               }
+           });
+        });
+    }
+
+    _preprocess(entries) {
+        const processedEntries = new Map();
+        let promise = Promise.resolve();
+        entries.forEach(entry => {
+            const {deps, id, source, map} = entry;
+            const set = new Set();
+
+            Object.keys(deps)
+            .filter(key => !deps[key]|| deps[key].browser !== '_noop')
+            .forEach(key => set.add(key));
+
+            if (set.size === 0) {
+                promise = promise.then(() => {
+                    return {css: entry.source};
+                });
+            } else {
+                promise = promise.then(() => {
+                    postcssRemoveImportPlugin.setToRemove(set);
+                    return this._transform(source, [postcssRemoveImportPlugin]);
+                });
+            }
+
+            promise = promise.then(({css}) => {
+                processedEntries.set(id, {id, css, map});
+            });
+        });
+
+        return promise.then(() => processedEntries);
+    }
+
+    _transform(source, plugins, options = {}) {
+        return postcss(plugins)
+        .process(source, options);
+    }
+};
 
 function combineCss(cssEntries, outputFileName='') {
     const concat = new Concat(true, outputFileName, '\n');
 
     Array.from(cssEntries.values())
-    .forEach(entry => {
-        concat.add(entry.id, entry.source, entry.map);
-    });
+    .forEach(({id, css, map}) => concat.add(id, css, map || null));
 
     const map = JSON.parse(concat.sourceMap);
     map.sourcesContent = map.sources
@@ -26,43 +102,3 @@ function combineCss(cssEntries, outputFileName='') {
         map: JSON.stringify(map),
     };
 }
-
-module.exports = class CSSOutlet {
-    constructor(config, options) {
-        this.config = config;
-        this.outletOptions = options;
-    }
-
-    perform({entries, options}) {
-        const {source, map} = combineCss(entries, options.outfile);
-        const plugins = !this.outletOptions.plugin ? [] :
-            this.outletOptions.plugin.map(p => {
-                if (typeof p === 'string') return require(p);
-                // Option to plugin support
-                return require(p[0])(p[1]);
-            });
-
-        const postCssOptions = Object.assign({
-            // Sourcemap url will be generated using this property.
-            // E.g., ./app.css.map
-            to: options.outfile,
-            map: {
-                prev: map,
-                inline: options.sourcemap === false,
-            },
-        }, this.outletOptions);
-        delete postCssOptions.plugin;
-
-        return postcss(plugins)
-        .process(source, postCssOptions)
-        .then(result => {
-            debug(`Outputted: ${options.outfile}`);
-
-            if (this.config.noout !== true && options.outfile) {
-                fs.writeFileSync(options.outfile, result.css);
-            } else {
-                return result.css;
-            }
-        });
-    }
-};

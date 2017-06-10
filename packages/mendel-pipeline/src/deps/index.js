@@ -1,5 +1,6 @@
 const path = require('path');
 const MultiProcessMaster = require('../multi-process/base-master');
+const mendelDeps = require('mendel-deps');
 
 /**
  * Knows how to do all kinds of trasnforms in parallel way
@@ -24,11 +25,11 @@ class DepsManager extends MultiProcessMaster {
     }
 
     detect(entryId, source) {
-        // Acorn used in deps can only parse js and jsx types.
-        if (['.js', '.jsx'].indexOf(path.extname(entryId)) < 0) {
+        if (!mendelDeps.isSupported(path.extname(entryId))) {
             // there are no dependency
             return Promise.resolve({id: entryId, deps: {}});
         }
+
 
         return this.dispatchJob({
             filePath: entryId,

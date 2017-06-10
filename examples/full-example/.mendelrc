@@ -157,14 +157,14 @@ bundles: # Definition of a bundle
     outlet: css
     outfile: main.css # File gets written to ${outdir}/main.css
     entries:
-      - "**/*.css"
+      - "./css/index.css"
       - "**/*.less"
       - "!css/reset.css"
   css-rtl:
     outlet: css-rtl
     outfile: main-rtl.css
     entries:
-      - "**/*.css"
+      - "./css/index.css"
       - "**/*.less"
       - "!css/reset.css"
 

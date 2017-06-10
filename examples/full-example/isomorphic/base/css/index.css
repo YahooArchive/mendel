@@ -1,3 +1,6 @@
+@import "idk.css";
+@import "./aux.css";
+
 html {
     padding: 0;
     margin: 0;
@@ -5,9 +8,4 @@ html {
 
 h1 {
     margin-left: 5px;
-}
-
-body {
-    background: white;
-    color: blue;
 }
