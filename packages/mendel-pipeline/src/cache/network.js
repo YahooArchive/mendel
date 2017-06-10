@@ -23,9 +23,6 @@ module.exports = {
                 process.exit(1);
             });
             return server;
-        }).catch(err => {
-            setImmediate(() => process.exit(1));
-            throw err;
         });
     },
 

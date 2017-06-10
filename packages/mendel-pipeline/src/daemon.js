@@ -106,7 +106,13 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
 
         this.server.on('environmentRequested', (env) => this._watch(env));
         this.server.once('ready', () => this.emit('ready'));
-        this.watcher.subscribe([config.variationConfig.allDirs, config.support].filter(Boolean));
+        this.server.once('error', () => setImmediate(() => process.exit(1)));
+        this.watcher.subscribe(
+            [
+                config.variationConfig.allDirs,
+                config.support,
+            ].filter(Boolean)
+        );
     }
 
     _watch(environment) {
@@ -140,6 +146,9 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
     }
 
     run(callback, environment=this.default) {
+        // Undo default exit handler
+        this.server.removeAllListeners('error');
+        this.server.once('error', callback);
         const pipeline = this.getPipeline(environment);
 
         // In case of non-watch mode, nothing is recoverable. Exit.
