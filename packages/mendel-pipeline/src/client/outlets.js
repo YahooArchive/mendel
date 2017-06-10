@@ -8,7 +8,7 @@ class MendelOutlets {
         this.outlets = options.outlets;
     }
 
-    perform(bundles, variation=this.options.baseConfig.dir) {
+    perform(bundles, variation=[this.options.baseConfig.dir]) {
         const promises = bundles.map(bundle => {
             const outlet = this.outlets.find(outlet => {
                 return outlet.id === bundle.options.outlet;

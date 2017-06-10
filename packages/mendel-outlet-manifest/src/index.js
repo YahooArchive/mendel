@@ -46,6 +46,7 @@ module.exports = class ManifestOutlet {
 
         const data = {
             id: item.normalizedId,
+            normalizedId: item.normalizedId,
             deps,
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,

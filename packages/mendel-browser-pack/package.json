@@ -1,0 +1,14 @@
+{
+  "name": "mendel-browser-pack",
+  "version": "3.1.1",
+  "description": "Mendel internal package for wrapping browser-pack for applying global shims.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stephan Lee <stephanwlee@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "browser-pack": "^6.0.2"
+  }
+}

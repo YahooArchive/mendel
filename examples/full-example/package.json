@@ -8,6 +8,7 @@
     "test-dev": "mendel-mocha --prelude 'test/setup/*.js' **/_test_/*.js --watch",
     "coverage": "mendel-mocha --prelude 'test/setup/*.js' **/_test_/*.js --reporter=mocha-istanbul-reporter --reporter-options=text,text-summary",
     "build": "NODE_ENV=production mendel",
+    "build-files": "mendel",
     "daemon": "mendel --watch",
     "development": "nodemon index.js",
     "production": "NODE_ENV=production node index.js"
