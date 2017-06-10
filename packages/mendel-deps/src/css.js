@@ -7,10 +7,9 @@ function walkAst(ast) {
     .filter(({type}) => type === 'import')
     .forEach(rule => {
         let normImport = rule.import.trim();
-        if (normImport.startsWith('url')) {
-            // i.e., url("path") -> path.
-            normImport = normImport.match(/url\(["'](\S+)['"]\)$/)[1];
-        } else {
+        // URL should not be treated as deps.
+        // Treat it as a global import.
+        if (!normImport.startsWith('url')) {
             // Strip any quotation marks around path/
             normImport = normImport.match(/^["'](\S+)['"]$/)[1];
         }
