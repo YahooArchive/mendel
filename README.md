@@ -116,7 +116,7 @@ from "src/" tree.
 The way Mendel experiments are built has been quite stable since mid 2014, and Mendel implementation just improves how it is compiled and adds several features, like multi-layer. Mendel 1.x can be considered stable and is used by production applications at Yahoo. We are also [building Mendel 2.x](docs/Roadmap.md), in which experiment/variations creation will be exactly the same, production middleware API is also considered stable and only file configuration format and development middleware will have breaking changes in 2.0.
 
 
-Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/Readme.md) to get you started.
+Since documentation is still short of ideal, we recommend you start with the "examples" directory. It is a sample application and there is a [small Readme file](examples/README.md) to get you started.
 
 ## Why is is Mendel so different?
 
