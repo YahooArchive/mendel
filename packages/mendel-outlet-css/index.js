@@ -10,7 +10,7 @@ module.exports = class CSSOutlet {
         this.outletOptions = options;
     }
 
-    perform({entries, options}) {
+    perform({entries, options}, variations) {
         const plugins = !this.outletOptions.plugin ? [] :
             this.outletOptions.plugin.map(p => {
                 if (typeof p === 'string') return require(p);
@@ -18,7 +18,7 @@ module.exports = class CSSOutlet {
                 return require(p[0])(p[1]);
             });
 
-        return this._preprocess(entries)
+        return this._preprocess(this._filterVariations(entries, variations))
         .then(procssedEntries => combineCss(procssedEntries, options.outfile))
         .then(({source, map}) => {
            const postCssOptions = Object.assign({
@@ -43,6 +43,33 @@ module.exports = class CSSOutlet {
                }
            });
         });
+    }
+
+    _filterVariations(entries, variations) {
+        const normalizedEntries = Array.from(
+            entries.values()
+        ).reduce((normalized, entry) => {
+            normalized[entry.normalizedId] =
+                normalized[entry.normalizedId] || [];
+            normalized[entry.normalizedId].push(entry);
+            return normalized;
+        }, {});
+
+        const variationalEntries = Object.keys(
+            normalizedEntries
+        ).reduce((variational, key) => {
+            const entries = normalizedEntries[key];
+            const pick = entries.sort((a, b) => {
+                return (
+                    variations.indexOf(a.variation) -
+                    variations.indexOf(b.variation)
+                );
+            })[0];
+            variational.set(pick.id, pick);
+            return variational;
+        }, new Map());
+
+        return variationalEntries;
     }
 
     _preprocess(entries) {
