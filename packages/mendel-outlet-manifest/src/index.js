@@ -19,15 +19,26 @@ module.exports = class ManifestOutlet {
     }
 
     perform({entries, options}) {
+        debug({perBundleOptions: options});
         const manifestFileName = options.manifest;
+        let envify = this.options.envify;
+        let uglify = this.options.uglify;
+        if (options.options) {
+            if (typeof options.options.envify !== 'undefined') {
+                envify = options.options.envify;
+            }
+            if (typeof options.options.uglify !== 'undefined') {
+                uglify = options.options.uglify;
+            }
+        }
 
         // We are going to mutate this guy; make sure we don't change the original one
         entries = new Map(entries.entries());
-        if (this.options.envify) this.removeProcess(entries);
+        if (envify) this.removeProcess(entries);
         let manifest = this.getV1Manifest(entries);
 
-        if (this.options.envify) manifest = this.envify(manifest);
-        if (this.options.uglify) manifest = this.uglify(manifest);
+        if (envify) manifest = this.envify(manifest);
+        if (uglify) manifest = this.uglify(manifest);
 
         fs.writeFileSync(
             manifestFileName,
