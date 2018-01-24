@@ -104,33 +104,48 @@ function MendelMiddleware(opts) {
             return next();
         }
 
-        var pack = bpack({raw: true, hasExports: true});
         var decodedResults = trees.findTreeForHash(params.bundle, params.hash);
         if (!decodedResults || decodedResults.error) {
             return bundleError(res, 404, decodedResults && decodedResults.error, params);
         }
 
-        var modules = indexedDeps(decodedResults.deps.filter(Boolean));
+        var bundle = bundles[params.bundle];
+        if (bundle.options && bundle.options.serveAs === 'css') {
+            res.set({
+                'Content-Type': 'text/css; charset=utf-8',
+                'Cache-Control': 'public, max-age=31536000',
+            });
 
-        if (!modules.length) {
-            // Something wrong, modules shouldn't be zero
-            return bundleError(res, 500, {
-                code: 'EMPTYBUNDLE',
-                message: 'Tree contents are empty'
-            }, params);
+            decodedResults.deps.forEach(function(dep) {
+                res.write(dep.source + '\n');
+            });
+
+            res.end();
+        } else {
+            var pack = bpack({raw: true, hasExports: true});
+            var modules = indexedDeps(decodedResults.deps.filter(Boolean));
+
+            if (!modules.length) {
+                // Something wrong, modules shouldn't be zero
+                return bundleError(res, 500, {
+                    code: 'EMPTYBUNDLE',
+                    message: 'Tree contents are empty'
+                }, params);
+            }
+
+            // Serve bundle
+            res.set({
+                'Content-Type': 'application/javascript',
+                'Cache-Control': 'public, max-age=31536000',
+            });
+
+            pack.pipe(res);
+            for (var i = 0; i < modules.length; i++) {
+                pack.write(modules[i]);
+            }
+            pack.end();
         }
 
-        // Serve bundle
-        res.set({
-            'Content-Type': 'application/javascript',
-            'Cache-Control': 'public, max-age=31536000',
-        });
-
-        pack.pipe(res);
-        for (var i = 0; i < modules.length; i++) {
-            pack.write(modules[i]);
-        }
-        pack.end();
     };
 }
 

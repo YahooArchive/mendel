@@ -46,6 +46,7 @@ BundleConfig.validate = createValidator({
         'sourcemap',
         'envify',
         'uglify',
+        'serveAs',
     ],
 });
 
