@@ -59,12 +59,10 @@ module.exports = class CSSOutlet {
             normalizedEntries
         ).reduce((variational, key) => {
             const entries = normalizedEntries[key];
-            const pick = entries.sort((a, b) => {
-                return (
-                    variations.indexOf(a.variation) -
-                    variations.indexOf(b.variation)
-                );
-            })[0];
+            let pick;
+            for (let i = 0; i < variations.length; i++) {
+                pick = pick || entries.find(_ => _.variation === variations[i]);
+            }
             variational.set(pick.id, pick);
             return variational;
         }, new Map());
