@@ -15,6 +15,7 @@ npm(['install'], rootdir, function() {
     var async = require('async');
     var linkedModules = [];
     var linkedDeps = {};
+    var installed = [];
 
     async.reduce([packagesdir, examplesdir], [],
     function(packages, dir, doneDir){
@@ -52,8 +53,28 @@ npm(['install'], rootdir, function() {
             if (waitFor.length) {
                 doAgain.push(file);
                 return donePackage();
-            } else if(depsToLink.length) {
-                return async.eachSeries(depsToLink, function(dep, depDone) {
+            }
+
+            if (installed.indexOf(file) === -1) {
+                installed.push(file);
+                doAgain.push(file);
+                console.log('local install', pkg.name, '...');
+                return npm('install', file, function() {
+                    if (/packages/.test(file)) {
+                        console.log('local link', pkg.name, '...');
+                        npm('link', file, function() {
+                            linkedModules.push(pkg.name);
+                            donePackage();
+                        });
+                    } else {
+                        linkedModules.push(pkg.name);
+                        donePackage();
+                    }
+                });
+            }
+
+            if(depsToLink.length) {
+                async.eachSeries(depsToLink, function(dep, depDone) {
                     console.log('local link', dep, 'to', pkg.name, '...');
                     npm(['link', dep], file, function() {
                         linkedDeps[file+':'+dep] = true;
@@ -63,21 +84,9 @@ npm(['install'], rootdir, function() {
                     doAgain.push(file);
                     donePackage();
                 });
+            } else {
+                donePackage();
             }
-
-            console.log('local install', pkg.name, '...');
-            npm('install', file, function() {
-                if (/packages/.test(file)) {
-                    console.log('local link', pkg.name, '...');
-                    npm('link', file, function() {
-                        linkedModules.push(pkg.name);
-                        donePackage();
-                    });
-                } else {
-                    linkedModules.push(pkg.name);
-                    donePackage();
-                }
-            });
         }, function() {
             if (doAgain.length) {
                 linkPackages(null, doAgain);
