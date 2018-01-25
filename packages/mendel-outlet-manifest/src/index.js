@@ -122,7 +122,7 @@ module.exports = class ManifestOutlet {
             const item = entries.get(key);
             const id = item.normalizedId;
 
-            if (!manifest.indexes[id]) {
+            if (!manifest.indexes.hasOwnProperty(id)) {
                 const data = this.dataFromItem(item);
                 const newEntry = {
                     id: item.normalizedId,
