@@ -5,11 +5,10 @@ var ReactDOMServer = require('react-dom/server');
 var express = require('express');
 var logger = require('morgan');
 var MendelMiddleware = require('mendel-middleware');
-var fs = require('fs');
 var cache = true;
 
 if (process.env.NODE_ENV !== 'production') {
-    MendelMiddleware = require('mendel-development-middleware')
+    MendelMiddleware = require('mendel-development-middleware');
     cache = false;
 }
 
@@ -17,15 +16,16 @@ if (String(process.env.MENDEL_CACHE) === 'false') {
     cache = false;
 }
 
-
 var app = express();
 app.use(logger('tiny'));
 app.use(MendelMiddleware());
 app.set('query parser', 'simple');
 
 app.get('/', function(req, res) {
-    var variations = (req.query.variations||'').trim()
-    .split(',').filter(Boolean);
+    var variations = (req.query.variations || '')
+        .trim()
+        .split(',')
+        .filter(Boolean);
     var serverRender = req.query.ssr !== 'false' && req.mendel.isSsrReady();
     var optionalMarkup = '';
 
@@ -37,23 +37,23 @@ app.get('/', function(req, res) {
         // array of bundle ids you only need for ssr rendering
         const resolver = req.mendel.resolver(['main']);
         var Main = resolver.require('./main');
-        optionalMarkup = ReactDOMServer.renderToString(Main())
+        optionalMarkup = ReactDOMServer.renderToString(Main());
     }
 
     var html = [
         '<!DOCTYPE html>',
         '<head>',
-            bundle(req, 'css'),
+        bundle(req, 'css'),
         '</head>',
         '<body>',
-            '<div id="main">'+optionalMarkup+'</div>',
-            bundle(req, 'vendor'),
-            bundle(req, 'main'),
-            // The full example supports on-demand loading, lazy bundle
-            // is only loaded client-side when a button is clicked in the
-            // application
-            entryMap(req, 'lazy'),
-        '</body>'
+        '<div id="main">' + optionalMarkup + '</div>',
+        bundle(req, 'vendor'),
+        bundle(req, 'main'),
+        // The full example supports on-demand loading, lazy bundle
+        // is only loaded client-side when a button is clicked in the
+        // application
+        entryMap(req, 'lazy'),
+        '</body>',
     ].join('\n');
 
     res.send(html);
@@ -68,32 +68,30 @@ app.get('/', function(req, res) {
 var bundleCache = {};
 var entryMapCache = {};
 
-
 function bundle(req, bundle) {
     var key = bundle + ':' + req.mendel.variations.join(':');
     if (!cache || !bundleCache[key]) {
         if (bundle === 'css') {
-            if (process.env.NODE_ENV !== 'production') {
-                bundleCache[key] = '<link rel="stylesheet" type="text/css" href="' + req.mendel.getURL(bundle) + '">'; // eslint-disable-line max-len
+            if (Boolean(process.env.INLINE_CSS) === true) {
+                bundleCache[key] =
+                    '<style>' + concatDeps(req, bundle) + '</style>';
             } else {
                 bundleCache[key] =
-                    '<style>' +
-                    // HACK remove hardcode by tabulating resource map
-                    fs.readFileSync('./build/main.css', 'utf8') +
-                    '</style>';
+                    '<link rel="stylesheet" type="text/css" href="' +
+                    req.mendel.getURL(bundle) +
+                    '">'; // eslint-disable-line max-len
             }
         } else {
-            bundleCache[key] = '<script src="' + req.mendel.getURL(bundle) + '"></script>';
+            bundleCache[key] =
+                '<script src="' + req.mendel.getURL(bundle) + '"></script>';
         }
     }
     return bundleCache[key];
 }
 
-
 function entryMap(req, bundle) {
     var key = bundle + ':' + req.mendel.variations.join(':');
     if (!cache || !entryMapCache[key]) {
-
         // `req.mendel.getBundleEntries` contains all bundles as keys and arrays
         // of entries that were used (normalized by variations) as values. This
         // allows apps to create a specific logic with their bundles in the
@@ -103,22 +101,32 @@ function entryMap(req, bundle) {
         // In this particular case, entryMap will be used to expose to the client
         // the URL for bundles based on modules that are "exposed", meaning, after
         // loading the bundle, you can `require('entryName.js')` for any entry.
-        var entryMapScript =  [
+        var entryMapScript = [
             '<script>',
             '   (function(){',
             '       var nameSpace = "_mendelEntryMap";',
-            '       var url = "'+req.mendel.getURL(bundle)+'";',
+            '       var url = "' + req.mendel.getURL(bundle) + '";',
             '       window[nameSpace] = window[nameSpace] || {};',
-            '       ' + bundles.map(function(entry) {
-                        return 'window[nameSpace]["'+entry+'"] = ' + ' url;';
-                    }).join('\n       '),
+            '       ' +
+                bundles
+                    .map(function(entry) {
+                        return (
+                            'window[nameSpace]["' + entry + '"] = ' + ' url;'
+                        );
+                    })
+                    .join('\n       '),
             '   })()',
-            '</script>'
+            '</script>',
         ];
         entryMapCache[key] = entryMapScript.join('\n');
-
     }
     return entryMapCache[key];
+}
+
+function concatDeps(req, bundleId) {
+    const bundle = req.mendel.getBundle(bundleId);
+
+    return bundle.deps.map(dep => dep.source).join('\n');
 }
 
 module.exports = app;

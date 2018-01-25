@@ -208,6 +208,18 @@ env:
       lazy:
         outlet: manifest
         manifest: lazy.manifest.json
+      css:
+        outlet: manifest
+        manifest: css.manifest.json
+        envify: false
+        uglify: false
+        serveAs: css
+      css-rtl:
+        outlet: manifest
+        manifest: css-rtl.manifest.json
+        envify: false
+        uglify: false
+        serveAs: css
       server:
         outlet: ssr
         manifest: ssr.manifest.json
