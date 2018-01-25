@@ -13,7 +13,7 @@ module.exports = function generatorNodeModule(bundle, doneBundles, registry) {
         const {normalizedId, type} = entry;
         registry.walk(normalizedId, {types: [type]}, (dep) => {
             if (nodeModules.has(dep.id)) return false;
-            if (dep === entry) dep.entry = true;
+            if (dep.normalizedId === entry.normalizedId) dep.entry = true;
             nodeModules.set(dep.id, dep);
         });
     });
