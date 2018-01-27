@@ -1,6 +1,6 @@
 {
   "name": "mendel-generator-node-modules",
-  "version": "3.0.0",
+  "version": "3.3.0",
   "description": "Mendel-generator that creates special bundle with only node_modules from a bundle",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -1,6 +1,6 @@
 {
   "name": "mendel-outlet-manifest",
-  "version": "3.0.3",
+  "version": "3.3.0",
   "description": "Mendel outlet for generating mendel-core (Mendel v1) compatible manifest. Manifest is a serialization of a Mendel cache.",
   "main": "src/index.js",
   "scripts": {
