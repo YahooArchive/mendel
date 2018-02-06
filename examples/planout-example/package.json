@@ -1,5 +1,5 @@
 {
-  "name": "mendel-full-example",
+  "name": "mendel-planout-example",
   "version": "1.1.0",
   "description": "Example of app using mendel, es6, jsx, react, planout for assignment, server-side-rendering, multivariant and multilayer support.",
   "main": "index.js",
