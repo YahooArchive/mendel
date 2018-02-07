@@ -7,6 +7,9 @@
   "commands": {
     "bootstrap": {
       "ignore": "*-example"
+    },
+    "publish": {
+      "ignore": "*-example"
     }
   },
   "version": "independent",
