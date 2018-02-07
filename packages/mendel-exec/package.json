@@ -13,6 +13,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
-    "resolve": "^1.2.0"
+    "resolve": "^1.2.0",
+    "source-map": "^0.7.0"
   }
 }
