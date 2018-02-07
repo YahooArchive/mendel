@@ -3,8 +3,8 @@
 const program = require('commander');
 const chalk = require('chalk');
 
-function parseIgnores(val='', previousIgnores) {
-    return previousIgnores.concat(
+function stringCollection(val='', collection) {
+    return collection.concat(
         val.split(',')
         .map(splitted => splitted.trim())
         .filter(Boolean)
@@ -14,11 +14,14 @@ function parseIgnores(val='', previousIgnores) {
 program
     .version('0.1.0')
     .usage('[options] <dir path>')
-    .option('--ignore <patterns>', 'Comma separated ignore glob patterns', parseIgnores, ['**/_test_/**', '**/_browser_test_/**', '**/assets/**'])
+    .option('-i, --ignore <patterns>', 'Comma separated ignore glob patterns', stringCollection, [])
     // .option('-v, --verbose', 'Verbose mode')
     .option('-w, --watch', 'Watch mode', false)
+    .option('-l, --only <ids>', 'Only build this list of bundleIds', stringCollection, [])
     .option('-o, --outlet', 'Write a mendel v1 compatible manifest', false)
     .parse(process.argv);
+
+program.ignores = program.ignore;
 
 if (program.watch) {
     const MendelPipelineDaemon = require('./daemon');

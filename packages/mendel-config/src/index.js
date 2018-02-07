@@ -53,9 +53,13 @@ module.exports = function(rawConfig) {
     config.transforms = Object.keys(config.transforms).map(id => {
         return new TransformConfig(id, config.transforms[id], config);
     });
-    config.bundles = Object.keys(config.bundles).map(function(bundleId) {
-        return new BundleConfig(bundleId, config.bundles[bundleId], config);
-    });
+
+    const only = rawConfig.only;
+    config.bundles = Object.keys(config.bundles)
+        .filter(bundleId => only.length === 0 || only.includes(bundleId))
+        .map(function(bundleId) {
+            return new BundleConfig(bundleId, config.bundles[bundleId], config);
+        });
     config.generators = config.generators.map(g => {
         return new GeneratorConfig(g, config);
     });
