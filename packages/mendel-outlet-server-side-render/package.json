@@ -16,6 +16,7 @@
     "debug": "^2.6.1",
     "falafel": "^2.1.0",
     "mendel-development": "^3.0.0",
-    "mendel-outlet-manifest": "^3.0.3"
+    "mendel-outlet-manifest": "^3.0.3",
+    "mkdirp": "^0.5.1"
   }
 }
