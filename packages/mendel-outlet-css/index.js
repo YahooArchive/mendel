@@ -10,7 +10,9 @@ module.exports = class CSSOutlet {
         this.outletOptions = options;
     }
 
-    perform({entries, options}, variations) {
+    perform({entries, options: bundleConfig}, variations) {
+        const outfile = bundleConfig.outfile;
+        const writeFiles = this.config.noout !== true && outfile;
         const plugins = !this.outletOptions.plugin ? [] :
             this.outletOptions.plugin.map(p => {
                 if (typeof p === 'string') return require(p);
@@ -20,14 +22,13 @@ module.exports = class CSSOutlet {
 
         // TODO: Re-enable preprocess
         return Promise.resolve(this._filterVariations(entries, variations))
-        .then(entriesToCombine => combineCss(entriesToCombine, options.outfile))
+        .then(entriesToCombine => combineCss(entriesToCombine, outfile))
         .then(({source, map}) => {
-            const writeFiles = this.config.noout !== true && options.outfile;
            const postCssOptions = Object.assign({
                // Sourcemap url will be generated using this property.
                // E.g., ./app.css.map
-               to: options.outfile,
-               map: options.sourcemap !== false && {
+               to: outfile,
+               map: bundleConfig.sourcemap !== false && {
                    prev: map,
                    inline: !writeFiles,
                },
@@ -36,13 +37,20 @@ module.exports = class CSSOutlet {
 
            return this._transform(source, plugins, postCssOptions)
            .then(({css, map}) => {
-
                if (writeFiles) {
-                   debug(`Outputted: ${options.outfile}`);
-                   fs.writeFileSync(options.outfile, css);
-                   fs.writeFileSync(options.outfile + '.map', map);
+                   const mapfile = outfile + '.map';
+                   const mapdata = JSON.stringify(map);
+                   fs.writeFileSync(outfile, css);
+                   fs.writeFileSync(mapfile, mapdata);
+
+                   debug([
+                      `Wrote: ${outfile}, ${css.length} bytes`,
+                      `Wrote: ${mapfile}, ${mapdata.length} bytes`,
+                   ].join('\n'));
+
                } else {
                    debug(`Returned css of ${css.length} bytes`);
+
                    return css;
                }
            });
@@ -119,11 +127,9 @@ module.exports = class CSSOutlet {
 function combineCss(cssEntries, outputFileName='') {
     const concat = new Concat(true, outputFileName, '\n');
 
-    const modules = Array.from(cssEntries.values());
-
-    debug(`Concatenating ${modules.length} files to ${outputFileName}`);
-
-    modules.forEach(({id, source, map}) => {
+    Array.from(cssEntries.values())
+    .sort((a, b) => a.order - b.order)
+    .forEach(({id, source, map}) => {
         concat.add(id, source, map || null);
     });
 
@@ -137,8 +143,14 @@ function combineCss(cssEntries, outputFileName='') {
             return cssEntries.get(id).source;
         });
 
-    return {
+    const result = {
         source: concat.content.toString('utf8'),
         map: JSON.stringify(map),
     };
+    debug([
+        `Concatenated ${cssEntries.size} files`,
+        `to buffer of ${result.source.length} bytes`,
+        `and sourcemap of ${result.map.length} bytes`,
+    ].join(' '));
+    return result;
 }

@@ -116,7 +116,9 @@ function MendelMiddleware(opts) {
                 'Cache-Control': 'public, max-age=31536000',
             });
 
-            decodedResults.deps.forEach(function(dep) {
+            decodedResults.deps
+            .sort((a, b) => a.order - b.order)
+            .forEach(function(dep) {
                 res.write(dep.source + '\n');
             });
 

@@ -66,6 +66,7 @@ module.exports = class ManifestOutlet {
 
         if (item.expose) data.expose = item.expose;
         if (item.entry) data.entry = item.entry;
+        if (item.order) data.order = item.order;
         return data;
     }
 
