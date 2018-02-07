@@ -18,27 +18,31 @@ module.exports = class CSSOutlet {
                 return require(p[0])(p[1]);
             });
 
-        return this._preprocess(this._filterVariations(entries, variations))
-        .then(procssedEntries => combineCss(procssedEntries, options.outfile))
+        // TODO: Re-enable preprocess
+        return Promise.resolve(this._filterVariations(entries, variations))
+        .then(entriesToCombine => combineCss(entriesToCombine, options.outfile))
         .then(({source, map}) => {
+            const writeFiles = this.config.noout !== true && options.outfile;
            const postCssOptions = Object.assign({
                // Sourcemap url will be generated using this property.
                // E.g., ./app.css.map
                to: options.outfile,
-               map: {
+               map: options.sourcemap !== false && {
                    prev: map,
-                   inline: options.sourcemap === false,
+                   inline: !writeFiles,
                },
            }, this.outletOptions);
            delete postCssOptions.plugin;
 
            return this._transform(source, plugins, postCssOptions)
-           .then(({css}) => {
-               debug(`Outputted: ${options.outfile}`);
+           .then(({css, map}) => {
 
-               if (this.config.noout !== true && options.outfile) {
+               if (writeFiles) {
+                   debug(`Outputted: ${options.outfile}`);
                    fs.writeFileSync(options.outfile, css);
+                   fs.writeFileSync(options.outfile + '.map', map);
                } else {
+                   debug(`Returned css of ${css.length} bytes`);
                    return css;
                }
            });
@@ -66,6 +70,12 @@ module.exports = class CSSOutlet {
             variational.set(pick.id, pick);
             return variational;
         }, new Map());
+
+        debug([
+            `Found ${variationalEntries.size} matches`,
+            `for ${variations}`,
+            `out of ${entries.size} css entries`,
+        ].join(' '));
 
         return variationalEntries;
     }
@@ -109,8 +119,13 @@ module.exports = class CSSOutlet {
 function combineCss(cssEntries, outputFileName='') {
     const concat = new Concat(true, outputFileName, '\n');
 
-    Array.from(cssEntries.values())
-    .forEach(({id, css, map}) => concat.add(id, css, map || null));
+    const modules = Array.from(cssEntries.values());
+
+    debug(`Concatenating ${modules.length} files to ${outputFileName}`);
+
+    modules.forEach(({id, source, map}) => {
+        concat.add(id, source, map || null);
+    });
 
     const map = JSON.parse(concat.sourceMap);
     map.sourcesContent = map.sources
