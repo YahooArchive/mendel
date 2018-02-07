@@ -54,7 +54,7 @@ module.exports = function(rawConfig) {
         return new TransformConfig(id, config.transforms[id], config);
     });
 
-    const only = rawConfig.only;
+    const only = rawConfig.only || [];
     config.bundles = Object.keys(config.bundles)
         .filter(bundleId => only.length === 0 || only.includes(bundleId))
         .map(function(bundleId) {
