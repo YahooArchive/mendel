@@ -1,6 +1,6 @@
 {
   "name": "mendel-resolver",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "node-resolve + browser-resolve that is promise based in an OOP fashion",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
-    "mendel-development": "^3.0.0"
+    "mendel-development": "^3.0.1"
   },
   "devDependencies": {
     "tap": "^7.1.2"

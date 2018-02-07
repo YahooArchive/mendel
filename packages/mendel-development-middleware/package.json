@@ -1,6 +1,6 @@
 {
   "name": "mendel-development-middleware",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Mendel middleware that executes and builds based on a Mendel client appropriate for during development.",
   "main": "index.js",
   "scripts": {
@@ -13,10 +13,10 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
-    "path-to-regexp": "^1.7.0",
-    "mendel-config": "^3.1.1",
-    "mendel-development": "^3.0.0",
-    "mendel-exec": "^3.0.1",
-    "mendel-pipeline": "^3.3.0"
+    "mendel-config": "^3.3.1",
+    "mendel-development": "^3.0.1",
+    "mendel-exec": "^3.0.2",
+    "mendel-pipeline": "^3.4.0",
+    "path-to-regexp": "^1.7.0"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "mendel-transform-babel",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Mendel transforms that uses babel-core",
   "main": "index.js",
   "mode": "ist",

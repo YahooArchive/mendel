@@ -1,6 +1,6 @@
 {
   "name": "mendel-config",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Mendel configuration parser",
   "main": "index.js",
   "scripts": {

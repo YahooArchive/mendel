@@ -1,6 +1,6 @@
 {
   "name": "mendel-requirify",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Write individual mendel-requirified dep files from the mendel browserify pipeline.",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "fs-extra": "~0.26.5",
-    "through2": "^2.0.1",
-    "mendel-development": "^1.0.7"
+    "mendel-development": "^1.0.7",
+    "through2": "^2.0.1"
   }
 }
