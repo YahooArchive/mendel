@@ -4,6 +4,11 @@
     "examples/*",
     "packages/*"
   ],
+  "commands": {
+    "bootstrap": {
+      "ignore": "*-example"
+    }
+  },
   "version": "independent",
   "npmClient": "npm"
 }

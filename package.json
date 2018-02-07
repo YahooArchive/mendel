@@ -33,7 +33,7 @@
     "lint": "eslint .",
     "unit": "DEBUG='' tap test/*.js",
     "unit-file": "DEBUG='' tap",
-    "linkall": "lerna bootstrap",
+    "linkall": "lerna bootstrap && lerna exec --scope=*-example -- npm install && lerna link --scope=*-example",
     "bootstrap": "lerna bootstrap",
     "coverage": "DEBUG='' tap test/*.js --coverage --nyc-arg=--all",
     "coverage-file": "DEBUG='' tap --coverage --coverage-report=lcov",
