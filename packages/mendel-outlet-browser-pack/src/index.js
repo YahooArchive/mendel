@@ -138,9 +138,10 @@ module.exports = class BrowserPackOutlet {
             runtime: item.runtime,
             file: item.id,
             variation: item.variation || this.config.baseConfig.dir,
-            // This is supposed to be file path but our sourcemap already includes it
-            // so '.' is sufficient.
-            sourceFile: '.',
+            // sourceFile is the filename of the original source. Our sourcemaps
+            // include it, but files without transforms, including node_modueles
+            // will need this. Useful specially for performance stack traces.
+            sourceFile: item.id,
             // Kinda ugly but browser pack uses "combine-source-map" which expects
             // inline source map which gets removed when putting multiple files together
             // as a bundle.
