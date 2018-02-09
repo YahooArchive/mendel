@@ -1,6 +1,6 @@
 {
   "name": "mendel-transform-inline-env",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mendel transform to inline environment variables",
   "main": "index.js",
   "scripts": {
