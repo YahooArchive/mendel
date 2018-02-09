@@ -3,6 +3,7 @@ const babelCore = require('babel-core');
 const manifestUglify = require('mendel-manifest-uglify');
 const fs = require('fs');
 const shasum = require('shasum');
+const inliner = require('babel-plugin-transform-inline-environment-variables');
 
 // Manifest
 module.exports = class ManifestOutlet {
@@ -86,7 +87,7 @@ module.exports = class ManifestOutlet {
 
                 const {code} = babelCore.transform(data.source, {
                     filename: data.id,
-                    plugins: ['transform-inline-environment-variables'],
+                    plugins: [inliner],
                 });
                 data.source = code;
                 delete data.deps.process;
