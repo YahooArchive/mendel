@@ -1,0 +1,27 @@
+{
+  "name": "mendel-transform-uglify",
+  "version": "1.0.0",
+  "description": "Mendel transform to minify javascript using uglify-es",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahoo/mendel.git"
+  },
+  "keywords": [
+    "mendel",
+    "transform",
+    "uglify"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yahoo/mendel/issues"
+  },
+  "homepage": "https://github.com/yahoo/mendel#readme",
+  "dependencies": {
+    "uglify-es": "^3.3.10"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "mendel-transform-inline-env",
+  "version": "1.0.0",
+  "description": "Mendel transform to inline environment variables",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahoo/mendel.git"
+  },
+  "keywords": [
+    "mendel",
+    "babel",
+    "transform",
+    "envify",
+    "env",
+    "variables"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yahoo/mendel/issues"
+  },
+  "homepage": "https://github.com/yahoo/mendel#readme",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.3.0"
+  }
+}
