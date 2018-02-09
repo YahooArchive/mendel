@@ -41,5 +41,9 @@
     "type": "git",
     "url": "https://github.com/yahoo/mendel"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mendel-config": "^3.3.1",
+    "mendel-development": "^3.0.1",
+    "mendel-pipeline": "^3.4.0"
+  }
 }

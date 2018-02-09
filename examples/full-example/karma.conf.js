@@ -18,12 +18,11 @@ module.exports = function(config) {
         // plugins whitelisted here to enforce correct ordering
         plugins: [
             // javascript builders and loaders first
-            'karma-browserify',
             'karma-mendel',
             // shims and polyfills that PhantomJS or browsers might need
             'karma-es6-shim',
             // preprocessors
-            'karma-babel-preprocessor',
+                // 'karma-babel-preprocessor',
             // everything else
             'karma-jasmine',
             'karma-chrome-launcher',
@@ -36,8 +35,7 @@ module.exports = function(config) {
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         frameworks: [
-            'browserify',
-            'commonjs',
+            'mendel',
             'jasmine',
             'es6-shim'
         ],
@@ -57,7 +55,11 @@ module.exports = function(config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'isomorphic/**/*.js': ['babel', 'commonjs']
+            'isomorphic/**/*.js': ['mendel']
+        },
+
+        mendel: {
+            environment: 'test',
         },
 
         browserify: {
