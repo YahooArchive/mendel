@@ -85,6 +85,7 @@ module.exports = class ManifestOutlet {
                 if (!data.deps.process) return;
 
                 const {code} = babelCore.transform(data.source, {
+                    filename: data.id,
                     plugins: ['transform-inline-environment-variables'],
                 });
                 data.source = code;
