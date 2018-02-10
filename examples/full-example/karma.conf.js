@@ -36,7 +36,7 @@ module.exports = function(config) {
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['browserify', 'mendel', 'jasmine', 'es6-shim'],
+        frameworks: ['mendel', 'jasmine', 'es6-shim'],
 
         // list of files / patterns to load in the browser
         files: ['isomorphic/base/**/*.js'],
