@@ -3,16 +3,14 @@
    See the accompanying LICENSE file for terms. */
 
 import React from 'react'; // eslint-disable-line no-unused-vars
-import { findDOMNode } from 'react-dom'; // eslint-disable-line no-unused-vars
-import {
-    renderIntoDocument
-} from 'react-addons-test-utils';
+import {findDOMNode} from 'react-dom'; // eslint-disable-line no-unused-vars
+import {renderIntoDocument} from 'react-addons-test-utils';
 import Button from '../button';
 import {expect} from 'chai';
 
-describe("Button", function() {
-    it("renders with children", function() {
-        const button = renderIntoDocument(<Button>{this.sayMeow()}</Button>);
+describe('Button', function() {
+    it('renders with children', function() {
+        const button = renderIntoDocument(<Button>meow</Button>);
 
         expect(findDOMNode(button).innerText).to.equal('meow');
     });
