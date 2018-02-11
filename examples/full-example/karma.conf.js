@@ -3,21 +3,11 @@
    See the accompanying LICENSE file for terms. */
 
 // Karma configuration
-// Generated on Wed Sep 28 2016 23:32:44 GMT-0700 (PDT)
-
-var requireNodeModules = [
-    'react',
-    'react-dom',
-    'react-addons-test-utils',
-    'chai',
-];
 
 module.exports = function(config) {
     config.set({
-        // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '',
-
         // plugins whitelisted here to enforce correct ordering
+        // if you are having trouble, use karma-mendel first
         plugins: [
             // javascript builders and loaders first
             'karma-mendel',
@@ -34,22 +24,38 @@ module.exports = function(config) {
             'karma-coverage-istanbul-reporter',
         ],
 
-        // frameworks to use
-        // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+        // frameworks to use, please delcare 'mendel' first
         frameworks: ['mendel', 'jasmine', 'es6-shim'],
 
         // list of files / patterns to load in the browser
+        // for use with mendel, list only your test files here
         files: ['isomorphic/**/_test_/*.js'],
 
         // list of files to exclude
+        // you should exclude auto-executing files, such as your app initialization
         exclude: ['isomorphic/base/main.js'],
 
         // preprocess matching files before serving them to the browser
-        // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+        // please only use mendel, you can use test configuration to have different
+        // transforms than production bundles (such as istanbul)
         preprocessors: {
             'isomorphic/**/*.js': ['mendel'],
         },
 
+        /*
+            Most mendel options can be used here
+
+            If you want to leverage .mendelrc environment overrides, you will
+            only need the following here:
+
+                mendel: {
+                    environment: 'test',
+                },
+
+            This is encouraged since you can have your development daemon
+            running and tests will execute quite fast, even if you have many
+            environment configurations running in parallel.
+        */
         mendel: {
             environment: 'test',
         },
@@ -88,6 +94,6 @@ module.exports = function(config) {
 
         // Concurrency level
         // how many browser should be started simultaneous
-        concurrency: Infinity,
+        concurrency: 1,
     });
 };
