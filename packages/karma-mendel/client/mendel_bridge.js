@@ -13,20 +13,27 @@
 
     function newRequire(name, variationId, jumped) {
         if (!cache[name] && variationId) {
-            const allByNormId = Object.keys(modules).reduce(
-                (normMatches, id) => {
-                    if (modules[id].normalizedId === name) {
-                        normMatches.push(modules[id]);
-                    }
-                    return normMatches;
-                },
-                []
-            );
-            const variation = variations.find(_ => _.id === variationId);
-            let found;
+            var allByNormId = Object.keys(modules).reduce(function(
+                normMatches,
+                id
+            ) {
+                if (modules[id].normalizedId === name) {
+                    normMatches.push(modules[id]);
+                }
+                return normMatches;
+            },
+            []);
+            var variation = variations.find(function(_) {
+                return _.id === variationId;
+            });
+            var found;
             for (var i = 0; i < variation.chain.length; i++) {
                 var dir = variation.chain[i];
-                found = found || allByNormId.find(_ => _.variation === dir);
+                found =
+                    found ||
+                    allByNormId.find(function(_) {
+                        return _.variation === dir;
+                    });
             }
             if (found) {
                 name = found.id;
@@ -70,8 +77,8 @@
             return Boolean(modules[id].entry);
         })
         .sort(function(aId, bId) {
-            const a = modules[aId];
-            const b = modules[bId];
+            var a = modules[aId];
+            var b = modules[bId];
             if (a.variation === baseDir) {
                 return -1;
             }
@@ -82,7 +89,7 @@
         })
         .forEach(function(id) {
             var module = modules[id];
-            const match = variationMatches(variations, module.id);
+            var match = variationMatches(variations, module.id);
             if (match) {
                 newRequire(id, match.variation.id);
             } else {
