@@ -11,7 +11,7 @@
     var baseId = config.baseVariationId;
     var baseDir = config.baseVariationDir;
 
-    function newRequire(name, variationId, jumped) {
+    function mendelRequire(name, variationId, jumped) {
         if (!cache[name] && variationId) {
             var allByNormId = Object.keys(modules).reduce(function(
                 normMatches,
@@ -62,7 +62,7 @@
                 m.exports,
                 function(x) {
                     var id = modules[name].deps[x];
-                    return newRequire(id ? id : x, variationId);
+                    return mendelRequire(id ? id : x, variationId);
                 },
                 m,
                 m.exports
@@ -91,9 +91,9 @@
             var module = modules[id];
             var match = variationMatches(variations, module.id);
             if (match) {
-                newRequire(id, match.variation.id);
+                mendelRequire(id, match.variation.id);
             } else {
-                newRequire(id, baseId);
+                mendelRequire(id, baseId);
             }
         });
 
@@ -117,5 +117,5 @@
     }
 
     // Override the current require with this new one
-    window.require = newRequire;
+    window.require = mendelRequire;
 })(window, __mendel_module__, __mendel_config__, []);
