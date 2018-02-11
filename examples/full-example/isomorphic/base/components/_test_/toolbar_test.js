@@ -3,16 +3,16 @@
    See the accompanying LICENSE file for terms. */
 
 import React from 'react'; // eslint-disable-line no-unused-vars
-import { findDOMNode } from 'react-dom'; // eslint-disable-line no-unused-vars
+import {findDOMNode} from 'react-dom'; // eslint-disable-line no-unused-vars
 import {
     renderIntoDocument,
-    scryRenderedDOMComponentsWithTag
+    scryRenderedDOMComponentsWithTag,
 } from 'react-addons-test-utils';
 import Toolbar from '../toolbar';
 import {expect} from 'chai';
 
-describe("toolbar", function() {
-    it("contains a button with correct label", function() {
+describe('toolbar [base]', function() {
+    it('contains a button with correct label', function() {
         const toolbar = renderIntoDocument(<Toolbar />);
         const buttons = scryRenderedDOMComponentsWithTag(toolbar, 'button');
 

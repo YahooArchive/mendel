@@ -8,7 +8,7 @@ import {renderIntoDocument} from 'react-addons-test-utils';
 import Button from '../button';
 import {expect} from 'chai';
 
-describe('Button', function() {
+describe('Button [base]', function() {
     it('renders with children', function() {
         const button = renderIntoDocument(<Button>meow</Button>);
 

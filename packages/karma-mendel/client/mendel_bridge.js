@@ -8,7 +8,8 @@
     // Save the require from previous bundle to this closure if any
     var previousRequire = typeof require == 'function' && require;
     var variations = config.variations;
-    var base = config.baseVariationDir;
+    var baseId = config.baseVariationId;
+    var baseDir = config.baseVariationDir;
 
     function newRequire(name, variationId, jumped) {
         if (!cache[name] && variationId) {
@@ -64,18 +65,31 @@
     }
 
     // Run entry modules
-    Object.keys(modules).forEach(function(id) {
-        var module = modules[id];
-        if (module.entry) {
+    Object.keys(modules)
+        .filter(function(id) {
+            return Boolean(modules[id].entry);
+        })
+        .sort(function(aId, bId) {
+            const a = modules[aId];
+            const b = modules[bId];
+            if (a.variation === baseDir) {
+                return -1;
+            }
+            if (b.variation === baseDir) {
+                return 1;
+            }
+            return 0;
+        })
+        .forEach(function(id) {
+            var module = modules[id];
             console.log('mendel starting entry ', module.id);
             const match = variationMatches(variations, module.id);
             if (match) {
                 newRequire(id, match.variation.id);
             } else {
-                newRequire(id, base);
+                newRequire(id, baseId);
             }
-        }
-    });
+        });
 
     function variationMatches(variations, path) {
         if (path.indexOf('node_modules') >= 0) return;

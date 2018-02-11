@@ -199,6 +199,7 @@ function globalModuleContent() {
             '   variations:' + variationsString,
             '   baseVariationDir:' +
                 JSON.stringify(globalConfig.baseConfig.dir),
+            '   baseVariationId:' + JSON.stringify(globalConfig.baseConfig.id),
         ].join(',\n'),
         '};',
         'process = {',
