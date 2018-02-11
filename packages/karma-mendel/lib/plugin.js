@@ -3,6 +3,7 @@
 /* eslint max-len: "off" */
 var path = require('path');
 var fs = require('fs');
+var combineSourceMap = require('combine-source-map');
 var configLoader = require('mendel-config');
 var MendelClient = require('mendel-pipeline/client');
 
@@ -243,27 +244,42 @@ function wrapMendelModule(module) {
 
     browserModule.moduleFn = 'MENDEL_REPLACE';
 
-    var transformedContent = !module.map
-        ? module.source
-        : [
-              module.source,
-              '\n',
-              INLINE_MAP_PREFIX,
-              new Buffer(JSON.stringify(module.map)).toString('base64'),
-          ].join('');
+    var moduleString = JSON.stringify(browserModule);
 
-    var moduleString = JSON.stringify(browserModule, null, ' ');
-
-    var output =
+    var moduleBeforeSource =
         'window.__mendel_module__["' + module.id + '"] = ' + moduleString + ';';
 
-    output = output
-        .split('"MENDEL_REPLACE"')
-        .join(
-            'function(require,module,exports){\n' + transformedContent + '\n}'
-        );
+    var parts = moduleBeforeSource.split('"MENDEL_REPLACE"');
+    parts[0] = parts[0] + 'function(require,module,exports){\n';
+    parts[1] = '\n}' + parts[1];
+    var part0Lines = parts[0].split('\n');
 
-    return output;
+    var pureSource = combineSourceMap.removeComments(module.source);
+
+    var output = parts[0] + pureSource + parts[1];
+
+    var sourcemap = combineSourceMap.create();
+    var moduleSource = pureSource;
+    if (module.map) {
+        moduleSource = [
+            pureSource,
+            '\n',
+            INLINE_MAP_PREFIX,
+            new Buffer(JSON.stringify(module.map)).toString('base64'),
+        ].join('');
+    }
+    sourcemap.addFile(
+        {
+            sourceFile: './' + module.id,
+            source: moduleSource,
+        },
+        {
+            line: part0Lines.length,
+            column: part0Lines[part0Lines.length - 1].length,
+        }
+    );
+    var comment = sourcemap.comment();
+    return output + '\n' + comment + '\n';
 }
 
 // PUBLISH DI MODULE
