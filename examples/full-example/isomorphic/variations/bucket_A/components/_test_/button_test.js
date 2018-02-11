@@ -4,7 +4,7 @@
 
 import React from 'react'; // eslint-disable-line no-unused-vars
 import {findDOMNode} from 'react-dom'; // eslint-disable-line no-unused-vars
-import {renderIntoDocument} from 'react-addons-test-utils';
+import {renderIntoDocument} from 'react-dom/test-utils';
 import Button from '../button';
 import {expect} from 'chai';
 

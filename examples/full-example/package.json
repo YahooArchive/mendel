@@ -16,8 +16,8 @@
     "express": "^4.13.4",
     "mendel-middleware": "*",
     "morgan": "^1.7.0",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react": "^15.6.2",
+    "react-dom": "^15.6.2"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.6",
@@ -40,9 +40,9 @@
     "karma-es6-shim": "^1.0.0",
     "karma-jasmine": "^1.1.1",
     "karma-jasmine-diff-reporter": "^1.1.1",
+    "karma-mendel": "*",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-spec-reporter": "0.0.32",
-    "karma-mendel": "*",
     "mendel-development-middleware": "*",
     "mendel-generator-extract": "*",
     "mendel-generator-node-modules": "*",
@@ -61,7 +61,8 @@
     "mocha": "^2.5.3",
     "mocha-istanbul-reporter": "^0.1.0",
     "nodemon": "^1.11.0",
-    "react-addons-test-utils": "^15.4.2",
+    "react": "^15.6.2",
+    "react-dom": "^15.6.2",
     "rtlcss": "^2.1.2",
     "watchify": "^3.9.0"
   },

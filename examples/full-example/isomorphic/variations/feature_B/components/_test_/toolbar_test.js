@@ -7,7 +7,7 @@ import {findDOMNode} from 'react-dom'; // eslint-disable-line no-unused-vars
 import {
     renderIntoDocument,
     scryRenderedDOMComponentsWithTag,
-} from 'react-addons-test-utils';
+} from 'react-dom/test-utils';
 import Toolbar from '../toolbar';
 import {expect} from 'chai';
 
