@@ -82,7 +82,6 @@
         })
         .forEach(function(id) {
             var module = modules[id];
-            console.log('mendel starting entry ', module.id);
             const match = variationMatches(variations, module.id);
             if (match) {
                 newRequire(id, match.variation.id);
