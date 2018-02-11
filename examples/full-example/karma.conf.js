@@ -39,7 +39,7 @@ module.exports = function(config) {
         frameworks: ['mendel', 'jasmine', 'es6-shim'],
 
         // list of files / patterns to load in the browser
-        files: ['isomorphic/base/**/*.js'],
+        files: ['isomorphic/base/**/_test_/*.js'],
 
         // list of files to exclude
         exclude: ['isomorphic/base/main.js'],
@@ -78,7 +78,7 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['PhantomJS'],
+        browsers: ['Chrome'],
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

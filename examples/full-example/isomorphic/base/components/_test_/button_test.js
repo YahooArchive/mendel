@@ -10,6 +10,7 @@ import {expect} from 'chai';
 
 describe('Button', function() {
     it('renders with children', function() {
+        throw new Error('EXECUTING TEST');
         const button = renderIntoDocument(<Button>meow</Button>);
 
         expect(findDOMNode(button).innerText).to.equal('meow');
