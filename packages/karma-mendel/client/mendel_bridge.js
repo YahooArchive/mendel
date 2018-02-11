@@ -10,21 +10,25 @@
     var variations = config.variations;
     var base = config.baseVariationDir;
 
-    function newRequire(name, variation, jumped) {
-        if (!cache[name] && variation) {
-            const foundByNormId = Object.keys(modules).find(id => {
-                const item = modules[id];
-                if (
-                    name !== item.id &&
-                    item.normalizedId === name &&
-                    variation === item.variation
-                ) {
-                    return true;
-                }
-                return false;
-            });
-            if (foundByNormId) {
-                name = foundByNormId;
+    function newRequire(name, variationId, jumped) {
+        if (!cache[name] && variationId) {
+            const allByNormId = Object.keys(modules).reduce(
+                (normMatches, id) => {
+                    if (modules[id].normalizedId === name) {
+                        normMatches.push(modules[id]);
+                    }
+                    return normMatches;
+                },
+                []
+            );
+            const variation = variations.find(_ => _.id === variationId);
+            let found;
+            for (var i = 0; i < variation.chain.length; i++) {
+                var dir = variation.chain[i];
+                found = found || allByNormId.find(_ => _.variation === dir);
+            }
+            if (found) {
+                name = found.id;
             }
         }
         if (!cache[name]) {
@@ -34,7 +38,7 @@
                 // that was added to the page.
                 var currentRequire = typeof require == 'function' && require;
                 if (!jumped && currentRequire)
-                    return currentRequire(name, variation, true);
+                    return currentRequire(name, variationId, true);
 
                 // If there are other bundles on this page the require from the
                 // previous one is saved to 'previousRequire'. Repeat this as
@@ -50,7 +54,7 @@
                 m.exports,
                 function(x) {
                     var id = modules[name].deps[x];
-                    return newRequire(id ? id : x, variation);
+                    return newRequire(id ? id : x, variationId);
                 },
                 m,
                 m.exports
@@ -66,7 +70,7 @@
             console.log('mendel starting entry ', module.id);
             const match = variationMatches(variations, module.id);
             if (match) {
-                newRequire(id, match.variation.dir);
+                newRequire(id, match.variation.id);
             } else {
                 newRequire(id, base);
             }

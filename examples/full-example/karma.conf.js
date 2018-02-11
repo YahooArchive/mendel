@@ -39,7 +39,7 @@ module.exports = function(config) {
         frameworks: ['mendel', 'jasmine', 'es6-shim'],
 
         // list of files / patterns to load in the browser
-        files: ['isomorphic/base/**/_test_/*.js'],
+        files: ['isomorphic/**/_test_/*.js'],
 
         // list of files to exclude
         exclude: ['isomorphic/base/main.js'],
