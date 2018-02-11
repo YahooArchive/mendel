@@ -20,7 +20,6 @@ module.exports = function(config) {
         // plugins whitelisted here to enforce correct ordering
         plugins: [
             // javascript builders and loaders first
-            'karma-browserify',
             'karma-mendel',
             // shims and polyfills that PhantomJS or browsers might need
             'karma-es6-shim',
@@ -32,6 +31,7 @@ module.exports = function(config) {
             'karma-phantomjs-launcher',
             'karma-jasmine-diff-reporter',
             'karma-spec-reporter',
+            'karma-coverage-istanbul-reporter',
         ],
 
         // frameworks to use
@@ -54,14 +54,16 @@ module.exports = function(config) {
             environment: 'test',
         },
 
-        browserify: {
-            require: requireNodeModules,
+        // any of these options are valid: https://github.com/istanbuljs/istanbuljs/blob/aae256fb8b9a3d19414dcf069c592e88712c32c6/packages/istanbul-api/lib/config.js#L33-L39
+        coverageIstanbulReporter: {
+            // reports can be any that are listed here: https://github.com/istanbuljs/istanbuljs/tree/aae256fb8b9a3d19414dcf069c592e88712c32c6/packages/istanbul-reports/lib
+            reports: ['html', 'lcovonly', 'text-summary'],
         },
 
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['jasmine-diff', 'spec'],
+        reporters: ['jasmine-diff', 'spec', 'coverage-istanbul'],
 
         // web server port
         port: 9876,
