@@ -1,0 +1,30 @@
+{
+  "name": "mendel-transform-istanbul",
+  "version": "1.0.1",
+  "description": "Mendel transform to instrument coverage using istanbul",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahoo/mendel.git"
+  },
+  "keywords": [
+    "mendel",
+    "babel",
+    "transform",
+    "istanbul",
+    "coverage"
+  ],
+  "author": "Irae Carvalho <irae@irae.pro.br>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yahoo/mendel/issues"
+  },
+  "homepage": "https://github.com/yahoo/mendel#readme",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.5"
+  }
+}
