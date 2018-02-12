@@ -1,6 +1,6 @@
 {
   "name": "mendel-transform-istanbul",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mendel transform to instrument coverage using istanbul",
   "main": "index.js",
   "scripts": {
