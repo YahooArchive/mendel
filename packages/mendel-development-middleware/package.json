@@ -17,6 +17,6 @@
     "mendel-development": "^3.0.1",
     "mendel-exec": "^3.0.2",
     "mendel-pipeline": "^3.4.1",
-    "path-to-regexp": "^1.7.0"
+    "path-to-regexp": "^2.1.0"
   }
 }

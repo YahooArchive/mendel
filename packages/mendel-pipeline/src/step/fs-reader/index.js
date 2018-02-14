@@ -26,7 +26,7 @@ class FileReader extends BaseStep {
             analytics.toc('read');
             if (error) {
                 console.error([
-                    `[CRITICAL] while reading "${filePath}".`,
+                    `[Mendel] Critical error while reading "${filePath}".`,
                 ].join(' '));
                 debugError(`Error message for ${filePath}: ${error.stack}`);
                 // We need to exit in such case..

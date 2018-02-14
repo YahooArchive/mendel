@@ -22,12 +22,14 @@ class Mendel {
         this.daemon.run(error => {
             if (error) {
                 if (error instanceof ReferenceError) {
-                    console.log(chalk.yellow([
-                        'Instance of Mendel daemon may be running.',
+                    console.warn(chalk.yellow([
+                        '[Mendel] Instance of builder may be running.',
                         'Attemping to recycle...',
                     ].join('\n')));
                 } else {
-                    console.error('Unknown daemon execution error: ', error);
+                    console.error(
+                        '[Mendel] Unknown builder execution error: ', error
+                    );
                     process.exit(1);
                 }
             }

@@ -60,7 +60,7 @@ class UnixSocketNetwork extends BaseNetwork {
         .catch(() => {
             console.error(chalk.red([
                 '==================================================',
-                'Server cannot start when another server is active.',
+                '[Mendel] Server cannot start when another server is active.',
                 'If no server process is active, ',
                 `please remove or kill "${chalk.bold(path)}" manually.`,
                 '==================================================',

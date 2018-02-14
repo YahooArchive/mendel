@@ -39,8 +39,8 @@ class BaseMendelClient extends EventEmitter {
         this.client.on('error', (error) => {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
                 console.error([
-                    'Please, use --outlet only when you have another',
-                    'mendel process running on --watch mode.\n',
+                    '[Mendel] This action requires mendel',
+                    'builder running as a separate process.\n',
                 ].join(' '));
                 process.exit(1);
             }
@@ -52,12 +52,10 @@ class BaseMendelClient extends EventEmitter {
             this.synced = true;
             this.onSync.apply(this, arguments);
 
-            if (this._verbose)
-                console.log('[Mendel] Synced');
+            this.debug('synced');
         }.bind(this));
         this.client.on('unsync', function() {
-            if (this._verbose)
-                console.log('[Mendel] File change detected. Waiting to sync again...'); // eslint-disable-line max-len
+            this.debug('file change detected...');
             this.emit('change');
             this.synced = false;
             this.onUnsync.apply(this, arguments);
@@ -72,8 +70,10 @@ class BaseMendelClient extends EventEmitter {
             this.initSyncMessage = setTimeout(() => {
                 this.initSyncMessage = null;
                 console.log([
-                    '[Mendel] Waiting for sync. Can take few moments',
-                    'if an environment performs complex operations.',
+                    '[Mendel] Recent builder (re)start detected,',
+                    'compiling might take a moment...',
+                    '\n         To avoid this message,',
+                    'leave your builder always running',
                 ].join(' '));
             }, 3000);
         }
@@ -84,7 +84,7 @@ class BaseMendelClient extends EventEmitter {
             callback.call(null);
         });
         this.once('error', error => {
-            console.log('[Mendel SEVERE] Outlet error', error);
+            console.error('[Mendel SEVERE] Outlet error', error);
             this.exit();
             callback.call(null, error);
         });

@@ -76,7 +76,9 @@ class CacheClient extends EventEmitter {
                         if (unsynced) this.emit('unsync', data.id);
 
                         console.error(
-                            colors.red(`Errored while parsing ${data.id}\n`),
+                            colors.red(
+                                `[Mendel] Errored while parsing ${data.id}\n`
+                            ),
                             data.error.stack
                         );
                         break;
@@ -89,7 +91,7 @@ class CacheClient extends EventEmitter {
         conn.on('connect', () => {
             this.connected = true;
             if (isRetry) {
-                console.log('[Mendel] Reconnected to daemon. Good to go!');
+                debug('Reconnected to daemon. Good to go!');
             }
         });
 
@@ -103,8 +105,8 @@ class CacheClient extends EventEmitter {
             if (this.closeReqeusted) return;
 
             if (!isRetry) {
-                console.log([
-                    '[Mendel] Daemon was disconnected.',
+                debug([
+                    'Daemon has disconnected.',
                     'Will try to reconnect...',
                 ].join(' '));
             }

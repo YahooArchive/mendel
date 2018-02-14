@@ -52,14 +52,15 @@ class CacheServer extends EventEmitter {
         try {
             client.send(data);
         } catch (e) {
-            console.log(e.stack);
+            console.error('[Mendel] builder communication error');
+            console.error(e.stack);
         }
     }
 
     initServer() {
         this.server.on('error', (e) => {
-            console.log('Mendel Server Errored');
-            console.log(e.stack);
+            console.error('[Mendel] builder errored');
+            console.error(e.stack);
             process.exit(1);
         });
         this.server.on('listening', () => this.emit('ready'));

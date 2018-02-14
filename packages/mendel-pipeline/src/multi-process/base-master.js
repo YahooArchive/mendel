@@ -24,7 +24,7 @@ class BaseMasterProcess {
         this._workers.forEach(cp => {
             const {pid} = cp;
             cp.once('close', () => {
-                console.error('[ERROR] Worker process unexpectedly exited.');
+                console.error('[Mendel] Worker process unexpectedly exited.');
                 this._workers.splice(this._workers.indexOf(cp), 1);
                 this._idleWorkers.splice(this._idleWorkers.indexOf(pid), 1);
             });

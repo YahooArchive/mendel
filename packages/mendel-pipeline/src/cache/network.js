@@ -19,7 +19,7 @@ module.exports = {
         .then(() => UnixSocket.getServer(connectionOptions))
         .then(server => {
             server.once('error', (err) => {
-                console.error('Unrecoverable Server Error', err);
+                console.error('[Mendel] Unrecoverable Server Error', err);
                 process.exit(1);
             });
             return server;

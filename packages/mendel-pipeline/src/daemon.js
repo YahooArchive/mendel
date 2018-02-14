@@ -135,8 +135,8 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         // Above `process.exit()` results in `exit` event.
         process.once('exit', () => this.onExit());
         process.once('uncaughtException', (error) => {
-            console.log('Force closing due to a critical error:');
-            console.log(error.stack);
+            console.error('[Mendel] Force closing due to a critical error:');
+            console.error(error.stack);
             this.onForceExit();
         });
     }
@@ -206,7 +206,7 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
             this.pipelines[environment].once('idle', () => {
                 // Without printing this out, it is super hard to know when
                 // you are ready to start a client process
-                console.log(`[Mendel] ready for environment: ${environment}`);
+                debug(`[Mendel] ready for environment: ${environment}`);
             });
 
             this.cacheManager.sync(cache);
