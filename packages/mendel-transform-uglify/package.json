@@ -1,6 +1,6 @@
 {
   "name": "mendel-transform-uglify",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mendel transform to minify javascript using uglify-es",
   "main": "index.js",
   "scripts": {
