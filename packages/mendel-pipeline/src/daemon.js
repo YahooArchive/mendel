@@ -95,7 +95,7 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         this.pipelines = {};
         this.default = config.environment;
         this.environments[config.environment] = config;
-        Object.keys(config.env).forEach((environment) => {
+        Object.keys(config.env).concat('development').forEach((environment) => {
             if (!this.environments.hasOwnProperty(environment)) {
                 const envConf = mendelConfig(
                     Object.assign({}, options, {environment})
@@ -121,18 +121,14 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
     }
 
     watch(environment=this.default) {
-        const pipeline = this._watch(environment);
+        const currentPipeline = this._watch(environment);
 
-        // In the watch mode, after first `environment` is processed,
-        // we want to process all environments declared.
-        pipeline.once('idle', () => {
-            // Without printing this out, it is super hard to know when
-            // you are ready to start a client process
-            console.log(`Daemon - "${environment}" is ready`);
-            Object.keys(this.environments).forEach(envName => {
-                this._watch(envName);
-            });
-        });
+        // To optimize development flow, if `environment=development` and
+        // we are done processing, start other bundles, except production to
+        // speed up when other evns are requested (e.g. unit tests)
+        if (environment === 'development') {
+            this.watchNextEnv(currentPipeline);
+        }
 
         process.once('SIGINT', () => process.exit(0));
         process.once('SIGTERM', () => process.exit(0));
@@ -142,6 +138,36 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
             console.log('Force closing due to a critical error:');
             console.log(error.stack);
             this.onForceExit();
+        });
+    }
+
+    watchNextEnv(lastPipeline) {
+        lastPipeline.once('idle', () => {
+            setTimeout(() => {
+                const nextEnv = Object.keys(this.environments)
+                .filter(env => {
+                    // ony envs we din't process yet
+                    return !this.pipelines[env];
+                }).sort((a, b)=> {
+                    // production last
+                    if (a === 'production') {
+                        return 1;
+                    }
+                    if (b === 'production') {
+                        return -1;
+                    }
+                    return 0;
+                }).shift();
+
+                if (nextEnv === 'production') {
+                // TODO: Figure out production problems, likelly related to
+                //       deps being different and cache not creating a perfect
+                //       sandbox
+                    return;
+                }
+
+                this.watchNextEnv(this._watch(nextEnv));
+            }, 5*1000);
         });
     }
 
@@ -175,6 +201,12 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
                 transformer: this.transformer,
                 depsResolver: this.depsResolver,
                 options: envConf,
+            });
+
+            this.pipelines[environment].once('idle', () => {
+                // Without printing this out, it is super hard to know when
+                // you are ready to start a client process
+                console.log(`[Mendel] ready for environment: ${environment}`);
             });
 
             this.cacheManager.sync(cache);

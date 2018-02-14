@@ -19,6 +19,8 @@ const BaseConfig = require('./base-config');
 const TypesConfig = require('./types-config');
 const ShimConfig = require('./shim-config');
 
+let oneLogPerProcessLogged = false;
+
 module.exports = function(rawConfig) {
     const defaults = defaultConfig();
     const pureConfig = onlyKeys(rawConfig, Object.keys(defaults));
@@ -74,10 +76,13 @@ module.exports = function(rawConfig) {
 
     validateTypesAndTransforms(config);
 
-    debug(inspect(config, {
-        colors: true,
-        depth: null,
-    }));
+    if (oneLogPerProcessLogged === false) {
+        debug(inspect(config, {
+            colors: true,
+            depth: null,
+        }));
+        oneLogPerProcessLogged = true;
+    }
 
     return config;
 };
