@@ -153,26 +153,30 @@ initMendelFramework.$inject = [
 
 var createPreprocesor = function(logger) {
     var log = logger.create('preprocessor:mendel');
+    var debounce = true;
 
     return function getFile(content, file, done, logged) {
         var relativeFile =
             './' + path.relative(globalConfig.projectRoot, file.originalPath);
         logged !== 'logged' && log.debug('transforming "%s".', relativeFile);
 
-        if (!globalClient.isSynced()) {
+        if (!globalClient.isSynced() || debounce) {
+            debounce = false;
             return setTimeout(
                 () => getFile(content, file, done, 'logged'),
-                500
+                250
             );
         }
 
         if (file.originalPath === BRIDGE_FILE_PATH) {
+            debounce = true;
             return done(content);
         }
 
         var module = globalClient.registry.getEntry(relativeFile);
 
         if (!module) {
+            debounce = true;
             return done(content);
         }
 
@@ -183,6 +187,7 @@ var createPreprocesor = function(logger) {
         var output = wrapMendelModule(module, file.originalPath);
 
         log.debug(relativeFile, 'transformed');
+        debounce = true;
         done(output);
     };
 };
