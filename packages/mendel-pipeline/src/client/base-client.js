@@ -32,6 +32,7 @@ class BaseMendelClient extends EventEmitter {
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
         this.synced = false;
+        process.once('SIGINT', () => this.exit());
     }
 
     _setupClient() {
