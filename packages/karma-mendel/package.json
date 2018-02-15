@@ -45,6 +45,7 @@
     "combine-source-map": "^0.8.0",
     "mendel-config": "^3.3.2",
     "mendel-development": "^3.0.1",
-    "mendel-pipeline": "^3.4.1"
+    "mendel-pipeline": "^3.4.1",
+    "metrohash": "^2.3.0"
   }
 }

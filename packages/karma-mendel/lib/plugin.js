@@ -3,6 +3,7 @@
 /* eslint max-len: "off" */
 var path = require('path');
 var fs = require('fs');
+var metrohash64 = require('metrohash').metrohash64;
 var combineSourceMap = require('combine-source-map');
 var configLoader = require('mendel-config');
 var MendelClient = require('mendel-pipeline/client');
@@ -17,7 +18,17 @@ fs.writeFileSync(MENDEL_GLOBAL_PATH, 'window');
 var globalClient;
 var globalConfig;
 
-var initMendelFramework = function(logger, emitter, configMendel, configFiles) {
+var initMendelFramework = function(logger, emitter, fileList, karmaConfig) {
+    var configMendel = karmaConfig.mendel;
+    var configFiles = karmaConfig.files;
+
+    // Mendel needs ahead of karma, otherwise karma will manage to
+    // query for files and get other versions before Mendel could
+    karmaConfig.autoWatchBatchDelay = Math.max(
+        Number(karmaConfig.autoWatchBatchDelay),
+        250
+    );
+
     var log = logger.create('framework:mendel');
     var client = new MendelClient(
         Object.assign({}, configMendel, {noout: true})
@@ -49,6 +60,7 @@ var initMendelFramework = function(logger, emitter, configMendel, configFiles) {
 
     var root = config.projectRoot;
 
+    // When karma starts or detects file changes, provide dependencies
     emitter.on('file_list_modified', function(files) {
         // karma will swallow errors without this try/catch
         try {
@@ -120,13 +132,15 @@ var initMendelFramework = function(logger, emitter, configMendel, configFiles) {
                         mod.entry = true;
                     }
 
+                    var contents = wrapMendelModule(mod);
                     var externalFile = {
                         path: filepath,
                         originalPath: filepath,
                         contentPath: filepath,
                         isUrl: false,
                         mtime: new Date(),
-                        content: wrapMendelModule(mod),
+                        content: contents,
+                        sha: metrohash64(new Buffer(contents, 'utf8')),
                     };
 
                     files.served.push(externalFile);
@@ -142,13 +156,19 @@ var initMendelFramework = function(logger, emitter, configMendel, configFiles) {
             log.error(e);
         }
     });
+
+    // Mendel provides dependencies that Karma don't know about
+    // tell karma when those changed
+    client.on('change', function() {
+        fileList.refresh();
+    });
 };
 
 initMendelFramework.$inject = [
     'logger',
     'emitter',
-    'config.mendel',
-    'config.files',
+    'fileList',
+    'config',
 ];
 
 var createPreprocesor = function(logger) {
