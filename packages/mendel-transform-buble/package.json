@@ -27,6 +27,6 @@
   },
   "homepage": "https://github.com/yahoo/mendel#readme",
   "dependencies": {
-    "buble": "^0.15.2"
+    "buble": "^0.19.3"
   }
 }
