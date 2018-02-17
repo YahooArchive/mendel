@@ -1,6 +1,7 @@
-// Copyright (c) 2013 Titanium I.T. LLC. Licensed under the MIT license.
-// Forked from karma-commonjs
-/* eslint max-len: "off" */
+/* Copyright 2018, Irae Carvalho,
+   Copyrights licensed under the MIT License.
+   See the accompanying LICENSE file for terms. */
+/* Inspired by both karma-commonjs and karma-closure */
 var path = require('path');
 var fs = require('fs');
 var metrohash64 = require('metrohash').metrohash64;
