@@ -83,7 +83,7 @@ class IndependentSourceTransform extends BaseStep {
         let promise = Promise.resolve({source, map});
         if (ids.length) {
             promise = promise.then(() => {
-                return this._transformer.transform(entryId, ids, source, map);
+                return this._transformer.transform(entryId.replace(/^\.\//,''), ids, source, map);
             });
         }
 
