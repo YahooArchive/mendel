@@ -1,9 +1,12 @@
+const path = require('path');
 const {transform} = require('buble');
-const {EOL} = require('os');
 
-module.exports = function({source, filename, map: inputSourceMap}, options) {
+module.exports = function({source, filename}, options) {
     options = options || {};
-    const defaults = {source: filename};
+    const defaults = {
+        source: filename,
+        file: path.basename(filename),
+    };
     const transformOptions = Object.assign(defaults, options);
 
     transformOptions.transforms = Object.assign(
@@ -12,12 +15,7 @@ module.exports = function({source, filename, map: inputSourceMap}, options) {
     );
     transformOptions.target = Object.assign({}, options.target);
 
-    const result = transform(source, transformOptions);
-    let {code, map} = result;
+    const {code, map} = transform(source, transformOptions);
 
-    if (options.sourceMap) {
-        // append sourcemaps to code
-        code += `${EOL}//# sourceMappingURL=${map.toUrl()}`;
-    }
     return {source: code, map};
 };
