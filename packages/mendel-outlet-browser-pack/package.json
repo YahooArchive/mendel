@@ -13,7 +13,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
-    "browser-pack": "^6.0.2",
+    "browser-pack": "^6.0.4",
     "debug": "^2.6.0"
   }
 }

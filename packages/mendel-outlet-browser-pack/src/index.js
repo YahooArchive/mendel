@@ -131,6 +131,11 @@ module.exports = class BrowserPackOutlet {
         Object.keys(item.deps).forEach(literal => {
             deps[literal] = item.deps[literal]['browser'];
         });
+        if (item.map) {
+            item.map.sources = item.map.sources.map(_ => {
+                return _.replace(/^\.\//, '');
+            });
+        }
         const data = {
             id: item.normalizedId,
             // Clone the object so mutating it does not mutate source entry
@@ -141,7 +146,7 @@ module.exports = class BrowserPackOutlet {
             // sourceFile is the filename of the original source. Our sourcemaps
             // include it, but files without transforms, including node_modueles
             // will need this. Useful specially for performance stack traces.
-            sourceFile: item.id,
+            sourceFile: item.id.replace(/^\.\//, ''),
             // Kinda ugly but browser pack uses "combine-source-map" which expects
             // inline source map which gets removed when putting multiple files together
             // as a bundle.
