@@ -5,9 +5,9 @@
 var path = require('path');
 var fs = require('fs');
 var metrohash64 = require('metrohash').metrohash64;
-var combineSourceMap = require('combine-source-map');
 var configLoader = require('mendel-config');
 var MendelClient = require('mendel-pipeline/client');
+var {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 
 var INLINE_MAP_PREFIX = '//# sourceMappingURL=data:application/json;base64,';
 var BRIDGE_FILE_PATH = path.normalize(
@@ -278,33 +278,70 @@ function wrapMendelModule(module) {
     var parts = moduleBeforeSource.split('"MENDEL_REPLACE"');
     parts[0] = parts[0] + 'function(require,module,exports){\n';
     parts[1] = '\n}' + parts[1];
-    var part0Lines = parts[0].split('\n');
+    var padLines = parts[0].split('\n');
+    var padCol = padLines[padLines.length - 1].length;
 
-    var pureSource = combineSourceMap.removeComments(module.source);
+    var output = parts[0] + module.source + parts[1];
 
-    var output = parts[0] + pureSource + parts[1];
-
-    var sourcemap = combineSourceMap.create();
-    var moduleSource = pureSource;
+    var newSourceMap = new SourceMapGenerator({file: module.id});
+    var finalMap;
     if (module.map) {
-        moduleSource = [
-            pureSource,
-            '\n',
-            INLINE_MAP_PREFIX,
-            new Buffer(JSON.stringify(module.map)).toString('base64'),
-        ].join('');
-    }
-    sourcemap.addFile(
-        {
-            sourceFile: './' + module.id,
-            source: moduleSource,
-        },
-        {
-            line: part0Lines.length,
-            column: part0Lines[part0Lines.length - 1].length,
+
+        // remap existing map summing our module padding
+        var existingMap = new SourceMapConsumer(module.map);
+        existingMap.eachMapping(function(mapping) {
+            const add = {
+                original: {
+                    line: mapping.originalLine,
+                    column: mapping.originalColumn,
+                },
+                generated: {
+                    line: padLines.length - 1 + mapping.generatedLine,
+                    column: (
+                        mapping.generatedLine !== 1 ?
+                        mapping.generatedColumn :
+                        padCol + mapping.generatedColumn
+                    ),
+                },
+                source: mapping.source,
+                name: mapping.name,
+            };
+            newSourceMap.addMapping(add);
+            // Only use mappings from new map, so we keep paths in a way
+            // that karma understands and keeps track of it
+            const newMapObject = JSON.parse(newSourceMap.toString());
+            finalMap = JSON.stringify(Object.assign({}, module.map, {
+                mappings: newMapObject.mappings,
+            }));
+        });
+
+    } else {
+
+        // create a line-only sourcemap, accounting for padding
+        var sourceLinesCount = module.source.split('\n');
+        for (var i = 1; i <= sourceLinesCount.length; i++) {
+            newSourceMap.addMapping({
+                original: {
+                    line: i,
+                    column: 0,
+                },
+                generated: {
+                    line: i + padLines.length - 1,
+                    column: i === 1 ? padCol : 0,
+                },
+                source: module.id,
+            });
         }
-    );
-    var comment = sourcemap.comment();
+        newSourceMap.setSourceContent(module.id, module.source);
+        finalMap = newSourceMap.toString();
+
+    }
+
+    var comment = [
+        INLINE_MAP_PREFIX,
+        new Buffer(finalMap).toString('base64'),
+    ].join('');
+
     return output + '\n' + comment + '\n';
 }
 
