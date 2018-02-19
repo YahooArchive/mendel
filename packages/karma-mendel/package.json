@@ -1,6 +1,6 @@
 {
   "name": "karma-mendel",
-  "version": "3.1.7",
+  "version": "3.1.8",
   "description": "Karma plugin for mendel",
   "main": "lib/plugin.js",
   "scripts": {
@@ -44,7 +44,7 @@
   "dependencies": {
     "mendel-config": "^3.3.2",
     "mendel-development": "^3.0.1",
-    "mendel-pipeline": "^3.4.4",
+    "mendel-pipeline": "^3.4.5",
     "metrohash": "^2.3.0",
     "source-map": "^0.5.7"
   }
