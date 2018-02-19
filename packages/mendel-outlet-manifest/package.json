@@ -13,7 +13,7 @@
     "url": "https://github.com/yahoo/mendel"
   },
   "dependencies": {
-    "babel-core": "^6.23.1",
+    "babel-core": "^6.26.0",
     "babel-plugin-transform-inline-environment-variables": "0.0.2",
     "debug": "^2.6.0",
     "mendel-manifest-uglify": "^3.0.3",
