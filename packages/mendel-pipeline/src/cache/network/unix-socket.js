@@ -65,7 +65,6 @@ class UnixSocketNetwork extends BaseNetwork {
         // If connection was made OR unlink was unsuccessful
         // throw and exit -- cannot recover.
         .catch(error => {
-            console.log(require('util').inspect(error));
             if (error.message === 'FOREIGN_SERVER') {
                 console.error(chalk.red([
                     '==================================================',
@@ -112,6 +111,7 @@ class UnixSocketNetwork extends BaseNetwork {
 
     // @override
     static getClient(connectionOptions) {
+        verbose('client with options', connectionOptions);
         const connection = net.connect(connectionOptions);
         patchSocket(connection);
         connection.setEncoding('utf8');
