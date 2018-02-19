@@ -39,6 +39,7 @@ class CacheClient extends EventEmitter {
     }
 
     connect(isRetry=false) {
+        verbose('connecting with params', this.cacheConnection);
         const conn = network.getClient(this.cacheConnection);
         this.connection = conn;
         conn.on('error', (err) => !isRetry && this.emit('error', err));
@@ -89,6 +90,7 @@ class CacheClient extends EventEmitter {
         });
 
         conn.on('connect', () => {
+            verbose('connected');
             this.connected = true;
             if (isRetry) {
                 debug('Reconnected to daemon. Good to go!');

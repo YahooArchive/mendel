@@ -3,6 +3,7 @@ const net = require('net');
 const fs = require('fs');
 const {resolve} = require('path');
 const chalk = require('chalk');
+const verbose = require('debug')('verbose:mendel:net:unix-socket');
 
 function patchSocket(socket) {
     const realWrite = net.Socket.prototype.write;
@@ -41,31 +42,41 @@ class UnixSocketNetwork extends BaseNetwork {
             fs.statSync(path);
         } catch (err) {
             // File descriptor does not exist. Good to go!
+            verbose('file descriptor not found, starting server');
             return Promise.resolve();
         }
+        verbose('file descriptor FOUND, connecting for double checking');
 
         return new Promise((resolve, reject) => {
             const client = this.getClient({path});
             client.unref();
             client.once('connect', () => {
+                verbose('able to connect, client really alive');
                 client.end();
-                reject();
+                reject(new Error('FOREIGN_SERVER'));
             });
-            client.once('error', resolve);
+            client.once('error', () => {
+                verbose('server irresponsive, starting server');
+                resolve();
+            });
         })
         // If connection was not made, try to delete the ipc file.
         .then(() => fs.unlinkSync(path))
         // If connection was made OR unlink was unsuccessful
         // throw and exit -- cannot recover.
-        .catch(() => {
-            console.error(chalk.red([
-                '==================================================',
-                '[Mendel] Server cannot start when another server is active.',
-                'If no server process is active, ',
-                `please remove or kill "${chalk.bold(path)}" manually.`,
-                '==================================================',
-            ].join('\n')));
-            throw new ReferenceError('Other Daemon Active');
+        .catch(error => {
+            console.log(require('util').inspect(error));
+            if (error.message === 'FOREIGN_SERVER') {
+                console.error(chalk.red([
+                    '==================================================',
+                    '[Mendel][Error] Another builder is already running.',
+                    'If no server process is active, ',
+                    `please remove or kill "${chalk.bold(path)}" manually.`,
+                    '==================================================',
+                ].join('\n')));
+                throw new ReferenceError('Other Daemon Active');
+            }
+            throw error;
         });
     }
 
