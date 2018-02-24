@@ -6,8 +6,6 @@ const MendelClientRegistry = require('../registry/client');
 const Outlets = require('./outlets');
 const DefaultShims = require('node-libs-browser');
 
-process.title = 'Mendel Client';
-
 class BaseMendelClient extends EventEmitter {
     constructor(options = {}) {
         super();
@@ -31,7 +29,10 @@ class BaseMendelClient extends EventEmitter {
         this.generators = new MendelGenerators(this.config, this.registry);
         this.outlets = new Outlets(this.config);
         this.synced = false;
-        process.once('SIGINT', () => this.exit());
+        process.once('SIGINT', () => {
+            this.exit();
+            process.kill(process.pid, 'SIGINT');
+        });
     }
 
     _setupClient() {
