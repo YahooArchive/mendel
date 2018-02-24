@@ -165,12 +165,7 @@ var initMendelFramework = function(logger, emitter, fileList, karmaConfig) {
     });
 };
 
-initMendelFramework.$inject = [
-    'logger',
-    'emitter',
-    'fileList',
-    'config',
-];
+initMendelFramework.$inject = ['logger', 'emitter', 'fileList', 'config'];
 
 var createPreprocesor = function(logger) {
     var log = logger.create('preprocessor:mendel');
@@ -286,7 +281,6 @@ function wrapMendelModule(module) {
     var newSourceMap = new SourceMapGenerator({file: module.id});
     var finalMap;
     if (module.map) {
-
         // remap existing map summing our module padding
         var existingMap = new SourceMapConsumer(module.map);
         existingMap.eachMapping(function(mapping) {
@@ -297,26 +291,31 @@ function wrapMendelModule(module) {
                 },
                 generated: {
                     line: padLines.length - 1 + mapping.generatedLine,
-                    column: (
-                        mapping.generatedLine !== 1 ?
-                        mapping.generatedColumn :
-                        padCol + mapping.generatedColumn
-                    ),
+                    column:
+                        mapping.generatedLine !== 1
+                            ? mapping.generatedColumn
+                            : padCol + mapping.generatedColumn,
                 },
                 source: mapping.source,
                 name: mapping.name,
             };
+            if (
+                null === mapping.originalLine ||
+                null === mapping.originalColumn
+            ) {
+                add.original = null;
+            }
             newSourceMap.addMapping(add);
             // Only use mappings from new map, so we keep paths in a way
             // that karma understands and keeps track of it
             const newMapObject = JSON.parse(newSourceMap.toString());
-            finalMap = JSON.stringify(Object.assign({}, module.map, {
-                mappings: newMapObject.mappings,
-            }));
+            finalMap = JSON.stringify(
+                Object.assign({}, module.map, {
+                    mappings: newMapObject.mappings,
+                })
+            );
         });
-
     } else {
-
         // create a line-only sourcemap, accounting for padding
         var sourceLinesCount = module.source.split('\n');
         for (var i = 1; i <= sourceLinesCount.length; i++) {
@@ -334,7 +333,6 @@ function wrapMendelModule(module) {
         }
         newSourceMap.setSourceContent(module.id, module.source);
         finalMap = newSourceMap.toString();
-
     }
 
     var comment = [
