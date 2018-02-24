@@ -9,7 +9,7 @@ const DefaultShims = require('node-libs-browser');
 process.title = 'Mendel Client';
 
 class BaseMendelClient extends EventEmitter {
-    constructor(options={}) {
+    constructor(options = {}) {
         super();
         this.debug = require('debug')('mendel:client:' + this.constructor.name);
 
@@ -21,12 +21,11 @@ class BaseMendelClient extends EventEmitter {
             );
         }
 
-        this._verbose = typeof options.verbose !== 'undefined' ?
-            options.verbose :
-            (
-                process.env.NODE_ENV === 'development' ||
-                typeof process.env.NODE_ENV === 'undefined'
-            );
+        this._verbose =
+            typeof options.verbose !== 'undefined'
+                ? options.verbose
+                : process.env.NODE_ENV === 'development' ||
+                  typeof process.env.NODE_ENV === 'undefined';
 
         this.registry = new MendelClientRegistry(this.config);
         this.generators = new MendelGenerators(this.config, this.registry);
@@ -37,45 +36,55 @@ class BaseMendelClient extends EventEmitter {
 
     _setupClient() {
         this.client = new CacheClient(this.config, this.registry);
-        this.client.on('error', (error) => {
+        this.client.on('error', error => {
             if (error.code === 'ENOENT' || error.code === 'ECONNREFUSED') {
-                console.error([
-                    '[Mendel] This action requires mendel',
-                    'builder running as a separate process.\n',
-                ].join(' '));
+                console.error(
+                    [
+                        '[Mendel] This action requires mendel',
+                        'builder running as a separate process.\n',
+                    ].join(' ')
+                );
                 process.exit(1);
             }
         });
 
-        this.client.on('sync', function() {
-            clearTimeout(this.initSyncMessage);
-            this.emit('ready');
-            this.synced = true;
-            this.onSync.apply(this, arguments);
+        this.client.on(
+            'sync',
+            function() {
+                clearTimeout(this.initSyncMessage);
+                this.emit('ready');
+                this.synced = true;
+                this.onSync.apply(this, arguments);
 
-            this.debug('synced');
-        }.bind(this));
-        this.client.on('unsync', function() {
-            this.debug('file change detected...');
-            this.emit('change');
-            this.synced = false;
-            this.onUnsync.apply(this, arguments);
-        }.bind(this));
+                this.debug('synced');
+            }.bind(this)
+        );
+        this.client.on(
+            'unsync',
+            function() {
+                this.debug('file change detected...');
+                this.emit('change');
+                this.synced = false;
+                this.onUnsync.apply(this, arguments);
+            }.bind(this)
+        );
     }
 
-    run(callback=()=>{}) {
+    run(callback = () => {}) {
         this._setupClient();
 
         // Print a message if it does not sync within a second.
         if (this._verbose) {
             this.initSyncMessage = setTimeout(() => {
                 this.initSyncMessage = null;
-                console.log([
-                    '[Mendel] Recent builder (re)start detected,',
-                    'compiling might take a moment...',
-                    '\n         To avoid this message,',
-                    'leave your builder always running',
-                ].join(' '));
+                console.log(
+                    [
+                        '[Mendel] Recent builder (re)start detected,',
+                        'compiling might take a moment...',
+                        '\n         To avoid this message,',
+                        'leave your builder always running',
+                    ].join(' ')
+                );
             }, 3000);
         }
 
@@ -101,11 +110,11 @@ class BaseMendelClient extends EventEmitter {
         if (this.client) this.client.onExit();
     }
 
-    onUnsync(entryId) { // eslint-disable-line no-unused-vars
+    onUnsync(entryId) {
+        // eslint-disable-line no-unused-vars
     }
 
-    onSync() {
-    }
+    onSync() {}
 
     isReady() {
         return this.synced;
