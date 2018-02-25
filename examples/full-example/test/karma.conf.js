@@ -6,30 +6,12 @@
 
 module.exports = function(config) {
     config.set({
-        // plugins whitelisted here to enforce correct ordering
-        // if you are having trouble, use karma-mendel first
-        plugins: [
-            // javascript builders and loaders first
-            'karma-mendel',
-            // shims and polyfills that PhantomJS or browsers might need
-            'karma-es6-shim',
-            // preprocessors
-            // 'karma-babel-preprocessor',
-            // everything else
-            'karma-jasmine',
-            'karma-chrome-launcher',
-            'karma-phantomjs-launcher',
-            'karma-jasmine-diff-reporter',
-            'karma-spec-reporter',
-            'karma-coverage-istanbul-reporter',
-        ],
-
         // frameworks to use, please delcare 'mendel' first
-        frameworks: ['mendel', 'jasmine', 'es6-shim'],
+        frameworks: ['mendel', 'jasmine'],
 
         // list of files / patterns to load in the browser
         // for use with mendel, list only your test files here
-        files: ['isomorphic/**/_test_/*.js'],
+        files: ['../src/isomorphic/**/_test_/*.js'],
 
         // list of files to exclude
         // you should exclude auto-executing files, such as your app initialization
@@ -39,7 +21,7 @@ module.exports = function(config) {
         // please only use mendel, you can use test configuration to have different
         // transforms than production bundles (such as istanbul)
         preprocessors: {
-            'isomorphic/**/*.js': ['mendel'],
+            '../src/isomorphic/**/*.js': ['mendel'],
         },
 
         /*
@@ -79,14 +61,14 @@ module.exports = function(config) {
 
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-        logLevel: config.LOG_DEBUG,
+        logLevel: config.LOG_ERROR,
 
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['PhantomJS'],
+        browsers: ['Chrome'],
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

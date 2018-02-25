@@ -1,106 +1,160 @@
+##
+## File organization
+## =========================
+## This file is organized from top to bottom in a way that helps understand
+## Mendel configuration. In day-to day use, it makes more sense to re-organize
+## in a way that frequently changed configs stay at the top of file.
+##
+## We also repeat here many of mendel's defaults, so it might look gigantic, but
+## this is again for the sake of helping you learn how to use it.
+##
+
+
+##
+## Define basic paths:
+## =========================
+## In this example, our application uses react on the server and on the client.
+## To avoid confusion and help understanding, we separated our source files in
+## two folders: server and isomorphic.
+##
+## All files in the isomorphic folder are trasnformed and have their variation
+## resolved by mendel. The "Base Variation" is the default code path most users
+## will receive, and all the variations go to the variations folder.
+##
 base-config:
-  id: base # Bundle id for default variation
-  dir: ./isomorphic/base # Source dir for default variation
-  outdir: ./build # Base output dir for all artifacts
+  id: base                   # Bundle id for default variation
+  dir: ./src/isomorphic/base # Source dir for default variation
+  outdir: ./build            # Base output dir for all artifacts
 
 variation-config:
   variation-dirs:
-    - ./isomorphic/variations
-  # dir names should be unique across all roots or Mendel throws
+    - ./src/isomorphic/variations
   variations:
-    unexisting_folder:
+    unexisting_folder:      # this folder don't exist, therefore mendel
+                            # completelly ignores the variation
     bucket_A:
-      - unexisting_folder
+      - unexisting_folder   # The folder hierarchy is also ignored
     feature_B:
     partner_C:
     bucket_D:
       - partner_C
 
-route-config: # Mendel-middleware related
-  variation: /mendel/:variations/:bundle # Route pattern for variational assets during development
-  hash: /mendel/:hash/:bundle # Route pattern for variational assets during production
 
-transforms: # a list of all available transforms for all envs and types
-  babel: # id or reference of a plugin instance
-    plugin: mendel-transform-babel # name of mendel-transform-* package: plugin must be installed in your project
-    options: # Configuration object passed to a plugin instance.
-      # Please refer to mendel-transform-babel documentation for its config
-      presets:
-        - es2015
-        - react
-  babel-min: # Example configuration for Babel + some minification
-    plugin: mendel-transform-babel
+##
+## Transformation, compilation, transpilation, etc
+## =========================
+## Mendel transformations are declared as plugin first, and then used per
+## file type, and not per bundle like other bundlers usually do.
+##
+## This section contains the transforms only
+##
+transforms:
+  # id for your own use, will be referenced throughout the rest of config
+  javascript-sources:
+    plugin: mendel-transform-babel # must match an npm package already installed
     options:
-      comments: false # true - Output comments in generated output.
-      compact: true # true - Do not include superfluous whitespace characters and line terminators
       presets:
-        -
-          - es2015
-          -
-            loose: true # Note "babel-preset-es2015-loose" is incompatible with mendel
+        - env
         - react
-  json-parse: # Parsing JSON files to be evaluatable in JS
-    plugin: mendel-parser-json
-  less-transform:
-    plugin: mendel-transform-less
-  babel-test:
+  javascript-inline-variables:               # used in production only
+    plugin: mendel-transform-inline-env
+  javascript-minification:                   # used in production only
+    plugin: mendel-transform-uglify
+  javascript-sources-coverage:               # used in test only
     plugin: mendel-transform-babel
     options:
       presets:
-        - es2015
+        - env
         - react
       plugins:
         - istanbul
+  json-client-side-support:
+    plugin: mendel-parser-json
 
-types: # Type declaration of entries to be transformed or parsed
+##
+## Type configuration
+## =========================
+## Mendel types are a different way of transforming your files. Other bundles
+## encourage transforms per bundle, but configuring per type is easier and
+## Mendel can do more optimizations and allow different patterns.
+##
+## You can have multiple types of files for the same extension. For example
+## you could have a vendor folder that you aply no transforms but can require()
+## or import in your code. It is also handy to handle testing infrastructure,
+## that you will want to instrument source code but not instrument the tests
+## themselves.
+##
+types:
   json: # Type id. Can be any arbitrary name, not file extension
     extensions: # Can use `glob` or `extensions`
       - .json
-    parser: json-parse # Parser is a special type of transform that runs after all transforms in this type (if declared)
-        # that allows an entry to be regarded as a destination type to be declared below.
+    # Parser is a special type of transform that runs after all transforms in this type (if declared)
+    # that allows an entry to be regarded as a destination type to be declared below.
+    parser: json-client-side-support
     parser-to-type: js # Defines type conversion: json -> js after running the parser
     # Type, by default, excludes `node_modules` but below configuration allows override
     # By default, the configuration is off.
     include-node_modules: true
+
+  # This is how you tell mendel wich files are trasnformed by wich transform
   js:
     transforms:
-      - babel
+      - javascript-sources
     glob:
       - "**/*.{js,jsx}"
-      - "!**/_test_/*" # "!" is an exclusion notation in minimatch
-  jstest:
-    transforms:
-      - babel
-    glob:
-      # Test files themselves should not be be instrumented.
-      - "**/_test_/*"
-  less:
-    extensions:
-      - .less
-    parser: less-transform
-    parser-to-type: css
-    resource: true # Resources are filtered from executables list (#getExecutableEntries in MendelOutletRegistry)
   css:
     extensions:
       - .css
     resource: true
 
-# Generator = Bundle former. Can use plugins like code-splitter.
-# ! Important: order is relevant !
-# Scenarios:
-# 1. if extract-bundles comes first, some node_modules that
-#     only lazy bundle needs will be part of the lazy bundle
-# 2. if node-modules first, extract-bundles will operate on source files only
-#     because all node_modules are extracted by node-modules generators
+##
+## Generators
+## =========================
+## Generators are completelly optional, they are menant to create complex bundle
+## rules to help code-split your application and improve page-load performance.
+##
+## In this example we use 2 generators:
+##
+## 1. Extracting all node_modules from all bundles into a "vendor" bundle that
+##    can be served (and therefore cached) separatedly from application source
+##    code. This bundle will be cached more often across deploys.
+## 2. A code splitter for lazy loading. We want a particular action to trigger
+##    loading of this code.
+##
+## ! Important: order is relevant !
+## Scenarios:
+## 1. if extract-bundles comes first, some node_modules that
+##     only lazy bundle needs will be part of the lazy bundle
+## 2. if node-modules first, extract-bundles will operate on source files only
+##     because all node_modules are extracted by node-modules generators
+##
 generators:
   - id: extract-bundles
     plugin: mendel-generator-extract
   - id: node-modules-generator
     plugin: mendel-generator-node-modules
 
-outlets: # Outlet: defines methods of outputting bundles
+##
+## Outlets
+## =========================
+## Outlets tell mendel how your code is used by your aplication.
+## The most basic outlet is browser-pack, which groups and serves all your
+## javascript code that uses require()/import declarations.
+##
+## There is also outlets for CSS, so you can follow the same folder variation
+## pattern for your styles. And SSR is meant for server sider rendering
+## or requiring variation aware javascript in nodejs.
+##
+## Manifest outlet is mandatory for use in production, for both JS and CSS.
+##
+outlets:
+  - id: javascript-bundle
+    plugin: mendel-outlet-browser-pack # Outputs stream compatible JS bundles
   - id: manifest
     plugin: mendel-outlet-manifest # Mendel v1 compatible serialization of a bundle
+    options:
+      envify: false
+      uglify: false
   - id: css
     plugin: mendel-outlet-css # PostCSS-based css output
     options:
@@ -118,8 +172,6 @@ outlets: # Outlet: defines methods of outputting bundles
           -
             browsers: "last 2 versions"
         - rtlcss
-  - id: browser-pack
-    plugin: mendel-outlet-browser-pack # Outputs stream compatible JS bundles
   - id: ssr
     plugin: mendel-outlet-server-side-render # Outputs artifacts for server side render
     options:
@@ -127,38 +179,73 @@ outlets: # Outlet: defines methods of outputting bundles
       requireTransform: true
       includeNodeModules: false # default false
 
+
+##
+## Bundles
+## =========================
+## Finally, bundles tell Mendel how to group files into larger files proper for
+## the browser to consume. Dependencies are traversed according to require() and
+## or import statements or if you don't use CommonJS or Javascript Modules, you
+## can use glob patterns (i.e. **/*.js) to include all files.
+##
+## Some bundles in this example use generators. If you are trying mendel for the
+## first time, just ignore this bundles, as they are totally optional.
+##
 bundles: # Definition of a bundle
+  # This is our main application bundle. It contains all code from /isomorphic/
+  # folder bundled in 1 file. If you don't use generators, it will include all
+  # node_modules required by your source files.
   main:
-    outlet: browser-pack
+    outlet: javascript-bundle
     outfile: main.js
     entries:
       - ./main.js
-  lazy:
-    outlet: browser-pack
-    outfile: lazy.js
-    generator: extract-bundles
-    from: main # Bundle Id. Extracts these entries from main bundle
-    entries:
-      - ./components/lazy.js
+
+  # The vendor bundle is using the node-modules generator
+  # We tell the generator which bundles to look at, and it will find all
+  # installed dependencies and make them available as a single bundle
+  # Large applications that deploy many times a day will observe great
+  # performance improvement for having all dependencies into one single file
+  # that the browser caches.
   vendor:
-    outlet: browser-pack
+    outlet: javascript-bundle
     outfile: vendor.js
     generator: node-modules-generator
     from:
       - main # have array of bundleId or keyword "all"
       - lazy
+    # Extra entries can be added here, that are not node_modules. Such as
+    # old shcool vendor libraries or files not available on npm.
+    # It is important to note that this entries can be different across
+    # variations, which makes it interesting to test new versions of
+    # node_modules in variations.
     entries:
       # This file either has to be part of dependency graph or source
       # or it has to be part of a variation's source folder.
       # Otherwise, it is not added to Mendel at all.
       - ./vendor/large-code.js
 
+  # Our lazy bundle is one example of lazy loading modules in your application.
+  # This feature requires some extra implementation in your application, since
+  # Mendel provides only the spliting and building capabilities, but not the
+  # full infrastructire.
+  lazy:
+    outlet: javascript-bundle
+    outfile: lazy.js
+    generator: extract-bundles
+    from: main # Bundle Id. Extracts these entries from main bundle
+    entries:
+      - ./components/lazy.js
+
+  # CSS can also be used as bundles. Even if you intend to inline your CSS
+  # it is still required that you group it by bundles, so Mendel can process
+  # variations for you.
   css:
     outlet: css
     outfile: main.css # File gets written to ${outdir}/main.css
     entries:
       - "./css/index.css"
-      - "**/*.less"
+      # - "**/*.less"
       - "!css/reset.css"
   css-rtl:
     outlet: css-rtl
@@ -168,36 +255,35 @@ bundles: # Definition of a bundle
       - "**/*.less"
       - "!css/reset.css"
 
+##
+## Environment configuration
+## =========================
+## You can also tell mendel to transform differntly for differetn environments.
+## This is specially useful to compress production modules to bring javascript
+## and css size drastically down.
+##
+## Environments are arbitrary, and you can have as many of them as possible.
+## All of the mendelrc file is assumed to be your development configuration and
+## additional environments are listed here.
+##
 env:
-  test:
-    # test/setup/*.js are used only in test environment.
-    # Since they may pull in large test-related dependency in test environment,
-    # otherwise useless, Mendel supports "support" configuration.
-    support: test/**/*.js
-    types:
-      js:
-        transforms:
-          - babel-test
-        glob:
-          - "**/*.{js,jsx}"
-          - "!**/_test_/*"
   production:
+    # In production we want more transforms to make our code really small
+    # inlining variables is necessary so unreachable paths are stripped out
+    # by the next transform, the minification.
+    # All other types are using the same config in production
+    # TODO: Add css minification transforms to full-example
     types:
       js:
+        include-node_modules: true # in production we minify node modules too
         transforms:
-          - babel-min # Transform "js" type in this environment
+          - javascript-sources
+          - javascript-inline-variables
+          - javascript-minification
 
-    postgenerators:
-      - id: prune
-        plugin: mendel-generator-prune
-        groups:
-          -
-            # Regard below bundles as one
-            # and do necessary clean ups
-            - main
-            - lazy
-            - vendor
-
+    # In Mendel 3.0 it is still required to switch all outlets in production
+    # to use the manifest outlet, which generates files that are read by the
+    # production mendel-middeware.
     bundles:
       main:
         outlet: manifest
@@ -230,3 +316,23 @@ env:
         # If npm package has multiple entry files, this pulls only
         # server side entry file defined in "main" field of package.json
         runtime: main
+
+  test:
+    # In the test env, we override the trasnform to provide coverage information
+    # But we also support transforming your test files separately
+    types:
+      js:
+        transforms:
+          - javascript-sources-coverage
+        glob:
+          - "**/*.{js,jsx}"
+          - "!**/_test_/*"
+      js-test-only:
+        transforms:
+          - javascript-sources
+        glob:
+          - "**/_test_/*"
+    # test/setup/*.js are used only in test environment.
+    # Since they may pull in large test-related dependency in test environment,
+    # otherwise useless, Mendel supports "support" configuration.
+    support: test/**/*.js

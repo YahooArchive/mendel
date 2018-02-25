@@ -3,7 +3,7 @@
    See the accompanying LICENSE file for terms. */
 import App from './components/app';
 import React from 'react'; // eslint-disable-line
-import '../../config.json';
+import './config.json';
 
 if (typeof document !== 'undefined') {
     const ReactDOM = require('react-dom');
@@ -12,5 +12,5 @@ if (typeof document !== 'undefined') {
 } else {
     module.exports = function(data) {
         return <App data={data} />;
-    }
+    };
 }

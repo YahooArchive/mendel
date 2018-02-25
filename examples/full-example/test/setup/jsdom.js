@@ -1,6 +1,6 @@
-const jsdom = require('jsdom').jsdom;
-const doc = jsdom('<html><body></body></html>', {});
-global.window = doc.defaultView;
+const {JSDOM} = require('jsdom');
+const dom = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+global.window = dom.window;
 
 // Object.assign replaces console with "window.console"
 const browserGlobal = Object.assign({}, global.window);
@@ -9,12 +9,7 @@ Object.assign(global, browserGlobal);
 
 (function polyfillAll() {
     function polyfillInnerText() {
-        const BLACKLIST_ELEMENT = [
-            'OPTION',
-            'SCRIPT',
-            'NOSCRIPT',
-            'STYLE'
-        ];
+        const BLACKLIST_ELEMENT = ['OPTION', 'SCRIPT', 'NOSCRIPT', 'STYLE'];
         const INLINE_ELEMENT = [
             'B',
             'BIG',
@@ -48,7 +43,7 @@ Object.assign(global, browserGlobal);
             'LABEL',
             'SELECT',
             'TEXTAREA',
-            'LI'
+            'LI',
         ];
 
         function innerText(node) {
@@ -59,30 +54,36 @@ Object.assign(global, browserGlobal);
                 if (text.trim() === '') return '';
                 return text;
             }
-            let values = Array.from(node.childNodes).filter(node => {
-                return BLACKLIST_ELEMENT.indexOf(node.nodeName) < 0;
-            }).reduce((reduced, curNode) => {
-                return reduced += innerText(curNode);
-            }, '').trim();
+            let values = Array.from(node.childNodes)
+                .filter(node => {
+                    return BLACKLIST_ELEMENT.indexOf(node.nodeName) < 0;
+                })
+                .reduce((reduced, curNode) => {
+                    return (reduced += innerText(curNode));
+                }, '')
+                .trim();
 
-            if (values[values.length - 1] !== '\n' && INLINE_ELEMENT.indexOf(node.nodeName) < 0) {
+            if (
+                values[values.length - 1] !== '\n' &&
+                INLINE_ELEMENT.indexOf(node.nodeName) < 0
+            ) {
                 values += '\n';
             }
 
             return values;
         }
 
-        if (global.window._core.Element.prototype.hasOwnProperty('innerText')) {
+        if (global.window.Element.prototype.hasOwnProperty('innerText')) {
             return;
         }
 
-        Object.defineProperty(global.window._core.Element.prototype, 'innerText', {
+        Object.defineProperty(global.window.Element.prototype, 'innerText', {
             get: function() {
                 return innerText(this);
             },
             set: function(text) {
                 this.innerHTML = text;
-            }
+            },
         });
     }
 
