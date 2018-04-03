@@ -1,6 +1,6 @@
 {
   "name": "mendel-middleware",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "Mendel middleware that uses manifests to output multilayer resolution of isomorphic applications.",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "dependencies": {
     "browser-pack": "^6.0.1",
     "debug": "^2.6.3",
-    "mendel-core": "^3.0.5",
+    "mendel-core": "^3.0.6",
     "mendel-loader": "^3.0.0",
     "path-to-regexp": "^1.2.1"
   }
