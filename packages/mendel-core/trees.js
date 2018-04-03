@@ -32,7 +32,10 @@ function MendelTrees(opts) {
 }
 
 MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
-    var finder = new MendelVariationWalker(lookupChains, this.config.baseConfig.id);
+    var finder = new MendelVariationWalker(
+        lookupChains,
+        this.config.baseConfig.dir
+    );
 
     this._walkTree(bundle, finder);
 
@@ -41,10 +44,12 @@ MendelTrees.prototype.findTreeForVariations = function(bundle, lookupChains) {
 
 MendelTrees.prototype.findServerVariationMap = function(bundles, lookupChains) {
     if (!this.ssrBundle)
-        throw new Error([
-            'For a server-side render, you must use',
-            '"mendel-outlet-server-side-render"',
-        ].join(' '));
+        throw new Error(
+            [
+                'For a server-side render, you must use',
+                '"mendel-outlet-server-side-render"',
+            ].join(' ')
+        );
 
     var base = this.config.baseConfig.dir;
     var finder = new MendelServerVariationWalker(lookupChains, base);
@@ -66,9 +71,7 @@ MendelTrees.prototype._loadBundles = function() {
     this.bundles = {};
     var confBundles = self.config.bundles;
 
-    confBundles
-    .filter(bundle => bundle.manifest)
-    .forEach(function(bundle) {
+    confBundles.filter(bundle => bundle.manifest).forEach(function(bundle) {
         var bundlePath = bundle.manifest;
         try {
             self.bundles[bundle.id] = require(path.resolve(bundlePath));
@@ -76,10 +79,14 @@ MendelTrees.prototype._loadBundles = function() {
             var newError = new Error();
             newError.code = error.code;
             if (error.code === 'MODULE_NOT_FOUND' || error.code === 'ENOENT') {
-                newError.message = 'Could not find "' + bundle.id
-                                 + '" bundle at path '+ bundlePath;
+                newError.message =
+                    'Could not find "' +
+                    bundle.id +
+                    '" bundle at path ' +
+                    bundlePath;
             } else {
-                newError.message = 'Invalid bundle file at path '+ bundle.manifest;
+                newError.message =
+                    'Invalid bundle file at path ' + bundle.manifest;
             }
             throw newError;
         }
@@ -108,7 +115,7 @@ MendelTrees.prototype.variationsAndChains = function(lookFor) {
             var lookupChain = [];
             for (var j = 0; j < variation.chain.length; j++) {
                 var lookupVar = variation.chain[j];
-                if (lookupVar !== this.config.basetree) {
+                if (lookupVar !== this.config.baseConfig.dir) {
                     lookupChain.push(lookupVar);
                 }
             }
@@ -137,6 +144,5 @@ function walk(tree, module, pathFinder, _visited) {
         }
     }
 }
-
 
 module.exports = MendelTrees;
