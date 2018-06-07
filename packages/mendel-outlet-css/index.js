@@ -80,12 +80,12 @@ module.exports = class CSSOutlet {
             (variational, key) => {
                 const entries = normalizedEntries[key];
                 let pick;
-                for (let i = 0; i < variations.length; i++) {
-                    pick =
-                        pick ||
-                        entries.find(_ => _.variation === variations[i]);
+                for (let i = 0; !pick && i < variations.length; i++) {
+                    pick = entries.find(_ => _.variation === variations[i]);
                 }
-                variational.set(pick.id, pick);
+                if (pick) {
+                    variational.set(pick.id, pick);
+                }
                 return variational;
             },
             new Map()
