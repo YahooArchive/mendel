@@ -2,10 +2,13 @@ const path = require('path');
 const jsDependency = require('./javascript');
 const cssDependency = require('./css');
 
+const builtInModules = ['global'].concat(require('repl')._builtinLibs);
 
 function isSupported(extension) {
-    return jsDependency.supports.has(extension) ||
-        cssDependency.supports.has(extension);
+    return (
+        jsDependency.supports.has(extension) ||
+        cssDependency.supports.has(extension)
+    );
 }
 
 function getDependencies(filePath, source) {
@@ -31,22 +34,28 @@ function getDependencies(filePath, source) {
  */
 module.exports = function deps({file, resolver, source}) {
     return Promise.resolve()
-    .then(() =>  getDependencies(file, source))
-    .then(({imports}) => {
-        const promises = imports.map(importLiteral => {
-            return resolver.resolve(importLiteral).catch(() => false);
-        });
-
-        return Promise.all(promises)
-        .then((resolvedImports) => {
-            const importMap = {};
-            resolvedImports.forEach((resolvedImport, index) => {
-                importMap[imports[index]] = resolvedImport;
+        .then(() => getDependencies(file, source))
+        .then(({imports}) => {
+            const promises = imports.map(importLiteral => {
+                return resolver.resolve(importLiteral).catch(() => {
+                    if (!builtInModules.includes(importLiteral)) {
+                        console.warn(
+                            `Warning: Can't find ${importLiteral} from ${file}`
+                        );
+                    }
+                    return false;
+                });
             });
 
-            return importMap;
+            return Promise.all(promises).then(resolvedImports => {
+                const importMap = {};
+                resolvedImports.forEach((resolvedImport, index) => {
+                    importMap[imports[index]] = resolvedImport;
+                });
+
+                return importMap;
+            });
         });
-    });
 };
 
 module.exports.isSupported = isSupported;
