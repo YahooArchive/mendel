@@ -35,8 +35,9 @@ class CacheManager extends EventEmitter {
      * Sync is called after pipeline is initialized with event handlers and steps
      */
     sync(to) {
-        const caches = Array.from(this._caches.values())
-            .filter(cache => cache !== to);
+        const caches = Array.from(this._caches.values()).filter(
+            cache => cache !== to
+        );
         Array.from(this._watchedFileId.keys()).forEach(id => {
             const from = caches.find(cache => cache.hasEntry(id));
             // TODO clean up and remove entry everywhere if no cache has this entry
@@ -44,7 +45,11 @@ class CacheManager extends EventEmitter {
 
             const entry = from.getEntry(id);
             to.addEntry(id);
-            to.getEntry(id).setSource(entry.rawSource, entry.rawDeps, entry.map);
+            to.getEntry(id).setSource(
+                entry.rawSource,
+                entry.rawDeps,
+                entry.map
+            );
         });
     }
 
@@ -54,29 +59,32 @@ class CacheManager extends EventEmitter {
 
     addEntry(id) {
         this._watchedFileId.add(id);
-        Array.from(this._caches.values())
-            .forEach(cache => cache.addEntry(id));
+        Array.from(this._caches.values()).forEach(cache => cache.addEntry(id));
     }
 
     hasEntry(id) {
-        return Array.from(this._caches.values())
-            .some(cache => cache.hasEntry(id));
+        return Array.from(this._caches.values()).some(cache =>
+            cache.hasEntry(id)
+        );
     }
 
     removeEntry(id) {
         this._watchedFileId.delete(id);
-        Array.from(this._caches.values())
-            .forEach(cache => cache.removeEntry(id));
+        Array.from(this._caches.values()).forEach(cache =>
+            cache.removeEntry(id)
+        );
     }
-
 }
 
 module.exports = class MendelPipelineDaemon extends EventEmitter {
     constructor(options) {
         super();
-        const defaultShim = Object.assign({
-            global: path.join(__dirname, 'default-shims', 'global.js'),
-        }, DefaultShims);
+        const defaultShim = Object.assign(
+            {
+                global: path.join(__dirname, 'default-shims', 'global.js'),
+            },
+            DefaultShims
+        );
         options = Object.assign({defaultShim}, options);
 
         const config = mendelConfig(options);
@@ -95,23 +103,22 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         this.pipelines = {};
         this.default = config.environment;
         this.environments[config.environment] = config;
-        Object.keys(config.env).concat('development').forEach((environment) => {
-            if (!this.environments.hasOwnProperty(environment)) {
-                const envConf = mendelConfig(
-                    Object.assign({}, options, {environment})
-                );
-                this.environments[environment] = envConf;
-            }
-        });
+        Object.keys(config.env)
+            .concat('development')
+            .forEach(environment => {
+                if (!this.environments.hasOwnProperty(environment)) {
+                    const envConf = mendelConfig(
+                        Object.assign({}, options, {environment})
+                    );
+                    this.environments[environment] = envConf;
+                }
+            });
 
-        this.server.on('environmentRequested', (env) => this._watch(env));
+        this.server.on('environmentRequested', env => this._watch(env));
         this.server.once('ready', () => this.emit('ready'));
         this.server.once('error', () => setImmediate(() => process.exit(1)));
         this.watcher.subscribe(
-            [
-                config.variationConfig.allDirs,
-                config.support,
-            ].filter(Boolean)
+            [config.variationConfig.allDirs, config.support].filter(Boolean)
         );
     }
 
@@ -120,13 +127,13 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         return this.getPipeline(environment);
     }
 
-    watch(environment=this.default) {
+    watch(environment = this.default) {
         const currentPipeline = this._watch(environment);
 
         // To optimize development flow, if `environment=development` and
         // we are done processing, start other bundles, except production to
         // speed up when other evns are requested (e.g. unit tests)
-        if (environment === 'development') {
+        if (environment === 'development' && Boolean(process.env.MENDEL_BETA)) {
             this.watchNextEnv(currentPipeline);
         }
 
@@ -134,7 +141,7 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         process.once('SIGTERM', () => process.exit(0));
         // Above `process.exit()` results in `exit` event.
         process.once('exit', () => this.onExit());
-        process.once('uncaughtException', (error) => {
+        process.once('uncaughtException', error => {
             console.error('[Mendel] Force closing due to a critical error:');
             console.error(error.stack);
             this.onForceExit();
@@ -145,33 +152,35 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         lastPipeline.once('idle', () => {
             setTimeout(() => {
                 const nextEnv = Object.keys(this.environments)
-                .filter(env => {
-                    // ony envs we din't process yet
-                    return !this.pipelines[env];
-                }).sort((a, b)=> {
-                    // production last
-                    if (a === 'production') {
-                        return 1;
-                    }
-                    if (b === 'production') {
-                        return -1;
-                    }
-                    return 0;
-                }).shift();
+                    .filter(env => {
+                        // ony envs we din't process yet
+                        return !this.pipelines[env];
+                    })
+                    .sort((a, b) => {
+                        // production last
+                        if (a === 'production') {
+                            return 1;
+                        }
+                        if (b === 'production') {
+                            return -1;
+                        }
+                        return 0;
+                    })
+                    .shift();
 
                 if (nextEnv === 'production') {
-                // TODO: Figure out production problems, likelly related to
-                //       deps being different and cache not creating a perfect
-                //       sandbox
+                    // TODO: Figure out production problems, likelly related to
+                    //       deps being different and cache not creating a perfect
+                    //       sandbox
                     return;
                 }
 
                 this.watchNextEnv(this._watch(nextEnv));
-            }, 5*1000);
+            }, 5 * 1000);
         });
     }
 
-    run(callback, environment=this.default) {
+    run(callback, environment = this.default) {
         // Undo default exit handler
         this.server.removeAllListeners('error');
         this.server.once('error', callback);
@@ -185,13 +194,15 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         });
     }
 
-    getPipeline(environment=this.default) {
+    getPipeline(environment = this.default) {
         if (!this.pipelines[environment]) {
             debug(`Initializing for environment: ${environment}`);
             const envConf = this.environments[environment];
             // Missing configuration for an environment. Ignore.
             if (!envConf) {
-                throw new Error(`[Mendel] Client is expecting an environemnt "${environment}" but it is missing from the configuration.`); // eslint-disable-line max-len
+                throw new Error(
+                    `[Mendel] Client is expecting an environemnt "${environment}" but it is missing from the configuration.`
+                ); // eslint-disable-line max-len
             }
             const cache = new MendelCache(envConf);
 
@@ -226,19 +237,25 @@ module.exports = class MendelPipelineDaemon extends EventEmitter {
         debug('Exiting gracefully. Cleaning up.');
         [
             this.cacheManager,
-            this.transformer, this.depsResolver,
-            this.server, this.watcher,
-        ].filter(tool => tool.onExit)
-        .forEach(tool => tool.onExit());
+            this.transformer,
+            this.depsResolver,
+            this.server,
+            this.watcher,
+        ]
+            .filter(tool => tool.onExit)
+            .forEach(tool => tool.onExit());
     }
 
     onForceExit() {
         debug('Instructed to force exit');
         [
             this.cacheManager,
-            this.transformer, this.depsResolver,
-            this.server, this.watcher,
-        ].filter(tool => tool.onForceExit)
-        .forEach(tool => tool.onForceExit());
+            this.transformer,
+            this.depsResolver,
+            this.server,
+            this.watcher,
+        ]
+            .filter(tool => tool.onForceExit)
+            .forEach(tool => tool.onForceExit());
     }
 };
