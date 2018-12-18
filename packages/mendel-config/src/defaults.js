@@ -4,9 +4,9 @@
 const path = require('path');
 
 module.exports = function() {
-    const mendelEnv = process.env.MENDEL_ENV ||
-                      process.env.NODE_ENV ||
-                      'development';
+    const mendelEnv =
+        process.env.MENDEL_ENV || process.env.NODE_ENV || 'development';
+    const mendelIPC = process.env.MENDEL_IPC || '.mendelipc';
     return {
         projectRoot: process.cwd(),
         'base-config': {
@@ -25,9 +25,9 @@ module.exports = function() {
             host: '',
             port: 0,
             // Used for unix socket.
-            path: '.mendelipc',
+            path: mendelIPC,
         },
-        'environment': mendelEnv,
+        environment: mendelEnv,
         'route-config': {
             variation: '/mendel/:variations/:bundle',
             hash: '/mendel/:hash/:bundle',
